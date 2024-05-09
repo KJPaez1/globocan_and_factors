@@ -1,27 +1,84 @@
 ---
 title: "cleaning_and_exploratory"
+title_project: "Cancer epidemiology and "
 format: html
 editor: visual
 ---
+## Literature
 
-## Rodrigo
+### Profiling global cancer incidence and mortality by socioeconomic 
+### development (doi:10.1002/ijc.33114)
+  - 175 countries were included
+  - 27 cancer types were evaluated
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-dim(country_code)
-```
-
-You can add options to executable code like this
+## Load packages
 
 ```{r}
-dim(globocan_incidence)
+library(tidyverse)
+library()
 ```
 
+## Import data
+
 ```{r}
-merged_df <- merge(globocan_incidence, country_code, by = "country_code", all.x = TRUE)
+globocan_mortality <- read_csv("globocan_mortality.csv")
+globocan_mortality <- read_csv("globocan_mortality.csv")
+
+globocan = rbind(globocan_incidence, globocan_mortality)
 ```
+
+## Exploration of the data
+
+```{r}
+dim(globocan) ## [1] 14136 observations
+length(unique(globocan$Country)) ## [1] 186 countries
+length(unique(globocan$`Cancer code`)) ## [1] 39 types of cancer
+
+dim(globocan |> filter(indicator == "incidence")) ## [1] 7068   11
+dim(globocan |> filter(indicator == "mortality")) ## [1] 7068   11
+
+```
+#### Summary
+
+```{r}
+globocan  |> 
+  filter(indicator == "incidence")  |> 
+  summarize(min = min(`ASR (World)`),
+            Q1 = quantile(`ASR (World)`, 0.25),
+            median = median(`ASR (World)`),
+            mean = mean(`ASR (World)`),
+            Q3 = quantile(`ASR (World)`, 0.75),
+            max = max(`ASR (World)`),
+            SD = sd(`ASR (World)`))
+```
+```{r}
+globocan  |> 
+  filter(indicator == "mortality")  |> 
+  summarize(min = min(`ASR (World)`),
+            Q1 = quantile(`ASR (World)`, 0.25),
+            median = median(`ASR (World)`),
+            mean = mean(`ASR (World)`),
+            Q3 = quantile(`ASR (World)`, 0.75),
+            max = max(`ASR (World)`),
+            SD = sd(`ASR (World)`))
+```
+### Filtering
+```{r}
+
+```
+
+
+### Visual inspection
+
+```{r}
+combined_plot <- globocan %>%
+  filter(indicator %in% c("incidence", "mortality")) %>%
+  ggplot(aes(x=`ASR (World)`)) +
+  geom_density() +
+  facet_wrap(~indicator, scales = "free")
+
+print(combined_plot)
+```
+
+
