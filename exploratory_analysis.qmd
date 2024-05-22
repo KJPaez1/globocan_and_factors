@@ -6,79 +6,201 @@ editor: visual
 ---
 ## Literature
 
-### Profiling global cancer incidence and mortality by socioeconomic 
-### development (doi:10.1002/ijc.33114)
+Profiling global cancer incidence and mortality by socioeconomic 
+development (doi:10.1002/ijc.33114)
   - 175 countries were included
   - 27 cancer types were evaluated
 
+Current and future burden of breast cancer: Global statistics for 2020 and 2040
+https://doi.org/10.1016/j.breast.2022.08.010
+  - 185 countries or territories were included
+  - by sex and 18 age groups
+
+Global burden of female breast cancer and its association with socioeconomic development status, 1990–2044
+  - 204 countries
+  - Exposure variables: Metabolic factors and SDI
 
 ## Load packages
 
-```{r}
+```{r include = FALSE}
 library(tidyverse)
-library()
+library(skimr)
+library(janitor)
+library(rstatix)
 ```
 
 ## Import data
 
-```{r}
+```{r include = FALSE}
+## Incidence and cancer mortality
 globocan_mortality <- read_csv("globocan_mortality.csv")
-globocan_mortality <- read_csv("globocan_mortality.csv")
+globocan_incidence <- read_csv("globocan_incidence.csv")
 
-globocan = rbind(globocan_incidence, globocan_mortality)
+## Socioeconomic indicators
+hdi_and_comp_2022 = read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2022.csv")
+hdi_and_comp_2017 = read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2017.csv")
+sdi_2018_to_2021 = read.csv("~/globocan_and_factors/raw_data/SDI_2018to2021.csv")
+
 ```
 
+## Tidying data
+
+### Cancer epidemiology
+```{r}
+globocan = rbind(globocan_incidence, globocan_mortality)
+#globocan$Country <- NULL
+globocan = 
+  globocan |> rename(Country = Label)
+globocan$`Cancer code` = as.character(globocan$`Cancer code`)
+```
+
+### Socioeconomic indicators
+Korea (Democratic People's Rep. of) and Monaco were removed because there was no
+data available regarding HDI and HDI's composites.
+
+The following countries or regions are considered as Developing: Arab States, 
+East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, 
+South Asia, Sub-Saharan Africa.
+
+Cabo verde, France, and Netherlands (as appeared on hdi_andcom_2022) have been changed to 
+Cape verde, France, and The Netherlands (Metropolitan)
+
+Total = World
+Global estimation
+
+#### Filtering countries with both indicator and epidemiological data
+```{r}
+dim(hdi_and_comp_2022) # [1] 194  10
+dim(hdi_and_comp_2017) # [1] 196  10
+dim(sdi_2018_to_2021) # [1] 229   5
+
+sdi_2018_to_2021 =
+  sdi_2018_to_2021 |> rename(Country = Location)  # [1] 229 5
+
+sdi_218_to_2021_0 =
+  sdi_2018_to_2021 |> 
+  filter(sdi_2018_to_2021$Country %in% countries_with_epid_data) ## [1] 159   5
+
+hdi_and_comp_2017_0 = 
+  hdi_and_comp_2017 |>
+  filter(hdi_and_comp_2017$Country %in% countries_with_epid_data)
+
+hdi_and_comp_2022_0 = 
+  hdi_and_comp_2022 |>
+  filter(hdi_and_comp_2022$Country %in% countries_with_epid_data)
+
+dim(hdi_and_comp_2017_0) # [1] 171  10
+dim(hdi_and_comp_2022_0) # [1] 176  10
+dim(sdi_218_to_2021_0) # [1] 158   5
+
+# Countries without indicator data
+setdiff(countries_with_epid_data, sdi_218_to_2021_0$Country) ## correct the names !
+```
 ## Exploration of the data
 
+### Globocan
 ```{r}
 dim(globocan) ## [1] 14136 observations
-length(unique(globocan$Country)) ## [1] 186 countries
+length(unique(globocan$Label)) ## [1] 186 countries
 length(unique(globocan$`Cancer code`)) ## [1] 39 types of cancer
 
 dim(globocan |> filter(indicator == "incidence")) ## [1] 7068   11
 dim(globocan |> filter(indicator == "mortality")) ## [1] 7068   11
-
-```
-#### Summary
-
-```{r}
-globocan  |> 
-  filter(indicator == "incidence")  |> 
-  summarize(min = min(`ASR (World)`),
-            Q1 = quantile(`ASR (World)`, 0.25),
-            median = median(`ASR (World)`),
-            mean = mean(`ASR (World)`),
-            Q3 = quantile(`ASR (World)`, 0.75),
-            max = max(`ASR (World)`),
-            SD = sd(`ASR (World)`))
-```
-```{r}
-globocan  |> 
-  filter(indicator == "mortality")  |> 
-  summarize(min = min(`ASR (World)`),
-            Q1 = quantile(`ASR (World)`, 0.25),
-            median = median(`ASR (World)`),
-            mean = mean(`ASR (World)`),
-            Q3 = quantile(`ASR (World)`, 0.75),
-            max = max(`ASR (World)`),
-            SD = sd(`ASR (World)`))
-```
-### Filtering
-```{r}
-
+skim(globocan)
 ```
 
-
-### Visual inspection
+### HDI and composites
 
 ```{r}
-combined_plot <- globocan %>%
-  filter(indicator %in% c("incidence", "mortality")) %>%
+skim(hdi_edi_and_comp_2022)
+
+hdi_edi_and_comp_2022  |>  
+  count(hdi_category) |> 
+  adorn_totals()  
+```
+## Visual inspection
+
+### HDI and composites
+```{r}
+globocan |>
   ggplot(aes(x=`ASR (World)`)) +
-  geom_density() +
+  geom_histogram() +
+  xlim(0, 100) +
   facet_wrap(~indicator, scales = "free")
 
-print(combined_plot)
+hdi_edi_and_comp_2022 |> ## We need another categorical variable
+  count(hdi_category, Human_Development_Index) |> 
+  ggplot() +
+    geom_col(
+      mapping = aes(   
+        x = hdi_category,
+        fill = hdi_category,         
+        y = n))
+```
+### Globocan
+
+```{r}
+globocan |> ## We need another categorical variable
+  count(hdi_category, Human_Development_Index) |> 
+  ggplot() +
+    geom_col(
+      mapping = aes(   
+        x = hdi_category,
+        fill = hdi_category,         
+        y = n))
+
+globocan |>
+  filter(indicator == "incidence") |> 
+  group_by(`Cancer code`) |>
+  mutate( 
+    quatile = rstatix::get_summary_stats(Number, type = "quantile"))
+  
 ```
 
+
+## Function to calculate Education and Income (EdI) Index
+
+It is based on the study of Lortet-Tieulent et al. (2020). 
+Set values
+test 2. 
+Step 1.
+
+test 1. max_EYS = 20, max_MYS = 15, min_GNI = 100, max_GNI = 75000
+EdI Panama = 0.7225345, 
+EdI Panama = 0.742 (reference)
+
+test 2. max_EYS = 20, max_MYS = 15, min_GNI = 100, max_GNI = 75000
+
+```{r}
+# Define the function to calculate EdI
+calculate_EdI <- function(EYS, MYS, GNI_per_capita, 
+                          max_EYS = 20, max_MYS = 15, 
+                          min_GNI = 100, max_GNI = 75000) {
+  
+  # Normalize education indicators
+  norm_EYS <- EYS / max_EYS
+  norm_MYS <- MYS / max_MYS
+  education_index <- (norm_EYS + norm_MYS) / 2
+  
+  # Normalize GNI per capita
+  norm_GNI <- (log(GNI_per_capita) - log(min_GNI)) / (log(max_GNI) - log(min_GNI))
+  
+  # Calculate EdI
+  EdI <- sqrt(education_index * norm_GNI)
+  
+  return(EdI)
+}
+```
+
+## Calculate EdI
+```{r}
+# Apply the calculate_EdI function to the dataframe
+hdi_edi_and_comp_2022 <- hdi_and_comp_2022 |> 
+  mutate(EdI = calculate_EdI(MYS = Mean_years_of_schooling_y,
+                             EYS = Expected_years_of_schooling_y,
+                             GNI_per_capita = GNI_per_capita_2017PPP_dolar))
+
+# Print the dataframe with the new EdI column
+print(data)
+```
 
