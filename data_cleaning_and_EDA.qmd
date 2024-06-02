@@ -276,4 +276,5 @@ globocan_1 |>
   geom_point() +
   facet_wrap(~indicator,
              scales = "free")
+
 ```
