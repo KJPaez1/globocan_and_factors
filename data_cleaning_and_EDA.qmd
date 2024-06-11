@@ -30,30 +30,37 @@ library(ggpubr)
 ```{r include=FALSE}
 globocan_mortality <- 
   read_csv("~/globocan_and_factors/raw_data/globocan_mortality.csv")
+
 globocan_incidence <- 
   read_csv("~/globocan_and_factors/raw_data/globocan_incidence.csv")
-cancer_code <- 
-  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", stringsAsFactors = T)
+
+cancer_code =
+  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", 
+           stringsAsFactors = T)
 
 hdi_and_comp_2022 = 
   read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2022.csv")
+
 hdi_and_comp_2017 = 
   read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2017.csv")
+
 sdi_2018_to_2021 = 
   read.csv("~/globocan_and_factors/raw_data/sdi_2018_to_2021.csv")
+
+regiones_mundo = 
+  read.delim("~/globocan_and_factors/raw_data/regiones_mundo.txt", 
+             stringsAsFactors = TRUE)
 ```
 
 # Function to calculate Education and Income (EdI) Index
 
-Estimatin of EdI was based on the study of Lortet-Tieulent et al. (2020).
+Estimation of EdI was based on the study of Lortet-Tieulent et al. (2020). For each country, the function below (calculate_EdI) takes as imput: - Expected Years of Scholarity (EYS) - Median Years of Scholarity (MYS) - Gross National Income per capita (GNI)
 
-Set values were as follows: max_EYS = 20, max_MYS = 15, min_GNI = 100, max_GNI = 75000
-
-More exploration needed !
+The function calculate_EdI asummes a max_EYS = 20, max_MYS = 15, min_GNI = 100, and max_GNI = 75000
 
 ```{r}
 # Define the function to calculate EdI
-calculate_EdI <- function(EYS, MYS, GNI_per_capita, 
+calculate_EdI = function(EYS, MYS, GNI_per_capita, 
                           max_EYS = 20, max_MYS = 15, 
                           min_GNI = 100, max_GNI = 75000) {
   
@@ -108,11 +115,12 @@ Total == World Global estimation
 
 ```{r}
 # Apply the calculate_EdI function to the dataframe
-hdi_and_comp_2022_0 <- hdi_and_comp_2022 |> 
-  mutate(Education_and_Income = calculate_EdI(MYS = Mean_years_of_schooling_y,
-                                              EYS = Expected_years_of_schooling_y,
-                                              GNI_per_capita =
-                                                GNI_per_capita_2017PPP_dolar),
+hdi_and_comp_2022_0 = 
+  hdi_and_comp_2022 |>
+  mutate(Education_and_Income = 
+           calculate_EdI(MYS = Mean_years_of_schooling_y,
+                         EYS = Expected_years_of_schooling_y,
+                         GNI_per_capita = GNI_per_capita_2017PPP_dolar),
          edi_categories = case_when(Education_and_Income < .53 ~ "Low",
                                     Education_and_Income >= .53 &
                                       Education_and_Income < .70 ~ "Medium", 
@@ -123,7 +131,11 @@ hdi_and_comp_2022_0 <- hdi_and_comp_2022 |>
 
 ## Exploring the number of countries with socioeconomic indicators
 
-SDI, n = 170 & HDI, n = 175
+Socio Demographic index (SDI), n = 170
+
+Human Development Index (HDI), n = 175
+
+Education and Income (EDI), Index =
 
 ```{r}
 dim(hdi_and_comp_2022) # [1] 200  10
@@ -172,7 +184,8 @@ globocan_2 = clean_names(globocan_2)
 ## Classifying cancers
 
 ```{r}
-globocan_2 <- globocan_2 |>
+globocan_3 <- 
+  globocan_2 |>
   mutate(
     neoplasia_sex = case_when(
       cancer_type == "Lip, oral cavity" ~ "Both",
@@ -225,7 +238,8 @@ globocan_2 <- globocan_2 |>
       cancer_type == "Colorectum" ~ "Adenocarcinoma",
       cancer_type == "Rectum" ~ "Adenocarcinoma",
       cancer_type == "Anus" ~ "Squamous cell/Adenocarcinoma",
-      cancer_type == "Liver and intrahepatic bile ducts" ~ "Hepatocellular/Adenocarcinoma",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ 
+        "Hepatocellular/Adenocarcinoma",
       cancer_type == "Gallbladder" ~ "Squamous cell/Adenocarcinoma",
       cancer_type == "Pancreas" ~ "Adenocarcinoma",
       cancer_type == "Larynx" ~ "Squamous cell carcinoma",
@@ -321,6 +335,11 @@ globocan_2 <- globocan_2 |>
     )
 ```
 
+```{r}
+globocan_3 = globocan_3 |> 
+  left_join(regiones_mundo, by = "country_name")
+
+```
 
 # Exploratory data analysis
 
@@ -362,7 +381,6 @@ edi_labels <- data.frame(edi_categories = c("High", "Low", "Medium", "Very high"
                        label = c("n = 34", "n = 43", "n = 49", "n = 49"))
 ```
 
-
 ```{r}
 globocan_2 |> 
   filter(hdi_category != "") |>
@@ -376,7 +394,6 @@ globocan_2 |>
               x = Inf, y = Inf, hjust = 1.1, vjust = 1.1,
             inherit.aes = FALSE)
 ```
-
 
 ```{r}
 globocan_2 |>
@@ -485,48 +502,108 @@ globocan_2 |>
 ### Scatterplots
 
 ```{r}
-# Global
+# Incidence + mortality vs edi
 globocan_2 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
-  ggplot(aes(education_and_income, asr_world)) +
+  ggplot(aes(education_and_income, asr_world, color = indicator)) +
   geom_point() +
   facet_wrap(~cancer_type, 
              scales = "free")
+
+valid = c("Breast", "Colon", "Prostate")
 
 # Incidence vs edi
 globocan_2 |>
+  filter(indicator == "incidence" & cancer_type %in% valid) |> 
+  ggplot(aes(education_and_income, asr_world, color = cancer_type)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+
+# Incidence + mortality vs hdi
+globocan_2 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  ggplot(aes(human_development_index, asr_world, color = indicator)) +
+  geom_point() +
+  facet_wrap(~indicator, 
+             scales = "free")
+
+globocan_2 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  ggplot(aes(human_development_index, asr_world)) +
+  geom_point() +
+  facet_wrap(~indicator, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+
+# Incidence vs EdI by tumor type
+globocan_2 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(education_and_income, asr_world)) +
-  geom_point() +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized incidence rate") +
   facet_wrap(~cancer_type, 
-             scales = "free")
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           #color = "cornflowerblue", 
+           geom = "label")
 
-# Mortality vs human_development_index
+# Mortality vs EdI by tumor type
 globocan_2 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
-  ggplot(aes(human_development_index, asr_world)) +
-  geom_point() +
+  ggplot(aes(education_and_income, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized mortality rate") +
   facet_wrap(~cancer_type, 
-             scales = "free")
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           #color = "cornflowerblue", 
+           geom = "label")
 
-# Incidence vs human_development_index
+
+# Incidence vs human_development_index by tumor type
 globocan_2 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(human_development_index, asr_world)) +
   geom_point() +
+  labs(y = "Age-standardized incidence rate",
+       x = "Human development index") +
   facet_wrap(~cancer_type, 
-             scales = "free")
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
 
-# Mortality vs edi
+# Mortality vs human_development_index by tumor type
 globocan_2 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(human_development_index, asr_world)) +
   geom_point() +
+  labs(y = "Age-standardized mortality rate",
+       x = "Human development index") +
   facet_wrap(~cancer_type, 
-             scales = "free")
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
 
 ```
