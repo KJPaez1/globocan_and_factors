@@ -607,3 +607,15 @@ globocan_2 |>
            geom = "label")
 
 ```
+
+# Model 3. Generalised additive models
+
+- Main references: 10.1097/CM9.0000000000001814 (Global and regional trends in incidence and mortality of female breast cancer and associated factors at national level in 2000 to 2019). Chinese journal
+
+- https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/generalised-additive-models.html. Background
+
+# Model 4. anova on selected cancer: those with normal distribution
+Step 1: select cancer types
+Step 2: categorize HDI on 5, for comparison (https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf)
+
+
