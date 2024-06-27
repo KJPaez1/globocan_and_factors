@@ -5,11 +5,11 @@ format: html
 editor: visual
 ---
 
-# References
+# Main references
 
--   Profiling global cancer incidence and mortality by socioeconomic development (doi:10.1002/ijc.33114) Here, 175 countries were included and 27 cancer types were evaluated
+-   Profiling global cancer incidence and mortality by socioeconomic development (doi:10.1002/ijc.33114). Here 175 countries were included and 27 cancer types were evaluated
 
--   Current and future burden of breast cancer: Global statistics for 2020 and 2040 https://doi.org/10.1016/j.breast.2022.08.010 - 185 countries or territories were included - by sex and 18 age groups
+-   Current and future burden of breast cancer: Global statistics for 2020 and 2040 https://doi.org/10.1016/j.breast.2022.08.010. 185 countries or territories were included - by sex and 18 age groups
 
 -   Global burden of female breast cancer and its association with socioeconomic development status, 1990–2044 - 204 countries - Exposure variables: Metabolic factors and SDI
 
@@ -28,6 +28,10 @@ library(car)
 ```
 
 # Import data
+
+Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
+
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
 
 ```{r include=FALSE}
 globocan_mortality <- 
@@ -56,9 +60,11 @@ regiones_mundo =
 
 # Function to calculate Education and Income (EdI) Index
 
-Estimation of EdI was based on the study of Lortet-Tieulent et al. (2020). For each country, the function below (calculate_EdI) takes as imput: - Expected Years of Scholarity (EYS) - Median Years of Scholarity (MYS) - Gross National Income per capita (GNI)
+Estimation of EdI was based on the study of Lortet-Tieulent et al. (2020) (https://doi.org/10.1002/ijc.33114). For each country, the function below (calculate_EdI) takes as imput: - Expected Years of Scholarity (EYS) - Median Years of Scholarity (MYS) - Gross National Income per capita (GNI)
 
 The function calculate_EdI asummes a max_EYS = 20, max_MYS = 15, min_GNI = 100, and max_GNI = 75000
+
+Imput data were retrieved from (Junior completalo)
 
 ```{r}
 # Define the function to calculate EdI
@@ -105,9 +111,9 @@ countries_with_epid_data = unique(globocan_0$Country_name)
 
 ## Socioeconomic indicators
 
-Korea (Democratic People's Rep. of) and Monaco were removed because there were no data available regarding HDI and HDI's composites.
+Korea (Democratic People's Rep. of) and Monaco were removed because there were no data available regarding **hdi** and **hdi**'s composites.
 
-The following countries or regions are considered as Developing: Arab States, East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, South Asia, Sub-Saharan Africa.
+The following countries or regions are considered as Developing countries: Arab States, East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, South Asia, Sub-Saharan Africa.
 
 Cabo verde, France, and Netherlands (as appeared on hdi_and_com_2022) have been changed to Cape verde, France (metropolitans), and The Netherlands (Metropolitan)
 
@@ -365,13 +371,13 @@ globocan_3 |>
 
 ```{r}
 hdi_counts <- 
-  globocan_2 |> 
+  globocan_3 |> 
   filter(hdi_category != "") |> 
   distinct(country_name, .keep_all = TRUE) |> 
   count(hdi_category)
 
 edi_counts = 
-  globocan_2 |> 
+  globocan_3 |> 
   filter(edi_categories != "") |> 
   distinct(country_name, .keep_all = TRUE) |> 
   count(edi_categories)
@@ -384,7 +390,7 @@ edi_labels <- data.frame(edi_categories = c("High", "Low", "Medium", "Very high"
 ```
 
 ```{r}
-globocan_2 |> 
+globocan_3 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = human_development_index,
@@ -394,11 +400,13 @@ globocan_2 |>
   theme_minimal() +
   geom_text(aes(label = label), data = hdi_labels,
               x = Inf, y = Inf, hjust = 1.1, vjust = 1.1,
-            inherit.aes = FALSE)
+            inherit.aes = FALSE, 
+            size = 7.5) +
+  theme(text = element_text(size = 20))
 ```
 
 ```{r}
-globocan_2 |>
+globocan_3 |>
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = education_and_income,
@@ -407,13 +415,15 @@ globocan_2 |>
   facet_wrap(~edi_categories, scales = "free") +
   theme_minimal() +
   geom_text(aes(label = label), data = edi_labels,
-              x = Inf, y = Inf, hjust=1.1, vjust=1.1,
-            inherit.aes = FALSE)
+              x = Inf, y = Inf, hjust = 1.1, vjust = 1.1,
+            inherit.aes = FALSE,
+            size = 7.5) +
+  theme(text = element_text(size = 20))
 ```
 
 ```{r}
 hdi_p =
-  globocan_2 |> 
+  globocan_3 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = human_development_index,
@@ -421,10 +431,11 @@ hdi_p =
   geom_histogram(position = "identity", 
                  alpha = .5) +
   labs(x = "Human Development Index") +
-  theme_minimal()
+  theme_minimal() +
+  theme(text = element_text(size = 20))
 
 edi_p = 
-  globocan_2 |> 
+  globocan_3 |> 
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = education_and_income,
@@ -432,7 +443,8 @@ edi_p =
   geom_histogram(position = "identity", 
                  alpha = .5) +
   labs(x = "Education and Income Index") +
-  theme_minimal()
+  theme_minimal() +
+  theme(text = element_text(size = 20))
 
 ggarrange(hdi_p, edi_p, nrow = 2, ncol = 1)
 ```
@@ -615,7 +627,7 @@ Model 2
 Step 1: Select cancer types based on normality test and R squared value
 
 ```{r}
-p_incidence_vs_edi # Plot by cancer type
+incidence_vs_edi # Plot by cancer type
 
 # Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
 # Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
@@ -712,23 +724,23 @@ asr_mor_vs_edi <-
 
 ```
 
-| N°  | Cancer type                         | R\^2 |
-|-----|-------------------------------------|------|
-| 1   | Brain, central nervous system       | 0.43 |
-| 2   | All, excl. non-melanoma skin cancer | 0.6  |
-| 3   | Bladder                             | 0.41 |
-| 4   | Breast                              | 0.63 |
-| 5   | Colon                               | 0.62 |
-| 6   | Colorectum                          | 0.64 |
-| 7   | Corpus uteri                        | 0.45 |
-| 8   | Hodking lymphoma                    | 0.54 |
-| 9   | Kidney (*ckeck*)                    | 0.53 |
-| 10  | Leukemia                            | 0.62 |
-| 11  | Multiple myeloma                    | 0.44 |
-| 12  | Non-hodking lymphoma                | 0.43 |
-| 13  | Pancreas                            | 0.62 |
-| 14  | Rectum                              | 0.45 |
-| 14  | Testis                              | 0.53 |
+| N°  | Cancer type                         | R\^2 | Normality test |
+|-----|-------------------------------------|------|----------------|
+| 1   | Brain, central nervous system       | 0.43 |                |
+| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |
+| 3   | Bladder                             | 0.41 |                |
+| 4   | Breast                              | 0.63 |                |
+| 5   | Colon                               | 0.62 |                |
+| 6   | Colorectum                          | 0.64 |                |
+| 7   | Corpus uteri                        | 0.45 |                |
+| 8   | Hodking lymphoma                    | 0.54 |                |
+| 9   | Kidney (*ckeck*)                    | 0.53 |                |
+| 10  | Leukemia                            | 0.62 |                |
+| 11  | Multiple myeloma                    | 0.44 |                |
+| 12  | Non-hodking lymphoma                | 0.43 |                |
+| 13  | Pancreas                            | 0.62 |                |
+| 14  | Rectum                              | 0.45 |                |
+| 14  | Testis                              | 0.53 |                |
 
 Step 2: categorize indicators on 5 categories if necessary
 
