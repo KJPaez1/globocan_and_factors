@@ -31,19 +31,21 @@ library(car)
 
 Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
 
-Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index
+were retrieved from (Junior completalo !!!)
+
+SDI and quintiles were retrieved from IHME-Global Health Exchange Data:
+https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
 
 ```{r include=FALSE}
+# Epidemiology
 globocan_mortality <- 
   read_csv("~/globocan_and_factors/raw_data/globocan_mortality.csv")
 
 globocan_incidence <- 
   read_csv("~/globocan_and_factors/raw_data/globocan_incidence.csv")
 
-cancer_code =
-  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", 
-           stringsAsFactors = T)
-
+# Sociodemographic indicators
 hdi_and_comp_2022 = 
   read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2022.csv")
 
@@ -53,9 +55,17 @@ hdi_and_comp_2017 =
 sdi_2018_to_2021 = 
   read.csv("~/globocan_and_factors/raw_data/sdi_2018_to_2021.csv")
 
+gdb_sdi_2021_and_quintiles = 
+  read.csv("~/globocan_and_factors/raw_data/ihme_gdb_sdi_2021_and_quintiles.csv")
+
+# Complementary data
 regiones_mundo = 
   read.delim("~/globocan_and_factors/raw_data/regiones_mundo.txt", 
              stringsAsFactors = TRUE)
+
+cancer_code =
+  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", 
+           stringsAsFactors = T)
 ```
 
 # Function to calculate Education and Income (EdI) Index
@@ -116,6 +126,20 @@ Korea (Democratic People's Rep. of) and Monaco were removed because there were n
 The following countries or regions are considered as Developing countries: Arab States, East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, South Asia, Sub-Saharan Africa.
 
 Cabo verde, France, and Netherlands (as appeared on hdi_and_com_2022) have been changed to Cape verde, France (metropolitans), and The Netherlands (Metropolitan)
+Venezuela (Boliarian Republic of) has been changed to Venezuela
+France to France (metropolitan)
+Democratic People's Republic of Korea has been changed to Korea, Democratic People Republic of
+Iran (Islamic Republic of) to Iran, Islamic Republic of
+Democratic Republic of the Congo to Congo, Democratic People Republic of
+Gambia to The Republic of the Gambia
+Netherlands to The Netherlands
+Republic of Korea to Korea, Republic of
+Cabo Verde to Cape Verde
+Republic of Moldova to Moldova
+Bosnia and Herzegovina to Bosnia Herzegovina
+Bolivia (Plurinational State of) to Bolivia
+United Republic of Tanzania to Tanzania, United Republic of
+China (without Hong Kong and Macao) to China
 
 Total == World Global estimation
 
@@ -154,6 +178,15 @@ sdi_2018_to_2021_0 =
   sdi_2018_to_2021 |> 
   filter(sdi_2018_to_2021$Country %in% countries_with_epid_data) ##
 
+gdb_sdi_2021_and_quintiles_0 =
+  gdb_sdi_2021_and_quintiles |> 
+  select(-Location.ID) |>
+  rename(Country_name = "Location.Name",
+         sdi_gdb_2021 = "X2021.SDI.Index.Value",
+         sdi_categories = "SDI.Quintile") |> 
+  filter(gdb_sdi_2021_and_quintiles$Location.Name %in% countries_with_epid_data)
+  
+
 hdi_and_comp_2017_0 = 
   hdi_and_comp_2017 |>
   filter(hdi_and_comp_2017$Country %in% countries_with_epid_data)
@@ -168,7 +201,7 @@ dim(hdi_and_comp_2022_0) # [1] 176  10
 dim(sdi_2018_to_2021_0) # [1] 170   5
 
 # Countries without indicator data
-setdiff(countries_with_epid_data, sdi_2018_to_2021_0$Country)
+setdiff(countries_with_epid_data, gdb_sdi_2021_and_quintiles$Location.Name)
 ```
 
 ## Matching epidemiological data and indicators
@@ -185,15 +218,19 @@ globocan_2 =
   globocan_1 |> 
   left_join(sdi_2018_to_2021_0, by = "Country_name")
 
-colnames(globocan_2) = gsub("\\_y$", "", colnames(globocan_2))
-globocan_2 = clean_names(globocan_2)
+globocan_3 =
+  globocan_2 |> 
+  left_join(gdb_sdi_2021_and_quintiles_0, by = "Country_name")
+
+colnames(globocan_3) = gsub("\\_y$", "", colnames(globocan_3))
+globocan_3 = clean_names(globocan_3)
 ```
 
 ## Classifying cancers
 
 ```{r}
-globocan_3 <- 
-  globocan_2 |>
+globocan_4 <- 
+  globocan_3 |>
   mutate(
     neoplasia_sex = case_when(
       cancer_type == "Lip, oral cavity" ~ "Both",
@@ -344,7 +381,7 @@ globocan_3 <-
 ```
 
 ```{r}
-globocan_3 = globocan_3 |> 
+globocan_5 = globocan_4 |> 
   left_join(regiones_mundo, by = "country_name")
 
 ```
@@ -356,7 +393,7 @@ globocan_3 = globocan_3 |>
 ## Descriptive statistics by indicator
 
 ```{r}
-globocan_3 |>
+globocan_5 |>
   distinct(country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |> # Change as appropiate
   select(asr_world, hdi_category,
@@ -371,13 +408,13 @@ globocan_3 |>
 
 ```{r}
 hdi_counts <- 
-  globocan_3 |> 
+  globocan_5 |> 
   filter(hdi_category != "") |> 
   distinct(country_name, .keep_all = TRUE) |> 
   count(hdi_category)
 
 edi_counts = 
-  globocan_3 |> 
+  globocan_5 |> 
   filter(edi_categories != "") |> 
   distinct(country_name, .keep_all = TRUE) |> 
   count(edi_categories)
@@ -390,7 +427,7 @@ edi_labels <- data.frame(edi_categories = c("High", "Low", "Medium", "Very high"
 ```
 
 ```{r}
-globocan_3 |> 
+globocan_5 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = human_development_index,
@@ -406,7 +443,7 @@ globocan_3 |>
 ```
 
 ```{r}
-globocan_3 |>
+globocan_5 |>
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = education_and_income,
@@ -491,6 +528,9 @@ ggarrange(hdi_cat, hdi_prop,
           ncol = 2,
           nrow = 2)
 ```
+### SDI
+
+
 
 ### Globocan
 
@@ -513,7 +553,7 @@ globocan_2 |>
              scales = "free")
 ```
 
-### qqplot
+### qqplots by cancer type
 
 ```{r}
 globocan_3 |>
@@ -625,7 +665,7 @@ Model 2
 
 
 # Model 4. One-factor ANOVA on selected cancers
--   Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
+Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
 Categorical variables
 - hdi
@@ -636,18 +676,24 @@ Continuous variables
 - Mortality
 - Incidence
 
+pairwise comparisons
+Tamhane T2 test for variables with normal distribution but heterogeneous variances
+------- for 
+
 ## Step 1: Select cancer types based visual inspection, normality test and
 ## R squared value
 
-## Education and Income index (EDI) vs Incidence and Mortality
+### Education and Income index (EDI) vs Incidence and Mortality
 Visual inspection
+
 ```{r}
 p_incidence_vs_edi
-
 ```
 
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by
+cancer type
+
 ```{r}
-# Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
 incid_v_edi <-
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
@@ -772,12 +818,15 @@ Step 3: Re categorize if necessary
 ## Human Development Index (HDI) vs Incidence and Mortality
 
 Visual inspection
-```{r}
-incidence_vs_edi
-```
 
 ```{r}
-# Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+p_incidence_vs_hdi
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by 
+cancer type
+
+```{r}
 incid_v_hdi <-
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
