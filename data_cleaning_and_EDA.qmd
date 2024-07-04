@@ -547,8 +547,8 @@ globocan_3 |>
 
 ```{r}
 # Incidence vs EdI by tumor type
-incidence_vs_edi =
-  globocan_2 |>
+p_incidence_v_edi =
+  globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(education_and_income, asr_world)) +
@@ -563,7 +563,8 @@ incidence_vs_edi =
            geom = "label")
 
 # Mortality vs EdI by tumor type
-globocan_2 |>
+p_mortality_v_edi = 
+  globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(education_and_income, asr_world)) +
@@ -579,7 +580,8 @@ globocan_2 |>
 
 
 # Incidence vs human_development_index by tumor type
-globocan_2 |>
+p_incidence_v_hdi = 
+  globocan_3 |> 
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(human_development_index, asr_world)) +
@@ -595,7 +597,7 @@ globocan_2 |>
            geom = "label")
 
 # Mortality vs human_development_index by tumor type
-globocan_2 |>
+globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(human_development_index, asr_world)) +
@@ -620,18 +622,33 @@ Model 2
 
 -   https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/generalised-additive-models.html. Background
 
+
+
 # Model 4. One-factor ANOVA on selected cancers
+-   Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
-## On incidence
+Categorical variables
+- hdi
+- sdi
+- edi
 
-Step 1: Select cancer types based on normality test and R squared value
+Continuous variables
+- Mortality
+- Incidence
+
+## Step 1: Select cancer types based visual inspection, normality test and
+## R squared value
+
+## Education and Income index (EDI) vs Incidence and Mortality
+Visual inspection
+```{r}
+p_incidence_vs_edi
+
+```
 
 ```{r}
-incidence_vs_edi # Plot by cancer type
-
 # Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
-# Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
-asr_inc_vs_edi <- 
+incid_v_edi <-
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
@@ -677,7 +694,7 @@ asr_inc_vs_edi <-
   ungroup()
 
 
-asr_mor_vs_edi <- 
+stat_mort_v_edi <- 
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "mortality") |>
@@ -721,8 +738,10 @@ asr_mor_vs_edi <-
     }
   }) |>
   ungroup()
-
+View(stat_mort_v_edi)
 ```
+
+Table 1. 
 
 | N°  | Cancer type                         | R\^2 | Normality test |
 |-----|-------------------------------------|------|----------------|
@@ -742,6 +761,116 @@ asr_mor_vs_edi <-
 | 14  | Rectum                              | 0.45 |                |
 | 14  | Testis                              | 0.53 |                |
 
-Step 2: categorize indicators on 5 categories if necessary
+Step 2: Plot results
 
-(https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf)
+
+
+Step 3: Re categorize if necessary
+
+
+
+## Human Development Index (HDI) vs Incidence and Mortality
+
+Visual inspection
+```{r}
+incidence_vs_edi
+```
+
+```{r}
+# Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+incid_v_hdi <-
+  globocan_3 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ hdi_category, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ hdi_category, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+
+stat_mort_v_hdi <- 
+  globocan_3 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ hdi_category, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ hdi_category, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+View(stat_mort_v_hdi)
+```
+
+
+
+
