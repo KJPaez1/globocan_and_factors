@@ -380,10 +380,10 @@ globocan_4 <-
     )
 ```
 
+### Adding world regions
 ```{r}
 globocan_5 = globocan_4 |> 
   left_join(regiones_mundo, by = "country_name")
-
 ```
 
 # Exploratory data analysis
@@ -398,7 +398,7 @@ globocan_5 |>
   filter(indicator == "incidence") |> # Change as appropiate
   select(asr_world, hdi_category,
          education_and_income, human_development_index,
-         sdi_2021) |> 
+         sdi_gdb_2021) |> 
   skim()
 ```
 
@@ -460,7 +460,7 @@ globocan_5 |>
 
 ```{r}
 hdi_p =
-  globocan_3 |> 
+  globocan_5 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = human_development_index,
@@ -472,7 +472,7 @@ hdi_p =
   theme(text = element_text(size = 20))
 
 edi_p = 
-  globocan_3 |> 
+  globocan_5 |> 
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = education_and_income,
@@ -484,11 +484,26 @@ edi_p =
   theme(text = element_text(size = 20))
 
 ggarrange(hdi_p, edi_p, nrow = 2, ncol = 1)
-```
 
+sdi_p = 
+  globocan_5 |> 
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = sdi_gdb_2021,
+             fill = sdi_categories)) +
+  geom_histogram(position = "identity", 
+                 alpha = .5) +
+  labs(x = "Sociodemographic index") +
+  theme_minimal() +
+  theme(text = element_text(size = 20))
+
+ggarrange(hdi_p, edi_p, sdi_p,
+          nrow = 3, ncol = 1)
+```
+### Proportions and counts by categories
 ```{r}
 hdi_cat = 
-  globocan_2 |>
+  globocan_5 |>
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = hdi_category, fill = hdi_category)) + 
@@ -496,7 +511,7 @@ hdi_cat =
   theme_minimal()
 
 hdi_prop = 
-  globocan_2 |>
+  globocan_5 |>
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   count(hdi_category) |> 
@@ -507,14 +522,14 @@ hdi_prop =
   theme_minimal()
 
 edi_cat = 
-  globocan_2 |>
+  globocan_5 |>
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = edi_categories, fill = edi_categories)) + 
   geom_bar(alpha = .4)
 
 edi_prop = 
-  globocan_2 |> 
+  globocan_5 |> 
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   count(edi_categories) |> 
@@ -523,15 +538,30 @@ edi_prop =
              fill = edi_categories)) +
   geom_bar(stat = "identity", alpha = 0.4) 
 
+sdi_cat = 
+  globocan_5 |>
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = sdi_categories, fill = sdi_categories)) + 
+  geom_bar(alpha = .4)
+
+sdi_prop = 
+  globocan_5 |> 
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(sdi_categories) |> 
+  mutate(proportion = n / sum(n))  |> 
+  ggplot(aes(x = sdi_categories, y = proportion,
+             fill = sdi_categories)) +
+  geom_bar(stat = "identity", alpha = 0.4) 
+
+
 ggarrange(hdi_cat, hdi_prop, 
           edi_cat, edi_prop,
+          sdi_cat, sdi_prop,
           ncol = 2,
-          nrow = 2)
+          nrow = 3)
 ```
-### SDI
-
-
-
 ### Globocan
 
 ```{r}
@@ -583,10 +613,9 @@ globocan_3 |>
   theme_minimal()
 ```
 
-### Scatterplots Incidence vs EdI
-
+### Scatterplots epidemiological vs socioeconomic indicator
+Incidence vs EdI by tumor type
 ```{r}
-# Incidence vs EdI by tumor type
 p_incidence_v_edi =
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
@@ -601,8 +630,10 @@ p_incidence_v_edi =
   stat_cor(aes(label = after_stat(rr.label)), 
            #color = "cornflowerblue", 
            geom = "label")
+```
 
-# Mortality vs EdI by tumor type
+Mortality vs EdI by tumor type
+```{r}
 p_mortality_v_edi = 
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
@@ -617,9 +648,11 @@ p_mortality_v_edi =
   stat_cor(aes(label = after_stat(rr.label)), 
            #color = "cornflowerblue", 
            geom = "label")
+```
 
+Incidence vs human_development_index by tumor type
 
-# Incidence vs human_development_index by tumor type
+```{r}
 p_incidence_v_hdi = 
   globocan_3 |> 
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
@@ -635,9 +668,11 @@ p_incidence_v_hdi =
   stat_cor(aes(label = after_stat(rr.label)), 
            color = "cornflowerblue", 
            geom = "label")
+```
 
-# Mortality vs human_development_index by tumor type
-globocan_3 |>
+Mortality vs human_development_index by tumor type
+```{r}
+globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(human_development_index, asr_world)) +
@@ -651,8 +686,28 @@ globocan_3 |>
   stat_cor(aes(label = after_stat(rr.label)), 
            color = "cornflowerblue", 
            geom = "label")
-
 ```
+
+Incidence vs sociodemographics development index by tumor type
+
+```{r}
+p_incidence_v_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(sdi_gdb_2021, asr_world)) +
+  geom_point() +
+  labs(y = "Age-standardized incidence rate",
+       x = "Sociodemographic development index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+```
+
 
 Model 2
 
