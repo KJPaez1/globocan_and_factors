@@ -31,11 +31,9 @@ library(car)
 
 Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
 
-Human Development Index (hdi), hdi composites, and socio demographic (sdi) index
-were retrieved from (Junior completalo !!!)
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
 
-SDI and quintiles were retrieved from IHME-Global Health Exchange Data:
-https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
+SDI and quintiles were retrieved from IHME-Global Health Exchange Data: https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
 
 ```{r include=FALSE}
 # Epidemiology
@@ -125,21 +123,7 @@ Korea (Democratic People's Rep. of) and Monaco were removed because there were n
 
 The following countries or regions are considered as Developing countries: Arab States, East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, South Asia, Sub-Saharan Africa.
 
-Cabo verde, France, and Netherlands (as appeared on hdi_and_com_2022) have been changed to Cape verde, France (metropolitans), and The Netherlands (Metropolitan)
-Venezuela (Boliarian Republic of) has been changed to Venezuela
-France to France (metropolitan)
-Democratic People's Republic of Korea has been changed to Korea, Democratic People Republic of
-Iran (Islamic Republic of) to Iran, Islamic Republic of
-Democratic Republic of the Congo to Congo, Democratic People Republic of
-Gambia to The Republic of the Gambia
-Netherlands to The Netherlands
-Republic of Korea to Korea, Republic of
-Cabo Verde to Cape Verde
-Republic of Moldova to Moldova
-Bosnia and Herzegovina to Bosnia Herzegovina
-Bolivia (Plurinational State of) to Bolivia
-United Republic of Tanzania to Tanzania, United Republic of
-China (without Hong Kong and Macao) to China
+Cabo verde, France, and Netherlands (as appeared on hdi_and_com_2022) have been changed to Cape verde, France (metropolitans), and The Netherlands (Metropolitan) Venezuela (Boliarian Republic of) has been changed to Venezuela France to France (metropolitan) Democratic People's Republic of Korea has been changed to Korea, Democratic People Republic of Iran (Islamic Republic of) to Iran, Islamic Republic of Democratic Republic of the Congo to Congo, Democratic People Republic of Gambia to The Republic of the Gambia Netherlands to The Netherlands Republic of Korea to Korea, Republic of Cabo Verde to Cape Verde Republic of Moldova to Moldova Bosnia and Herzegovina to Bosnia Herzegovina Bolivia (Plurinational State of) to Bolivia United Republic of Tanzania to Tanzania, United Republic of China (without Hong Kong and Macao) to China
 
 Total == World Global estimation
 
@@ -381,6 +365,7 @@ globocan_4 <-
 ```
 
 ### Adding world regions
+
 ```{r}
 globocan_5 = globocan_4 |> 
   left_join(regiones_mundo, by = "country_name")
@@ -500,7 +485,9 @@ sdi_p =
 ggarrange(hdi_p, edi_p, sdi_p,
           nrow = 3, ncol = 1)
 ```
+
 ### Proportions and counts by categories
+
 ```{r}
 hdi_cat = 
   globocan_5 |>
@@ -562,6 +549,7 @@ ggarrange(hdi_cat, hdi_prop,
           ncol = 2,
           nrow = 3)
 ```
+
 ### Globocan
 
 ```{r}
@@ -614,7 +602,9 @@ globocan_3 |>
 ```
 
 ### Scatterplots epidemiological vs socioeconomic indicator
+
 Incidence vs EdI by tumor type
+
 ```{r}
 p_incidence_v_edi =
   globocan_3 |>
@@ -633,6 +623,7 @@ p_incidence_v_edi =
 ```
 
 Mortality vs EdI by tumor type
+
 ```{r}
 p_mortality_v_edi = 
   globocan_3 |>
@@ -671,6 +662,7 @@ p_incidence_v_hdi =
 ```
 
 Mortality vs human_development_index by tumor type
+
 ```{r}
 globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
@@ -708,7 +700,6 @@ p_incidence_v_sdi =
            geom = "label")
 ```
 
-
 Model 2
 
 # Model 3. Generalised additive models
@@ -717,40 +708,29 @@ Model 2
 
 -   https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/generalised-additive-models.html. Background
 
-
-
 # Model 4. One-factor ANOVA on selected cancers
+
 Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
-Categorical variables
-- hdi
-- sdi
-- edi
+Categorical variables - hdi - sdi - edi
 
-Continuous variables
-- Mortality
-- Incidence
+Continuous variables - Mortality - Incidence
 
-pairwise comparisons
-Tamhane T2 test for variables with normal distribution but heterogeneous variances
-------- for 
+pairwise comparisons Tamhane T2 test for variables with normal distribution but heterogeneous variances ------- for
 
 ## Step 1: Select cancer types based visual inspection, normality test and
-## R squared value
 
-### Education and Income index (EDI) vs Incidence and Mortality
+### Education and Income index (EDI) vs Incidence 
+
 Visual inspection
 
 ```{r}
 p_incidence_vs_edi
 ```
 
-Perform ANOVA, extract residuals, test normality and homogeneity of variances by
-cancer type
-
-```{r}
-incid_v_edi <-
-  globocan_3 |>
+```{r include=FALSE}
+stat_incid_v_edi <-
+  globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
   group_by(cancer_type) |>
@@ -794,7 +774,40 @@ incid_v_edi <-
   }) |>
   ungroup()
 
+View(stat_incid_v_edi)
 
+```
+
+**Table 1.** Selected cancers to perform one-way ANOVA
+
+| N°  | Cancer type                         | R\^2 | Normality test |     |
+|-----|-------------------------------------|------|----------------|-----|
+| 1   | Brain, central nervous system       | 0.43 |                |     |
+| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |     |
+| 3   | Bladder                             | 0.41 |                |     |
+| 4   | Breast                              | 0.63 |                |     |
+| 5   | Colon                               | 0.62 |                |     |
+| 6   | Colorectum                          | 0.64 |                |     |
+| 7   | Corpus uteri                        | 0.45 |                |     |
+| 8   | Hodking lymphoma                    | 0.54 |                |     |
+| 9   | Kidney (*ckeck*)                    | 0.53 |                |     |
+| 10  | Leukemia                            | 0.62 |                |     |
+| 11  | Multiple myeloma                    | 0.44 |                |     |
+| 12  | Non-hodking lymphoma                | 0.43 |                |     |
+| 13  | Pancreas                            | 0.62 |                |     |
+| 14  | Rectum                              | 0.45 |                |     |
+| 14  | Testis                              | 0.53 |                |     |
+
+
+### Education and Income index (EDI) vs mortality
+
+Visual inspection
+
+```{r}
+
+```
+
+```{r include=FALSE}
 stat_mort_v_edi <- 
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
@@ -839,49 +852,44 @@ stat_mort_v_edi <-
     }
   }) |>
   ungroup()
+
 View(stat_mort_v_edi)
 ```
 
-Table 1. 
+**Table 1.** Selected cancers to perform one-way ANOVA
 
-| N°  | Cancer type                         | R\^2 | Normality test |
-|-----|-------------------------------------|------|----------------|
-| 1   | Brain, central nervous system       | 0.43 |                |
-| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |
-| 3   | Bladder                             | 0.41 |                |
-| 4   | Breast                              | 0.63 |                |
-| 5   | Colon                               | 0.62 |                |
-| 6   | Colorectum                          | 0.64 |                |
-| 7   | Corpus uteri                        | 0.45 |                |
-| 8   | Hodking lymphoma                    | 0.54 |                |
-| 9   | Kidney (*ckeck*)                    | 0.53 |                |
-| 10  | Leukemia                            | 0.62 |                |
-| 11  | Multiple myeloma                    | 0.44 |                |
-| 12  | Non-hodking lymphoma                | 0.43 |                |
-| 13  | Pancreas                            | 0.62 |                |
-| 14  | Rectum                              | 0.45 |                |
-| 14  | Testis                              | 0.53 |                |
+| N°  | Cancer type                         | R\^2 | Normality test |     |
+|-----|-------------------------------------|------|----------------|-----|
+| 1   | Brain, central nervous system       | 0.43 |                |     |
+| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |     |
+| 3   | Bladder                             | 0.41 |                |     |
+| 4   | Breast                              | 0.63 |                |     |
+| 5   | Colon                               | 0.62 |                |     |
+| 6   | Colorectum                          | 0.64 |                |     |
+| 7   | Corpus uteri                        | 0.45 |                |     |
+| 8   | Hodking lymphoma                    | 0.54 |                |     |
+| 9   | Kidney (*ckeck*)                    | 0.53 |                |     |
+| 10  | Leukemia                            | 0.62 |                |     |
+| 11  | Multiple myeloma                    | 0.44 |                |     |
+| 12  | Non-hodking lymphoma                | 0.43 |                |     |
+| 13  | Pancreas                            | 0.62 |                |     |
+| 14  | Rectum                              | 0.45 |                |     |
+| 14  | Testis                              | 0.53 |                |     |
 
 Step 2: Plot results
 
-
-
 Step 3: Re categorize if necessary
 
-
-
-## Human Development Index (HDI) vs Incidence and Mortality
-
+### Human Development Index (HDI) vs Incidence 
 Visual inspection
 
 ```{r}
 p_incidence_vs_hdi
 ```
 
-Perform ANOVA, extract residuals, test normality and homogeneity of variances by 
-cancer type
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
 
-```{r}
+```{r include=FALSE}
 incid_v_hdi <-
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
@@ -926,8 +934,11 @@ incid_v_hdi <-
     }
   }) |>
   ungroup()
+```
 
+### Human Development Index (HDI) vs Mortality
 
+```{r}
 stat_mort_v_hdi <- 
   globocan_3 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
@@ -972,9 +983,115 @@ stat_mort_v_hdi <-
     }
   }) |>
   ungroup()
+
 View(stat_mort_v_hdi)
 ```
 
+### Sociodemographic index (SDI) vs Incidence 
+Visual inspection
 
+```{r}
+
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+
+```{r}
+stat_incid_v_sdi <-
+  globocan_5 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ sdi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ sdi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+```
+
+### Sociodemographic index (SDI) vs Mortality
+
+```{r}
+stat_mort_v_sdi <- 
+  globocan_5 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ sdi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ sdi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_mort_v_sdi)
+```
 
 
