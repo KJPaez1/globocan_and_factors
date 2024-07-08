@@ -554,7 +554,7 @@ ggarrange(hdi_cat, hdi_prop,
 
 ```{r}
 # Histogram
-globocan_2 |>
+globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |> 
   ggplot(aes(asr_world)) + 
@@ -607,7 +607,7 @@ Incidence vs EdI by tumor type
 
 ```{r}
 p_incidence_v_edi =
-  globocan_3 |>
+  globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(education_and_income, asr_world)) +
@@ -641,11 +641,11 @@ p_mortality_v_edi =
            geom = "label")
 ```
 
-Incidence vs human_development_index by tumor type
+Incidence vs HDI by tumor type
 
 ```{r}
 p_incidence_v_hdi = 
-  globocan_3 |> 
+  globocan_5 |> 
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(human_development_index, asr_world)) +
@@ -661,14 +661,14 @@ p_incidence_v_hdi =
            geom = "label")
 ```
 
-Mortality vs human_development_index by tumor type
+Mortality vs HDI by tumor type
 
 ```{r}
 globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(human_development_index, asr_world)) +
-  geom_point() +
+  geom_point(alpha = 0.05) +
   labs(y = "Age-standardized mortality rate",
        x = "Human development index") +
   facet_wrap(~cancer_type, 
@@ -680,7 +680,7 @@ globocan_5 |>
            geom = "label")
 ```
 
-Incidence vs sociodemographics development index by tumor type
+Incidence vs SDI by tumor type
 
 ```{r}
 p_incidence_v_sdi = 
@@ -688,9 +688,9 @@ p_incidence_v_sdi =
   distinct(cancer_type, country_name, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(sdi_gdb_2021, asr_world)) +
-  geom_point() +
+  geom_point(alpha = 0.5) +
   labs(y = "Age-standardized incidence rate",
-       x = "Sociodemographic development index") +
+       x = "Sociodemographic index") +
   facet_wrap(~cancer_type, 
              scales = "free") +
   geom_smooth(method = "lm",
@@ -700,7 +700,27 @@ p_incidence_v_sdi =
            geom = "label")
 ```
 
-Model 2
+Mortality vs SDI by tumor type
+
+```{r}
+p_incidence_v_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(sdi_gdb_2021, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized incidence rate",
+       x = "Sociodemographic index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+```
+
+
 
 # Model 3. Generalised additive models
 
@@ -712,20 +732,18 @@ Model 2
 
 Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
-Categorical variables - hdi - sdi - edi
+Categorical variables: hdi, sdi, edi Continuous variables: Mortality, Incidence
 
-Continuous variables - Mortality - Incidence
+Pairwise comparisons Tamhane T2 test for variables with normal distribution but heterogeneous variances ------- for
 
-pairwise comparisons Tamhane T2 test for variables with normal distribution but heterogeneous variances ------- for
+## Step 1: Select cancer types based visual inspection and normality test
 
-## Step 1: Select cancer types based visual inspection, normality test and
-
-### Education and Income index (EDI) vs Incidence 
+### Education and Income index (EDI) vs Incidence
 
 Visual inspection
 
 ```{r}
-p_incidence_vs_edi
+p_incidence_v_edi
 ```
 
 ```{r include=FALSE}
@@ -775,41 +793,36 @@ stat_incid_v_edi <-
   ungroup()
 
 View(stat_incid_v_edi)
-
 ```
 
-**Table 1.** Selected cancers to perform one-way ANOVA
+**Table 1.** Selection of cancer types and statistics for incidence vs edi
 
-| N°  | Cancer type                         | R\^2 | Normality test |     |
-|-----|-------------------------------------|------|----------------|-----|
-| 1   | Brain, central nervous system       | 0.43 |                |     |
-| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |     |
-| 3   | Bladder                             | 0.41 |                |     |
-| 4   | Breast                              | 0.63 |                |     |
-| 5   | Colon                               | 0.62 |                |     |
-| 6   | Colorectum                          | 0.64 |                |     |
-| 7   | Corpus uteri                        | 0.45 |                |     |
-| 8   | Hodking lymphoma                    | 0.54 |                |     |
-| 9   | Kidney (*ckeck*)                    | 0.53 |                |     |
-| 10  | Leukemia                            | 0.62 |                |     |
-| 11  | Multiple myeloma                    | 0.44 |                |     |
-| 12  | Non-hodking lymphoma                | 0.43 |                |     |
-| 13  | Pancreas                            | 0.62 |                |     |
-| 14  | Rectum                              | 0.45 |                |     |
-| 14  | Testis                              | 0.53 |                |     |
-
+| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|------|--------------|-------|----------|-----------|------------|------------|
+| 1   | All cancers excl. non-melanoma skin cancer | 0.6  | 0.155           | 0.683          | \<0.001        |     |
+| 2   | Breast                                     | 0.63 | 0.449           | 0.282          | \<0.001        |     |
+| 3   | Hodking Lymphoma                           | 0.54 | 0.570           | 0.182          | \<0.001        |     |
+| 4   | *Larynx*                                   | 0.1  | 0.055           | 0.086          | \<0.001        |     |
+| 5   | Leukaemia                                  | 0.62 | 0.598           | 0.167          | \<0.001        |     |
+| 6   | Prostate                                   | 0.23 | 0.106           | 0.210          | \<0.001        |     |
+| 7   | Trachea, bronchus and lung                 | 0.43 | 0.620           | 0.092          | \<0.001        |     |
+| 8   | Colorectum                                 | 0.64 | 0.090           | 0.002          | \<0.001        |     |
+| 9   | Non-hodking lymphoma                       | 0.43 | 0.975           | 0.001          | \<0.001        |     |
+| 10  | Pancreas                                   | 0.62 | 0.204           | 0.017          | \<0.001        |     |
+| 11  | Rectum                                     | 0.45 | 0.397           | \<0.001        | \<0.001        |     |
+| 12  |                                            |      |                 |                |                |     |
 
 ### Education and Income index (EDI) vs mortality
 
 Visual inspection
 
 ```{r}
-
+p_mortality_v_edi
 ```
 
 ```{r include=FALSE}
 stat_mort_v_edi <- 
-  globocan_3 |>
+  globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "mortality") |>
   group_by(cancer_type) |>
@@ -856,31 +869,25 @@ stat_mort_v_edi <-
 View(stat_mort_v_edi)
 ```
 
-**Table 1.** Selected cancers to perform one-way ANOVA
+**Table 2.** Selection of cancer types and statistics for mortality vs edi
 
-| N°  | Cancer type                         | R\^2 | Normality test |     |
-|-----|-------------------------------------|------|----------------|-----|
-| 1   | Brain, central nervous system       | 0.43 |                |     |
-| 2   | All, excl. non-melanoma skin cancer | 0.6  |                |     |
-| 3   | Bladder                             | 0.41 |                |     |
-| 4   | Breast                              | 0.63 |                |     |
-| 5   | Colon                               | 0.62 |                |     |
-| 6   | Colorectum                          | 0.64 |                |     |
-| 7   | Corpus uteri                        | 0.45 |                |     |
-| 8   | Hodking lymphoma                    | 0.54 |                |     |
-| 9   | Kidney (*ckeck*)                    | 0.53 |                |     |
-| 10  | Leukemia                            | 0.62 |                |     |
-| 11  | Multiple myeloma                    | 0.44 |                |     |
-| 12  | Non-hodking lymphoma                | 0.43 |                |     |
-| 13  | Pancreas                            | 0.62 |                |     |
-| 14  | Rectum                              | 0.45 |                |     |
-| 14  | Testis                              | 0.53 |                |     |
+| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | All cancers excl. non-melanoma skin cancer |      |                 |                |                |     |
+| 2   |                                            |      |                 |                |                |     |
+| 3   |                                            |      |                 |                |                |     |
+| 4   |                                            |      |                 |                |                |     |
+| 5   |                                            |      |                 |                |                |     |
+| 6   |                                            |      |                 |                |                |     |
+| 7   |                                            |      |                 |                |                |     |
+| 8   |                                            |      |                 |                |                |     |
+| 9   |                                            |      |                 |                |                |     |
+| 10  |                                            |      |                 |                |                |     |
+| 11  |                                            |      |                 |                |                |     |
+| 12  |                                            |      |                 |                |                |     |
 
-Step 2: Plot results
+### Human Development Index (HDI) vs Incidence
 
-Step 3: Re categorize if necessary
-
-### Human Development Index (HDI) vs Incidence 
 Visual inspection
 
 ```{r}
@@ -891,7 +898,7 @@ Perform ANOVA, extract residuals, test normality and homogeneity of variances by
 
 ```{r include=FALSE}
 incid_v_hdi <-
-  globocan_3 |>
+  globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
   group_by(cancer_type) |>
@@ -940,7 +947,7 @@ incid_v_hdi <-
 
 ```{r}
 stat_mort_v_hdi <- 
-  globocan_3 |>
+  globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "mortality") |>
   group_by(cancer_type) |>
@@ -987,7 +994,8 @@ stat_mort_v_hdi <-
 View(stat_mort_v_hdi)
 ```
 
-### Sociodemographic index (SDI) vs Incidence 
+### Sociodemographic index (SDI) vs Incidence
+
 Visual inspection
 
 ```{r}
@@ -1093,5 +1101,3 @@ stat_mort_v_sdi <-
 
 View(stat_mort_v_sdi)
 ```
-
-
