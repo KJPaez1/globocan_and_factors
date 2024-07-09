@@ -550,25 +550,54 @@ ggarrange(hdi_cat, hdi_prop,
           nrow = 3)
 ```
 
-### Globocan
+### Histogram of the distribution of incidence and mortality
 
 ```{r}
-# Histogram
+
+mean_incidence <- globocan_5 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  summarise(mean_asr_world = mean(asr_world, na.rm = TRUE))
+
 globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |> 
   ggplot(aes(asr_world)) + 
   geom_histogram() +
   facet_wrap(~cancer_type,
-             scales = "free")
+             scales = "free") +
+  geom_vline(data = mean_data, 
+             aes(xintercept = mean_asr_world), 
+             color = "salmon", 
+             linetype = "dashed", 
+             size = 2) +
+  labs(x = "Count", 
+       y = "Age-standarized incidence rate")
 
-globocan_2 |>
+
+mean_mortality = 
+  globocan_5 |>
+  distinct(cancer_type, country_name, .keep_all = TRUE) |>
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  summarise(mean_asr_world = mean(asr_world, na.rm = TRUE))
+
+globocan_5 |>
   distinct(cancer_type, country_name, .keep_all = TRUE) |> 
   filter(indicator == "mortality") |> 
   ggplot(aes(asr_world)) + 
   geom_histogram() +
   facet_wrap(~cancer_type,
-             scales = "free")
+             scales = "free") +
+  geom_vline(data = mean_data, 
+             aes(xintercept = mean_asr_world), 
+             color = "salmon", 
+             linetype = "dashed", 
+             size = 1) +
+  labs(x = "Count", 
+       y = "Age-standarized mortality rate")
+
 ```
 
 ### qqplots by cancer type
@@ -582,8 +611,7 @@ globocan_3 |>
   stat_qq_line() + 
   facet_wrap(~ cancer_type,
              scales = "free") + 
-  labs(title = "QQ Plots by Cancer Type", 
-       x = "Theoretical Quantiles", 
+  labs(x = "Theoretical Quantiles", 
        y = "Sample Quantiles") + 
   theme_minimal()
 
@@ -595,8 +623,7 @@ globocan_3 |>
   stat_qq_line() + 
   facet_wrap(~ cancer_type,
              scales = "free") + 
-  labs(title = "QQ Plots by Cancer Type", 
-       x = "Theoretical Quantiles", 
+  labs(x = "Theoretical Quantiles", 
        y = "Sample Quantiles") + 
   theme_minimal()
 ```
@@ -722,13 +749,17 @@ p_incidence_v_sdi =
 
 
 
-# Model 3. Generalised additive models
+# Model 2. Simple linear regression
 
--   Main references: 10.1097/CM9.0000000000001814 (Global and regional trends in incidence and mortality of female breast cancer and associated factors at national level in 2000 to 2019). Chinese journal
 
--   https://bookdown.org/ssjackson300/Machine-Learning-Lecture-Notes/generalised-additive-models.html. Background
 
-# Model 4. One-factor ANOVA on selected cancers
+
+
+
+
+
+
+# Model 3. One-factor ANOVA on selected cancers
 
 Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
