@@ -25,6 +25,8 @@ library(rstatix)
 library(ggpubr)
 library(broom)  
 library(car)
+library(tidymodels)
+library(performance)
 ```
 
 # Import data
@@ -140,7 +142,7 @@ hdi_and_comp_2022_0 =
          edi_categories = case_when(Education_and_Income < .53 ~ "Low",
                                     Education_and_Income >= .53 &
                                       Education_and_Income < .70 ~ "Medium", 
-                                    Education_and_Income > .70 &
+                                    Education_and_Income >= .70 &
                                       Education_and_Income < .80 ~ "High",
                                     Education_and_Income >= .80 ~ "Very high"))
 ```
@@ -743,11 +745,75 @@ p_incidence_v_sdi =
   geom_smooth(method = "lm",
               se = F) +
   stat_cor(aes(label = after_stat(rr.label)), 
-           color = "cornflowerblue", 
+           color = "salmon", 
            geom = "label")
 ```
 
+# Model 1. Splines
+
 # Model 2. Simple linear regression
+
+## Step one: fit the simple linear model grouped by cancer_type
+
+https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions
+
+https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
+
+### human development index
+
+```{r}
+slm_hdi <- function(data) {
+  lm(asr_world ~ human_development_index, data = data)
+}
+```
+
+Incidence
+
+```{r}
+models <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_hdi))
+
+summarized = models  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary)
+
+summarized = summarized |> select(-data, -model)
+```
+
+Mortality
+
+```{r}
+models <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_hdi))
+
+summarized = models  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary)
+
+summarized = summarized |> select(-data, -model)
+```
+
+
+```{r}
+lm_spec <- linear_reg() |> 
+  set_mode("regression") |> 
+  set_engine("lm")
+
+lm_fit <- fit(lm_spec, asr_world ~ human_development_index, data = incid)
+
+lm_fit %>%
+  check_model()
+```
 
 # Model 3. One-factor ANOVA on selected cancers
 
@@ -770,7 +836,7 @@ p_incidence_v_edi
 ```{r include=FALSE}
 stat_incid_v_edi <-
   globocan_5 |>
-  distinct(cancer_type, country_name, indicator, indicator, .keep_all = TRUE) |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
   group_by(cancer_type) |>
   do({
@@ -918,7 +984,7 @@ p_incidence_vs_hdi
 Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
 
 ```{r include=FALSE}
-incid_v_hdi <-
+stat_incid_v_hdi <-
   globocan_5 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
@@ -962,6 +1028,8 @@ incid_v_hdi <-
     }
   }) |>
   ungroup()
+
+View(stat_incid_v_hdi)
 ```
 
 ### Human Development Index (HDI) vs Mortality
@@ -1070,6 +1138,8 @@ stat_incid_v_sdi <-
     }
   }) |>
   ungroup()
+
+View(stat_incid_v_sdi)
 ```
 
 ### Sociodemographic index (SDI) vs Mortality
