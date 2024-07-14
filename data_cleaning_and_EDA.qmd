@@ -379,13 +379,13 @@ globocan_5 = globocan_4 |>
 
 ## Descriptive statistics by indicator
 
+
 ```{r}
 globocan_5 |>
   distinct(country_name, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |> # Change as appropiate
-  select(asr_world, hdi_category,
-         education_and_income, human_development_index,
-         sdi_gdb_2021) |> 
+  select(asr_world,education_and_income, 
+         human_development_index, sdi_gdb_2021) |> 
   skim()
 ```
 
@@ -678,7 +678,7 @@ p_incidence_v_hdi =
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
   ggplot(aes(human_development_index, asr_world)) +
-  geom_point() +
+  geom_point(alpha = 0.5) +
   labs(y = "Age-standardized incidence rate",
        x = "Human development index") +
   facet_wrap(~cancer_type, 
@@ -693,11 +693,12 @@ p_incidence_v_hdi =
 Mortality vs HDI by tumor type
 
 ```{r}
-globocan_5 |>
+p_incidence_v_hdi = 
+  globocan_5 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "mortality") |> 
   ggplot(aes(human_development_index, asr_world)) +
-  geom_point(alpha = 0.05) +
+  geom_point(alpha = 0.5) +
   labs(y = "Age-standardized mortality rate",
        x = "Human development index") +
   facet_wrap(~cancer_type, 
@@ -770,7 +771,7 @@ slm_hdi <- function(data) {
 Incidence
 
 ```{r}
-models <- 
+slm_hdi_inc <- 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
@@ -778,17 +779,15 @@ models <-
   nest() |> 
   mutate(model = map(data, slm_hdi))
 
-summarized = models  |> 
+summarized_hi = models  |> 
   mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary)
-
-summarized = summarized |> select(-data, -model)
+  unnest(summary) |> select(-data, -model)
 ```
 
 Mortality
 
 ```{r}
-models <- 
+mod_hdi_mort <- 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "incidence") |> 
@@ -796,11 +795,10 @@ models <-
   nest() |> 
   mutate(model = map(data, slm_hdi))
 
-summarized = models  |> 
+summarized_hm = models  |> 
   mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary)
-
-summarized = summarized |> select(-data, -model)
+  unnest(summary) |> 
+  select(-data, -model)
 ```
 
 
