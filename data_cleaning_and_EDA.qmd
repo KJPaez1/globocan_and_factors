@@ -379,7 +379,6 @@ globocan_5 = globocan_4 |>
 
 ## Descriptive statistics by indicator
 
-
 ```{r}
 globocan_5 |>
   distinct(country_name, .keep_all = TRUE) |> 
@@ -801,13 +800,17 @@ summarized_hm = models  |>
   select(-data, -model)
 ```
 
-
 ```{r}
+bc_inc = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence" & cancer_type == "Breast")
+
 lm_spec <- linear_reg() |> 
   set_mode("regression") |> 
   set_engine("lm")
 
-lm_fit <- fit(lm_spec, asr_world ~ human_development_index, data = incid)
+lm_fit <- fit(lm_spec, asr_world ~ human_development_index, data = bc_inc)
 
 lm_fit %>%
   check_model()
