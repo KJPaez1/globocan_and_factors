@@ -800,12 +800,17 @@ summarized_hm = models  |>
   select(-data, -model)
 ```
 
+## Step two: Check model assumptions by cancer types
+
+### Subset cancers
 ```{r}
 bc_inc = 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "incidence" & cancer_type == "Breast")
+```
 
+```{r}
 lm_spec <- linear_reg() |> 
   set_mode("regression") |> 
   set_engine("lm")
