@@ -29,7 +29,9 @@ pacman::p_load(
   tidymodels,
   performance,
   rio, 
-  here)
+  here,
+  janitor,
+  splines)
 ```
 
 # Import data
@@ -41,32 +43,30 @@ Human Development Index (hdi), hdi composites, and socio demographic (sdi) index
 SDI and quintiles were retrieved from IHME-Global Health Exchange Data: https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
 
 ```{r include=FALSE}
-clean_data <- import(here("data", "hdi_and_composites_2022.csv"))
 # Epidemiology
-globocan_mortality <- import(here("data", "globocan_mortality.csv"))
+globocan_mortality <-
+  import(here("data", "raw", "globocan_mortality.csv"))
 
-globocan_incidence <- import(here("data", "globocan_incidence.csv"))
+globocan_incidence <-
+  import(here("data", "raw", "globocan_incidence.csv"))
 
 # Sociodemographic indicators
-hdi_and_comp_2022 <- import(here("data", "hdi_and_composites_2022.csv"))
+hdi_and_comp_2022 <-
+  import(here("data", "raw", "hdi_and_composites_2022.csv"))
 
-hdi_and_comp_2017 = 
-  read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2017.csv")
+hdi_and_comp_2017 <-
+  import(here("data", "raw", "hdi_and_composites_2017.csv"))
 
-sdi_2018_to_2021 = 
-  read.csv("~/globocan_and_factors/raw_data/sdi_2018_to_2021.csv")
+sdi_2018_to_2021 <-
+  import(here("data", "raw", "sdi_2018_to_2021.csv"))
 
-gdb_sdi_2021_and_quintiles = 
-  read.csv("~/globocan_and_factors/raw_data/ihme_gdb_sdi_2021_and_quintiles.csv")
+gdb_sdi_2021_and_quintiles <-
+  import(here("data", "raw", "ihme_gdb_sdi_2021_and_quintiles.csv"))
 
 # Complementary data
-regiones_mundo = 
-  read.delim("~/globocan_and_factors/raw_data/regiones_mundo.txt", 
-             stringsAsFactors = TRUE)
+regiones_mundo <- import(here("data", "raw", "regiones_mundo.txt"))
 
-cancer_code =
-  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", 
-           stringsAsFactors = T)
+cancer_code <- import(here("data", "raw", "cancer_code.csv"))
 ```
 
 # Function to calculate Education and Income (EdI) Index
@@ -160,18 +160,19 @@ Education and Income (EDI), Index =
 dim(hdi_and_comp_2022) # [1] 200  10
 dim(hdi_and_comp_2017) # [1] 196  10
 dim(sdi_2018_to_2021) # [1] 229   5
-
-sdi_2018_to_2021_0 =
+sdi_2018_to_2021_0 <-
   sdi_2018_to_2021 |> 
   filter(sdi_2018_to_2021$Country %in% countries_with_epid_data) ##
 
+gdb_sdi_2021_and_quintiles <- gdb_sdi_2021_and_quintiles |> janitor::clean_names()
+
 gdb_sdi_2021_and_quintiles_0 =
   gdb_sdi_2021_and_quintiles |> 
-  select(-Location.ID) |>
-  rename(Country_name = "Location.Name",
-         sdi_gdb_2021 = "X2021.SDI.Index.Value",
-         sdi_categories = "SDI.Quintile") |> 
-  filter(gdb_sdi_2021_and_quintiles$Location.Name %in% countries_with_epid_data)
+  select(-location_id) |>
+  rename(Country_name = "location_name",
+         sdi_gdb_2021 = "x2021_sdi_index_value",
+         sdi_categories = "sdi_quintile") |> 
+  filter(gdb_sdi_2021_and_quintiles$location_name %in% countries_with_epid_data)
   
 
 hdi_and_comp_2017_0 = 
@@ -753,25 +754,98 @@ p_incidence_v_sdi =
 # Model 1. Simple linear regression
 
 ```{r}
+data_test <- globocan_5 |>
+  dplyr::filter(cancer_type == "Breast" & indicator == "incidence")
+```
 
+```{r}
+model <- lm(education_and_income ~ asr_world, data = data_test)
+
+a <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    col = "dodgerblue1") +
+  theme_light()
+a
 ```
 
 # Model 2. Logarithmic models
 
 ```{r}
+model_log <- lm(education_and_income ~ log(asr_world), data = data_test)
 
+b <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ log(x),
+    se = FALSE,
+    col = "dodgerblue1") +
+  theme_light()
+b
 ```
 
 # Model 3. Polynomial models
 
 ```{r}
+model_poly_quadratic <- lm(education_and_income ~ asr_world + I(asr_world^2), data = data_test)
 
+c <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x + I(x ^ 2), 
+    se = FALSE,
+    col = "dodgerblue1") +
+  theme_light()
+c
+```
+
+```{r}
+model_poly_cubic <- lm(education_and_income ~ asr_world + I(asr_world^2) + I(asr_world^3),
+                       data = data_test)
+
+d <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x + I(x ^ 2) + I(x ^ 3), 
+    se = FALSE,
+    col = "dodgerblue1") +
+  theme_light()
+d
 ```
 
 # Model 4. Polynomial models with splines
 
 ```{r}
+test <- data_test |>
+  dplyr::select(education_and_income, asr_world)
+plot(test, pch=19, ylim=c(0, 15), las=1)
+abline(v=0.55, lty="dotted", col='tomato')
+abline(v=0-85, lty="dotted", col='tomato')
+text(x=0.55, y=0.3, 't=0.55', col='tomato')
+text(x=0-85, y=0.3, 't=0.55', col='tomato')
+```
 
+```{r}
+model_spline_1_knot <- lm(education_and_income ~ ns(asr_world, df = 1), data_test)
+
+plot(data_test$asr_world, data_test$education_and_income, main = "Spline Regression")
+lines(data_test$asr_world, predict(model_spline_1_knot), col = "red", lwd = 2)
+legend("topright", legend = "Fitted Spline", col = "red", lwd = 2)
+
+d <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x + I(x ^ 2) + I(x ^ 3), 
+    se = FALSE,
+    col = "dodgerblue1") +
+  theme_light()
 ```
 
 ## Step one: fit the simple linear model grouped by cancer_type
