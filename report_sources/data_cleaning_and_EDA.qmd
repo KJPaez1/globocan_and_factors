@@ -1,0 +1,1214 @@
+---
+title: "cleaning_and_exploratory"
+title_project: "Cancer epidemiology and "
+format: html
+editor: source
+---
+
+# Main references
+
+-   Profiling global cancer incidence and mortality by socioeconomic development (doi:10.1002/ijc.33114). Here 175 countries were included and 27 cancer types were evaluated
+
+-   Current and future burden of breast cancer: Global statistics for 2020 and 2040 https://doi.org/10.1016/j.breast.2022.08.010. 185 countries or territories were included - by sex and 18 age groups
+
+-   Global burden of female breast cancer and its association with socioeconomic development status, 1990–2044 - 204 countries - Exposure variables: Metabolic factors and SDI
+
+-   Global and regional trends in incidence and mortality of female breast cancer and associated factors at national level in 2000 to 2019 (10.1097/CM9.0000000000001814)
+
+# Load packages
+
+```{r include = FALSE}
+pacman::p_load(
+  tidyverse,
+  skimr, 
+  janitor,
+  rstatix,
+  ggpubr,
+  broom,
+  car,
+  tidymodels,
+  performance,
+  rio, 
+  here)
+```
+
+# Import data
+
+Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
+
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
+
+SDI and quintiles were retrieved from IHME-Global Health Exchange Data: https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
+
+```{r include=FALSE}
+clean_data <- import(here("data", "hdi_and_composites_2022.csv"))
+# Epidemiology
+globocan_mortality <- import(here("data", "globocan_mortality.csv"))
+
+globocan_incidence <- import(here("data", "globocan_incidence.csv"))
+
+# Sociodemographic indicators
+hdi_and_comp_2022 <- import(here("data", "hdi_and_composites_2022.csv"))
+
+hdi_and_comp_2017 = 
+  read.csv("~/globocan_and_factors/raw_data/hdi_and_composites_2017.csv")
+
+sdi_2018_to_2021 = 
+  read.csv("~/globocan_and_factors/raw_data/sdi_2018_to_2021.csv")
+
+gdb_sdi_2021_and_quintiles = 
+  read.csv("~/globocan_and_factors/raw_data/ihme_gdb_sdi_2021_and_quintiles.csv")
+
+# Complementary data
+regiones_mundo = 
+  read.delim("~/globocan_and_factors/raw_data/regiones_mundo.txt", 
+             stringsAsFactors = TRUE)
+
+cancer_code =
+  read.csv("~/globocan_and_factors/raw_data/cancer_code.csv", 
+           stringsAsFactors = T)
+```
+
+# Function to calculate Education and Income (EdI) Index
+
+Estimation of EdI was based on the study of Lortet-Tieulent et al. (2020) (https://doi.org/10.1002/ijc.33114). For each country, the function below (calculate_EdI) takes as imput: - Expected Years of Scholarity (EYS) - Median Years of Scholarity (MYS) - Gross National Income per capita (GNI)
+
+The function calculate_EdI asummes a max_EYS = 20, max_MYS = 15, min_GNI = 100, and max_GNI = 75000
+
+Imput data were retrieved from (Junior completalo)
+
+```{r}
+# Define the function to calculate EdI
+calculate_EdI = function(EYS, MYS, GNI_per_capita, 
+                          max_EYS = 20, max_MYS = 15, 
+                          min_GNI = 100, max_GNI = 75000) {
+  
+  # Normalize education indicators
+  norm_EYS <- EYS / max_EYS
+  norm_MYS <- MYS / max_MYS
+  education_index <- (norm_EYS + norm_MYS) / 2
+  
+  # Normalize GNI per capita
+  norm_GNI <- (log(GNI_per_capita) - log(min_GNI)) / (log(max_GNI) - log(min_GNI))
+  
+  # Calculate EdI
+  EdI <- sqrt(education_index * norm_GNI)
+  
+  return(EdI)
+}
+```
+
+# Tidying data
+
+## Epidemiological data
+
+Overall, 185 countries have incidence and mortality data
+
+```{r include=FALSE}
+globocan = clean_names(rbind(globocan_incidence, globocan_mortality))
+cancer_code = clean_names(cancer_code)
+
+
+globocan_0 <- merge(globocan, cancer_code, by = "cancer_code", all.x = TRUE)
+
+globocan_0 = 
+  globocan_0 |>
+  rename(cancer_type = "label.y",
+        Country_name = "label.x") |>
+  filter(Country_name != "Total") 
+
+countries_with_epid_data = unique(globocan_0$Country_name)
+```
+
+## Socioeconomic indicators
+
+Korea (Democratic People's Rep. of) and Monaco were removed because there were no data available regarding **hdi** and **hdi**'s composites.
+
+The following countries or regions are considered as Developing countries: Arab States, East Asia and the Pacific, Europe and Central Asia, Latin America and the Caribbean, South Asia, Sub-Saharan Africa.
+
+Cabo verde, France, and Netherlands (as appeared on hdi_and_com_2022) have been changed to Cape verde, France (metropolitans), and The Netherlands (Metropolitan) Venezuela (Boliarian Republic of) has been changed to Venezuela France to France (metropolitan) Democratic People's Republic of Korea has been changed to Korea, Democratic People Republic of Iran (Islamic Republic of) to Iran, Islamic Republic of Democratic Republic of the Congo to Congo, Democratic People Republic of Gambia to The Republic of the Gambia Netherlands to The Netherlands Republic of Korea to Korea, Republic of Cabo Verde to Cape Verde Republic of Moldova to Moldova Bosnia and Herzegovina to Bosnia Herzegovina Bolivia (Plurinational State of) to Bolivia United Republic of Tanzania to Tanzania, United Republic of China (without Hong Kong and Macao) to China
+
+Total == World Global estimation
+
+## Calculation and categorization of Education and Income (EdI) Index
+
+```{r}
+# Apply the calculate_EdI function to the dataframe
+hdi_and_comp_2022_0 = 
+  hdi_and_comp_2022 |>
+  mutate(Education_and_Income = 
+           calculate_EdI(MYS = Mean_years_of_schooling_y,
+                         EYS = Expected_years_of_schooling_y,
+                         GNI_per_capita = GNI_per_capita_2017PPP_dolar),
+         edi_categories = case_when(Education_and_Income < .53 ~ "Low",
+                                    Education_and_Income >= .53 &
+                                      Education_and_Income < .70 ~ "Medium", 
+                                    Education_and_Income >= .70 &
+                                      Education_and_Income < .80 ~ "High",
+                                    Education_and_Income >= .80 ~ "Very high"))
+```
+
+## Exploring the number of countries with socioeconomic indicators
+
+Socio Demographic index (SDI), n = 170
+
+Human Development Index (HDI), n = 175
+
+Education and Income (EDI), Index =
+
+```{r}
+dim(hdi_and_comp_2022) # [1] 200  10
+dim(hdi_and_comp_2017) # [1] 196  10
+dim(sdi_2018_to_2021) # [1] 229   5
+
+sdi_2018_to_2021_0 =
+  sdi_2018_to_2021 |> 
+  filter(sdi_2018_to_2021$Country %in% countries_with_epid_data) ##
+
+gdb_sdi_2021_and_quintiles_0 =
+  gdb_sdi_2021_and_quintiles |> 
+  select(-Location.ID) |>
+  rename(Country_name = "Location.Name",
+         sdi_gdb_2021 = "X2021.SDI.Index.Value",
+         sdi_categories = "SDI.Quintile") |> 
+  filter(gdb_sdi_2021_and_quintiles$Location.Name %in% countries_with_epid_data)
+  
+
+hdi_and_comp_2017_0 = 
+  hdi_and_comp_2017 |>
+  filter(hdi_and_comp_2017$Country %in% countries_with_epid_data)
+
+hdi_and_comp_2022_0 = 
+  hdi_and_comp_2022_0 |>
+  filter(hdi_and_comp_2022_0$Country %in% countries_with_epid_data) |> 
+  rename(Country_name = "Country")
+
+dim(hdi_and_comp_2017_0) # [1] 171  10
+dim(hdi_and_comp_2022_0) # [1] 176  10
+dim(sdi_2018_to_2021_0) # [1] 170   5
+
+# Countries without indicator data
+setdiff(countries_with_epid_data, gdb_sdi_2021_and_quintiles$Location.Name)
+```
+
+## Matching epidemiological data and indicators
+
+```{r}
+sdi_2018_to_2021_0 = 
+  sdi_2018_to_2021_0 |> 
+  rename(Country_name = "Country")
+
+globocan_1 = globocan_0 %>%
+  left_join(hdi_and_comp_2022_0, by = "Country_name")
+
+globocan_2 = 
+  globocan_1 |> 
+  left_join(sdi_2018_to_2021_0, by = "Country_name")
+
+globocan_3 =
+  globocan_2 |> 
+  left_join(gdb_sdi_2021_and_quintiles_0, by = "Country_name")
+
+colnames(globocan_3) = gsub("\\_y$", "", colnames(globocan_3))
+globocan_3 = clean_names(globocan_3)
+```
+
+## Classifying cancers
+
+```{r}
+globocan_4 <- 
+  globocan_3 |>
+  mutate(
+    neoplasia_sex = case_when(
+      cancer_type == "Lip, oral cavity" ~ "Both",
+      cancer_type == "Salivary glands" ~ "Both",
+      cancer_type == "Oropharynx" ~ "Both",
+      cancer_type == "Nasopharynx" ~ "Both",
+      cancer_type == "Hypopharynx" ~ "Both",
+      cancer_type == "Oesophagus" ~ "Both",
+      cancer_type == "Stomach" ~ "Both",
+      cancer_type == "Colon" ~ "Both",
+      cancer_type == "Rectum" ~ "Both",
+      cancer_type == "Anus" ~ "Both",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ "Both",
+      cancer_type == "Gallbladder" ~ "Both",
+      cancer_type == "Pancreas" ~ "Both",
+      cancer_type == "Larynx" ~ "Both",
+      cancer_type == "Trachea, bronchus and lung" ~ "Both",
+      cancer_type == "Melanoma of skin" ~ "Both",
+      cancer_type == "Non-melanoma skin cancer" ~ "Both",
+      cancer_type == "Mesothelioma" ~ "Both",
+      cancer_type == "Kaposi sarcoma" ~ "Both",
+      cancer_type == "Breast" ~ "Both",
+      cancer_type == "Vulva" ~ "Female",
+      cancer_type == "Vagina" ~ "Female",
+      cancer_type == "Cervix uteri" ~ "Female",
+      cancer_type == "Ovary" ~ "Female",
+      cancer_type == "Corpus uteri" ~ "Female",
+      cancer_type == "Penis" ~ "Male",
+      cancer_type == "Prostate" ~ "Male",
+      cancer_type == "Testis" ~ "Male",
+      cancer_type == "Kidney" ~ "Both",
+      cancer_type == "Bladder" ~ "Both",
+      cancer_type == "Thyroid" ~ "Both",
+      cancer_type == "Hodgkin lymphoma" ~ "Both",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Both",
+      cancer_type == "Multiple myeloma" ~ "Both",
+      cancer_type == "Leukaemia" ~ "Both",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Both",
+      cancer_type == "Colorectum" ~ "Both",
+      cancer_type == " Brain, central nervous system" ~ "Both"),
+    tumor_types = case_when(
+      cancer_type == "Lip, oral cavity" ~ "Squamous cell carcinoma",
+      cancer_type == "Salivary glands" ~ "Adenocarcinoma",
+      cancer_type == "Oropharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Nasopharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Hypopharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Oesophagus" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Stomach" ~ "Adenocarcinoma",
+      cancer_type == "Colon" ~ "Adenocarcinoma",
+      cancer_type == "Colorectum" ~ "Adenocarcinoma",
+      cancer_type == "Rectum" ~ "Adenocarcinoma",
+      cancer_type == "Anus" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ 
+        "Hepatocellular/Adenocarcinoma",
+      cancer_type == "Gallbladder" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Pancreas" ~ "Adenocarcinoma",
+      cancer_type == "Larynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Trachea, bronchus and lung" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Melanoma of skin" ~ "Melanoma",
+      cancer_type == "Non-melanoma skin cancer" ~ "Squamous/basal cell carcinoma",
+      cancer_type == "Mesothelioma" ~ "Mesothelioma",
+      cancer_type == "Kaposi sarcoma" ~ "Sarcoma",
+      cancer_type == "Breast" ~ "Adenocarcinoma",
+      cancer_type == "Vulva" ~ "Squamous cell carcinoma",
+      cancer_type == "Vagina" ~ "Squamous cell carcinoma",
+      cancer_type == "Cervix uteri" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Ovary" ~ "Adenocarcinoma",
+      cancer_type == "Corpus uteri" ~ "Adenocarcinoma",
+      cancer_type == "Penis" ~ "Squamous cell carcinoma",
+      cancer_type == "Prostate" ~ "Adenocarcinoma",
+      cancer_type == "Testis" ~ "Adenocarcinoma",
+      cancer_type == "Kidney" ~ "Adenocarcinoma",
+      cancer_type == "Bladder" ~ "Urothelial carcinoma",
+      cancer_type == "Thyroid" ~ "Adenocarcinoma",
+      cancer_type == "Hodgkin lymphoma" ~ "Lymphoma",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Lymphoma",
+      cancer_type == "Multiple myeloma" ~ "Myeloma",
+      cancer_type == "Leukaemia" ~ "Leukaemia",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Others",
+      cancer_type == " Brain, central nervous system" ~ "Brain and spinal cord cancers"),
+    malignant_neoplasms_types = case_when(
+      cancer_type == "Lip, oral cavity" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Salivary glands" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Oropharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Nasopharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Hypopharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Oesophagus" ~ "Digestive organs",
+      cancer_type == "Stomach" ~ "Digestive organs",
+      cancer_type == "Colon" ~ "Digestive organs",
+      cancer_type == "Colorectum" ~ "Digestive organs",
+      cancer_type == "Rectum" ~ "Digestive organs",
+      cancer_type == "Anus" ~ "Digestive organs",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ "Digestive organs",
+      cancer_type == "Gallbladder" ~ "Digestive organs",
+      cancer_type == "Pancreas" ~ "Digestive organs",
+      cancer_type == "Larynx" ~ "Respiratory and intrathoracic organs",
+      cancer_type == "Trachea, bronchus and lung" ~ "Respiratory and intrathoracic organs",
+      cancer_type == "Melanoma of skin" ~ "Melanoma and other malignant neoplasms of skin",
+      cancer_type == "Non-melanoma skin cancer" ~ "Melanoma and other malignant neoplasms of skin",
+      cancer_type == "Mesothelioma" ~ "Mesothelial and soft tissue",
+      cancer_type == "Kaposi sarcoma" ~ "Mesothelial and soft tissue",
+      cancer_type == "Breast" ~ "Breast",
+      cancer_type == "Vulva" ~ "Female genital organs",
+      cancer_type == "Vagina" ~ "Female genital organs",
+      cancer_type == "Cervix uteri" ~ "Female genital organs",
+      cancer_type == "Ovary" ~ "Female genital organs",
+      cancer_type == "Corpus uteri" ~ "Female genital organs",
+      cancer_type == "Penis" ~ "Male genital organs",
+      cancer_type == "Prostate" ~ "Male genital organs",
+      cancer_type == "Testis" ~ "Male genital organs",
+      cancer_type == "Kidney" ~ "Urinary tract",
+      cancer_type == "Bladder" ~ "Urinary tract",
+      cancer_type == "Thyroid" ~ "Thyroid and other endocrine glands",
+      cancer_type == "Hodgkin lymphoma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Multiple myeloma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Leukaemia" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Other of skin and independent multiple sites",
+      cancer_type == " Brain, central nervous system" ~ "Eye, brain and other parts of central nervous system"),
+    number_quartiles = case_when(
+      indicator == "incidence" & number <= 31.00 ~ "incidence_Q1",
+      indicator == "incidence" & number > 31.00 & number <= 195.00 ~ "incidence_Q2",
+      indicator == "incidence" & number > 195.00 & number <= 1088.25 ~ "incidence_Q3",
+      indicator == "incidence" & number > 1088.25 & number <= 4775419.00 ~ "incidence_Q4",
+      indicator == "mortality" & number <= 19.00 ~ "mortality_Q1",
+      indicator == "mortality" & number > 19.00 & number <= 112.00 ~ "mortality_Q2",
+      indicator == "mortality" & number > 112.00 & number <= 635.75 ~ "mortality_Q3",
+      indicator == "mortality" & number > 635.75 & number <= 2560612.00 ~ "mortality_Q4"),
+    asr_world_quartiles = case_when(
+      indicator == "incidence" & asr_world <= 0.65 ~ "incidence_Q1",
+      indicator == "incidence" & asr_world > 0.65 & asr_world <= 2.50 ~ "incidence_Q2",
+      indicator == "incidence" & asr_world > 2.50 & asr_world <= 7.20 ~ "incidence_Q3",
+      indicator == "incidence" & asr_world > 7.20 & asr_world <= 349.80 ~ "incidence_Q4",
+      indicator == "mortality" & asr_world <= 0.31 ~ "mortality_Q1",
+      indicator == "mortality" & asr_world > 0.31 & asr_world <= 1.50 ~ "mortality_Q2",
+      indicator == "mortality" & asr_world > 1.50 & asr_world <= 4.10 ~ "mortality_Q3",
+      indicator == "mortality" & asr_world > 4.10 & asr_world <= 181.30 ~ "mortality_Q4"),
+    crude_rate_quartiles = case_when(
+      indicator == "incidence" & crude_rate <= 0.64 ~ "incidence_Q1",
+      indicator == "incidence" & crude_rate > 0.64 & crude_rate <= 2.40 ~ "incidence_Q2",
+      indicator == "incidence" & crude_rate > 2.40 & crude_rate <= 9.60 ~ "incidence_Q3",
+      indicator == "incidence" & crude_rate > 9.60 & crude_rate <= 790.60 ~ "incidence_Q4",
+      indicator == "mortality" & crude_rate <= 0.33 ~ "mortality_Q1",
+      indicator == "mortality" & crude_rate > 0.33 & crude_rate <= 1.40 ~ "mortality_Q2",
+      indicator == "mortality" & crude_rate > 1.40 & crude_rate <= 5.90 ~ "mortality_Q3",
+      indicator == "mortality" & crude_rate > 5.90 & crude_rate <= 338.40 ~ "mortality_Q4")
+    )
+```
+
+### Adding world regions
+
+```{r}
+globocan_5 = globocan_4 |> 
+  left_join(regiones_mundo, by = "country_name")
+```
+
+# Exploratory data analysis
+
+## Globocan
+
+## Descriptive statistics by indicator
+
+```{r}
+globocan_5 |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |> # Change as appropiate
+  select(asr_world, hdi_category,
+         education_and_income, human_development_index,
+         sdi_gdb_2021) |> 
+  skim()
+```
+
+## Visual inspection
+
+### HDI and composites
+
+```{r}
+hdi_counts <- 
+  globocan_5 |> 
+  filter(hdi_category != "") |> 
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(hdi_category)
+
+edi_counts = 
+  globocan_5 |> 
+  filter(edi_categories != "") |> 
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(edi_categories)
+
+hdi_labels <- data.frame(hdi_category = c("High", "Low", "Medium", "Very high"), 
+                       label = c("n = 42", "n = 33", "n = 38", "n = 62"))
+
+edi_labels <- data.frame(edi_categories = c("High", "Low", "Medium", "Very high"), 
+                       label = c("n = 34", "n = 43", "n = 49", "n = 49"))
+```
+
+```{r}
+globocan_5 |> 
+  filter(hdi_category != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = human_development_index,
+             fill = hdi_category)) +
+  geom_histogram(alpha = 0.5) +
+  facet_wrap(~hdi_category, scales = "free") +
+  theme_minimal() +
+  geom_text(aes(label = label), data = hdi_labels,
+              x = Inf, y = Inf, hjust = 1.1, vjust = 1.1,
+            inherit.aes = FALSE, 
+            size = 7.5) +
+  theme(text = element_text(size = 20))
+```
+
+```{r}
+globocan_5 |>
+  filter(edi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = education_and_income,
+             fill = edi_categories)) +
+  geom_histogram(alpha = 0.5) +
+  facet_wrap(~edi_categories, scales = "free") +
+  theme_minimal() +
+  geom_text(aes(label = label), data = edi_labels,
+              x = Inf, y = Inf, hjust = 1.1, vjust = 1.1,
+            inherit.aes = FALSE,
+            size = 7.5) +
+  theme(text = element_text(size = 20))
+```
+
+```{r}
+hdi_p =
+  globocan_5 |> 
+  filter(hdi_category != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = human_development_index,
+             fill = hdi_category)) +
+  geom_histogram(position = "identity", 
+                 alpha = .5) +
+  labs(x = "Human Development Index") +
+  theme_minimal() +
+  theme(text = element_text(size = 20))
+
+edi_p = 
+  globocan_5 |> 
+  filter(edi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = education_and_income,
+             fill = edi_categories)) +
+  geom_histogram(position = "identity", 
+                 alpha = .5) +
+  labs(x = "Education and Income Index") +
+  theme_minimal() +
+  theme(text = element_text(size = 20))
+
+ggarrange(hdi_p, edi_p, nrow = 2, ncol = 1)
+
+sdi_p = 
+  globocan_5 |> 
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = sdi_gdb_2021,
+             fill = sdi_categories)) +
+  geom_histogram(position = "identity", 
+                 alpha = .5) +
+  labs(x = "Sociodemographic index") +
+  theme_minimal() +
+  theme(text = element_text(size = 20))
+
+ggarrange(hdi_p, edi_p, sdi_p,
+          nrow = 3, ncol = 1)
+```
+
+### Proportions and counts by categories
+
+```{r}
+hdi_cat = 
+  globocan_5 |>
+  filter(hdi_category != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = hdi_category, fill = hdi_category)) + 
+  geom_bar(alpha = 0.4) +
+  theme_minimal()
+
+hdi_prop = 
+  globocan_5 |>
+  filter(hdi_category != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(hdi_category) |> 
+  mutate(proportion = n / sum(n))  |> 
+  ggplot(aes(x = hdi_category, y = proportion,
+             fill = hdi_category)) +
+  geom_bar(stat = "identity", alpha = 0.4) +
+  theme_minimal()
+
+edi_cat = 
+  globocan_5 |>
+  filter(edi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = edi_categories, fill = edi_categories)) + 
+  geom_bar(alpha = .4)
+
+edi_prop = 
+  globocan_5 |> 
+  filter(edi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(edi_categories) |> 
+  mutate(proportion = n / sum(n))  |> 
+  ggplot(aes(x = edi_categories, y = proportion,
+             fill = edi_categories)) +
+  geom_bar(stat = "identity", alpha = 0.4) 
+
+sdi_cat = 
+  globocan_5 |>
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  ggplot(aes(x = sdi_categories, fill = sdi_categories)) + 
+  geom_bar(alpha = .4)
+
+sdi_prop = 
+  globocan_5 |> 
+  filter(sdi_categories != "") |>
+  distinct(country_name, .keep_all = TRUE) |> 
+  count(sdi_categories) |> 
+  mutate(proportion = n / sum(n))  |> 
+  ggplot(aes(x = sdi_categories, y = proportion,
+             fill = sdi_categories)) +
+  geom_bar(stat = "identity", alpha = 0.4) 
+
+
+ggarrange(hdi_cat, hdi_prop, 
+          edi_cat, edi_prop,
+          sdi_cat, sdi_prop,
+          ncol = 2,
+          nrow = 3)
+```
+
+### Histogram of the distribution of incidence and mortality
+
+```{r}
+
+mean_incidence <- globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  summarise(mean_asr_world = mean(asr_world, na.rm = TRUE))
+
+globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |> 
+  ggplot(aes(asr_world)) + 
+  geom_histogram() +
+  facet_wrap(~cancer_type,
+             scales = "free") +
+  geom_vline(data = mean_incidence, 
+             aes(xintercept = mean_asr_world), 
+             color = "salmon", 
+             linetype = "dashed", 
+             size = 2) +
+  labs(x = "Count", 
+       y = "Age-standarized incidence rate")
+
+
+mean_mortality = 
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  summarise(mean_asr_world = mean(asr_world, na.rm = TRUE))
+
+globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |> 
+  ggplot(aes(asr_world)) + 
+  geom_histogram() +
+  facet_wrap(~cancer_type,
+             scales = "free") +
+  geom_vline(data = mean_mortality, 
+             aes(xintercept = mean_asr_world), 
+             color = "salmon", 
+             linetype = "dashed", 
+             size = 1) +
+  labs(x = "Count", 
+       y = "Age-standarized mortality rate")
+
+```
+
+### qqplots by cancer type
+
+```{r}
+globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  ggplot(aes(sample = asr_world)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  facet_wrap(~ cancer_type,
+             scales = "free") + 
+  labs(x = "Theoretical Quantiles", 
+       y = "Sample Quantiles") + 
+  theme_minimal()
+
+globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  ggplot(aes(sample = asr_world)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  facet_wrap(~ cancer_type,
+             scales = "free") + 
+  labs(x = "Theoretical Quantiles", 
+       y = "Sample Quantiles") + 
+  theme_minimal()
+```
+
+### Scatterplots epidemiological vs socioeconomic indicator
+
+Incidence vs EdI by tumor type
+
+```{r}
+p_incidence_v_edi =
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(education_and_income, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized incidence rate") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           #color = "cornflowerblue", 
+           geom = "label")
+```
+
+Mortality vs EdI by tumor type
+
+```{r}
+p_mortality_v_edi = 
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "mortality") |> 
+  ggplot(aes(education_and_income, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized mortality rate") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           #color = "cornflowerblue", 
+           geom = "label")
+```
+
+Incidence vs HDI by tumor type
+
+```{r}
+p_incidence_v_hdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(human_development_index, asr_world)) +
+  geom_point() +
+  labs(y = "Age-standardized incidence rate",
+       x = "Human development index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+```
+
+Mortality vs HDI by tumor type
+
+```{r}
+globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "mortality") |> 
+  ggplot(aes(human_development_index, asr_world)) +
+  geom_point(alpha = 0.05) +
+  labs(y = "Age-standardized mortality rate",
+       x = "Human development index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+```
+
+Incidence vs SDI by tumor type
+
+```{r}
+p_incidence_v_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(sdi_gdb_2021, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized incidence rate",
+       x = "Sociodemographic index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "cornflowerblue", 
+           geom = "label")
+```
+
+Mortality vs SDI by tumor type
+
+```{r}
+p_incidence_v_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(sdi_gdb_2021, asr_world)) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Age-standardized incidence rate",
+       x = "Sociodemographic index") +
+  facet_wrap(~cancer_type, 
+             scales = "free") +
+  geom_smooth(method = "lm",
+              se = F) +
+  stat_cor(aes(label = after_stat(rr.label)), 
+           color = "salmon", 
+           geom = "label")
+```
+
+# Model 1. Simple linear regression
+
+```{r}
+
+```
+
+# Model 2. Logarithmic models
+
+```{r}
+
+```
+
+# Model 3. Polynomial models
+
+```{r}
+
+```
+
+# Model 4. Polynomial models with splines
+
+```{r}
+
+```
+
+## Step one: fit the simple linear model grouped by cancer_type
+
+https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions
+
+https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
+
+### human development index
+
+```{r}
+slm_hdi <- function(data) {
+  lm(asr_world ~ human_development_index, data = data)
+}
+```
+
+Incidence
+
+```{r}
+models <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_hdi))
+
+summarized = models  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary)
+
+summarized = summarized |> select(-data, -model)
+```
+
+Mortality
+
+```{r}
+models <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_hdi))
+
+summarized = models  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary)
+
+summarized = summarized |> select(-data, -model)
+```
+
+```{r}
+lm_spec <- linear_reg() |> 
+  set_mode("regression") |> 
+  set_engine("lm")
+
+lm_fit <- fit(lm_spec, asr_world ~ human_development_index, data = incid)
+
+lm_fit %>%
+  check_model()
+```
+
+# Model 3. One-factor ANOVA on selected cancers
+
+Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
+
+Categorical variables: hdi, sdi, edi Continuous variables: Mortality, Incidence
+
+Pairwise comparisons Tamhane T2 test for variables with normal distribution but heterogeneous variances ------- for
+
+## Step 1: Select cancer types based visual inspection and normality test
+
+### Education and Income index (EDI) vs Incidence
+
+Visual inspection
+
+```{r}
+p_incidence_v_edi
+```
+
+```{r include=FALSE}
+stat_incid_v_edi <-
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ edi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ edi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_incid_v_edi)
+```
+
+**Table 1.** Selection of cancer types and statistics for incidence vs edi
+
+| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|---------|-------------------|---------|---------|---------|---------|---------|
+| 1   | All cancers excl. non-melanoma skin cancer | 0.6  | 0.155           | 0.683          | \<0.001        |     |
+| 2   | Breast                                     | 0.63 | 0.449           | 0.282          | \<0.001        |     |
+| 3   | Hodking Lymphoma                           | 0.54 | 0.570           | 0.182          | \<0.001        |     |
+| 4   | *Larynx*                                   | 0.1  | 0.055           | 0.086          | \<0.001        |     |
+| 5   | Leukaemia                                  | 0.62 | 0.598           | 0.167          | \<0.001        |     |
+| 6   | Prostate                                   | 0.23 | 0.106           | 0.210          | \<0.001        |     |
+| 7   | Trachea, bronchus and lung                 | 0.43 | 0.620           | 0.092          | \<0.001        |     |
+| 8   | Colorectum                                 | 0.64 | 0.090           | 0.002          | \<0.001        |     |
+| 9   | Non-hodking lymphoma                       | 0.43 | 0.975           | 0.001          | \<0.001        |     |
+| 10  | Pancreas                                   | 0.62 | 0.204           | 0.017          | \<0.001        |     |
+| 11  | Rectum                                     | 0.45 | 0.397           | \<0.001        | \<0.001        |     |
+| 12  |                                            |      |                 |                |                |     |
+
+### Education and Income index (EDI) vs mortality
+
+Visual inspection
+
+```{r}
+p_mortality_v_edi
+```
+
+```{r include=FALSE}
+stat_mort_v_edi <- 
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ edi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ edi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_mort_v_edi)
+```
+
+**Table 2.** Selection of cancer types and statistics for mortality vs edi
+
+| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|---------|-------------------|---------|---------|---------|---------|---------|
+| 1   | All cancers excl. non-melanoma skin cancer |      |                 |                |                |     |
+| 2   |                                            |      |                 |                |                |     |
+| 3   |                                            |      |                 |                |                |     |
+| 4   |                                            |      |                 |                |                |     |
+| 5   |                                            |      |                 |                |                |     |
+| 6   |                                            |      |                 |                |                |     |
+| 7   |                                            |      |                 |                |                |     |
+| 8   |                                            |      |                 |                |                |     |
+| 9   |                                            |      |                 |                |                |     |
+| 10  |                                            |      |                 |                |                |     |
+| 11  |                                            |      |                 |                |                |     |
+| 12  |                                            |      |                 |                |                |     |
+
+### Human Development Index (HDI) vs Incidence
+
+Visual inspection
+
+```{r}
+p_incidence_vs_hdi
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+
+```{r include=FALSE}
+stat_incid_v_hdi <-
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ hdi_category, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ hdi_category, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_incid_v_hdi)
+```
+
+### Human Development Index (HDI) vs Mortality
+
+```{r}
+stat_mort_v_hdi <- 
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ hdi_category, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ hdi_category, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_mort_v_hdi)
+```
+
+### Sociodemographic index (SDI) vs Incidence
+
+Visual inspection
+
+```{r}
+
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+
+```{r}
+stat_incid_v_sdi <-
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ sdi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ sdi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_incid_v_sdi)
+```
+
+### Sociodemographic index (SDI) vs Mortality
+
+```{r}
+stat_mort_v_sdi <- 
+  globocan_5 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality") |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ sdi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ sdi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_mort_v_sdi)
+```
