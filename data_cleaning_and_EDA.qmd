@@ -27,6 +27,8 @@ library(broom)
 library(car)
 library(tidymodels)
 library(performance)
+library(feathers)
+library(ggbeeswarm)
 ```
 
 # Import data
@@ -759,7 +761,49 @@ https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions
 
 https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
 
-### human development index
+### Education and Income index (edi)
+
+```{r}
+slm_edi <- function(data) {
+  lm(asr_world ~ education_and_income, data = data)
+}
+```
+
+Incidence
+
+```{r}
+slm_edi_inc <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_edi))
+
+summarized_ei = slm_edi_inc  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary) |> 
+  select(-data, -model)
+```
+
+Mortality
+
+```{r}
+mod_edi_mort <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_edi))
+
+summarized_em = mod_edi_mort  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary) |> 
+  select(-data, -model)
+```
+
+### human development index (hdi)
 
 ```{r}
 slm_hdi <- function(data) {
@@ -778,7 +822,7 @@ slm_hdi_inc <-
   nest() |> 
   mutate(model = map(data, slm_hdi))
 
-summarized_hi = models  |> 
+summarized_hi = slm_hdi_inc  |> 
   mutate(summary = map(model, broom::glance)) %>%
   unnest(summary) |> select(-data, -model)
 ```
@@ -800,9 +844,51 @@ summarized_hm = models  |>
   select(-data, -model)
 ```
 
+### Sociodemographic index
+
+```{r}
+slm_sdi <- function(data) {
+  lm(asr_world ~ sdi_gdb_2021, data = data)
+}
+```
+
+Incidence
+
+```{r}
+slm_sdi_inc <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_sdi))
+
+summarized_si = slm_sdi_inc  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary) |> select(-data, -model)
+```
+
+Mortality
+
+```{r}
+mod_sdi_mort <- 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  filter(indicator == "incidence") |> 
+  group_by(cancer_type) |> 
+  nest() |> 
+  mutate(model = map(data, slm_sdi))
+
+summarized_sm = mod_sdi_mort  |> 
+  mutate(summary = map(model, broom::glance)) %>%
+  unnest(summary) |> 
+  select(-data, -model)
+```
+
 ## Step two: Check model assumptions by cancer types
 
-### Subset cancers
+### Subset cancers with
+
 ```{r}
 bc_inc = 
   globocan_5 |> 
@@ -891,7 +977,7 @@ View(stat_incid_v_edi)
 **Table 1.** Selection of cancer types and statistics for incidence vs edi
 
 | N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+|---------|-------------------|---------|---------|---------|---------|---------|
 | 1   | All cancers excl. non-melanoma skin cancer | 0.6  | 0.155           | 0.683          | \<0.001        |     |
 | 2   | Breast                                     | 0.63 | 0.449           | 0.282          | \<0.001        |     |
 | 3   | Hodking Lymphoma                           | 0.54 | 0.570           | 0.182          | \<0.001        |     |
@@ -965,7 +1051,7 @@ View(stat_mort_v_edi)
 **Table 2.** Selection of cancer types and statistics for mortality vs edi
 
 | N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+|---------|-------------------|---------|---------|---------|---------|---------|
 | 1   | All cancers excl. non-melanoma skin cancer |      |                 |                |                |     |
 | 2   |                                            |      |                 |                |                |     |
 | 3   |                                            |      |                 |                |                |     |
@@ -1197,4 +1283,147 @@ stat_mort_v_sdi <-
   ungroup()
 
 View(stat_mort_v_sdi)
+```
+
+## Plotting
+
+Adjusting colours
+
+```{r}
+palette_colors <- get_pal("plains_wanderer")
+my_palette <- palette_colors[c(2:length(palette_colors), 1)]
+```
+
+```{r}
+cancers_for_anova = globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(cancer_type %in% c(" Brain, central nervous system", "Breast")) |>
+  filter(edi_categories != "NA" & hdi_category != "NA" & sdi_categories != "NA" & sdi_categories != "") |> 
+  mutate(edi_categories = 
+           factor(edi_categories, 
+                  levels = c("Low", "Medium", "High", "Very high")),
+         hdi_category = 
+           factor(hdi_category, 
+                  levels = c("Low", "Medium", "High", "Very high")),
+         sdi_categories = 
+           factor(sdi_categories, 
+                  levels = c("Low", "Low-middle", "Middle", "High-middle", "High")))
+```
+
+### Brain, central nervous system
+
+```{r}
+boxplot_bcns_inc_edi = 
+  cancers_for_anova |> 
+  filter(indicator == "incidence" & cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
+  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 1, 1), "cm"),
+        axis.title.y = element_text(margin = margin(r = 20))) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bcns_inc_hdi = 
+  cancers_for_anova |>
+  filter(indicator == "incidence", cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
+  labs(x = "", y = "") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 1, 1), "cm")) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bcns_inc_sdi = 
+  cancers_for_anova |>
+  filter(indicator == "incidence", cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
+  labs(x = "", y = "") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 1, 1), "cm"),
+        axis.title.x = element_text(margin = margin(t = 20))) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bcns_mort_edi = 
+  cancers_for_anova |> 
+  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
+  labs(x = "Education and Income index", y = "Age-Standarized mortality Rate (per 100,000)") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
+        axis.title.x = element_text(margin = margin(t = 20)),
+        axis.title.y = element_text(margin = margin(r = 20))) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bcns_mort_hdi = 
+  cancers_for_anova |>
+  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
+  labs(x = "Human develepment index", y = "") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
+        axis.title.x = element_text(margin = margin(t = 20))) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bcns_mort_sdi = 
+  cancers_for_anova |>
+  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
+  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
+  labs(x = "Sociodemographic index", y = "") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 23) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
+        axis.title.x = element_text(margin = margin(t = 20))) +
+  scale_colour_manual(values = my_palette)
+
+ggarrange(boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi, 
+          boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi)
+```
+
+### Breast cancer
+
+```{r}
+boxplot_bc_edi = 
+  breast_cancer |> 
+  filter(indicator == "incidence") |> 
+  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
+  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 22) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bc_hdi = 
+  breast_cancer |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
+  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 22) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
+  scale_colour_manual(values = my_palette)
+
+boxplot_bc_sdi = 
+  breast_cancer |>
+  filter(indicator == "incidence") |> 
+  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
+  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
+  geom_beeswarm(size = 6, alpha = 0.8) + 
+  theme_classic(base_size = 22) +
+  theme(legend.position = "none",
+        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
+  scale_colour_manual(values = my_palette)
+
+ggarrange(boxplot_bc_edi, boxplot_bc_hdi, boxplot_bc_sdi, boxplot_bc_sdi, boxplot_bc_sdi)
 ```
