@@ -1287,13 +1287,6 @@ stat_mort_v_sdi <-
 View(stat_mort_v_sdi)
 ```
 
-Filter
-
-```{r}
-
-```
-
-
 ## Plotting
 
 Adjusting colours
@@ -1309,7 +1302,9 @@ Adjusting categories and removing NAs
 ```{r}
 cancers_for_anova = globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(cancer_type %in% c("Leukaemia" ,"Hodgkin lymphoma" ,"Non-Hodgkin lymphoma", " Brain, central nervous system", "Breast")) |>
+  filter(cancer_type %in% c("Leukaemia" ,"Hodgkin lymphoma" ,"Non-Hodgkin lymphoma", 
+                            " Brain, central nervous system", "Breast",
+                            "Pancreas", "Kidney", "Colorectum", "Colon")) |>
   filter(edi_categories != "NA" & hdi_category != "NA" & sdi_categories != "NA" & sdi_categories != "") |> 
   mutate(edi_categories = 
            factor(edi_categories, 
@@ -1324,13 +1319,16 @@ cancers_for_anova = globocan_5 |>
 
 # Define a function to create the boxplot
 ```{r}
-create_boxplot <- function(data, indicator, cancer_type, x_var, x_label, y_label, palette, x_margin = 20, y_margin = 20, plot_margin = c(2, 1, 1, 1)) {
-  data %>%
+create_boxplot <- function(data, indicator, cancer_type, x_var, x_label, 
+                           y_label, palette, x_margin = 20, y_margin = 10, 
+                           plot_margin = c(0.8, 0.8, 0.8, 1), 
+                           title = NULL) {
+  p <- data %>%
     filter(indicator == !!indicator, cancer_type == !!cancer_type) %>%
     ggplot(aes(y = asr_world, x = .data[[x_var]], col = .data[[x_var]])) +
     labs(x = x_label, y = y_label) +
-    geom_beeswarm(size = 6, alpha = 0.8) +
-    theme_classic(base_size = 23) +
+    geom_beeswarm(size = 4, alpha = 0.5) +
+    theme_classic(base_size = 22) +
     theme(
       legend.position = "none",
       plot.margin = unit(plot_margin, "cm"),
@@ -1338,8 +1336,383 @@ create_boxplot <- function(data, indicator, cancer_type, x_var, x_label, y_label
       axis.title.y = element_text(margin = margin(r = y_margin))
     ) +
     scale_colour_manual(values = palette)
+  
+  if (!is.null(title)) {
+    p <- p + ggtitle(title) + theme(plot.title = element_text(size = 18, hjust = 0, colour = "#666666"))
+  }
+  
+  return(p)
 }
 ```
+## Summary
+edi, hdi, sdi vs incidence
+Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
+
+edi, hdi, sdi vs mortality
+Brain, central nervous system
+
+hdi, sdi vs mortality
+kidney
+
+hdi vs mortality
+colon
+
+sdi vs mortality
+colorectum, pancreas
+
+boxplot_global_mort = 
+  ggarrange(
+    boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi, boxplot_bcns_mort_edi,
+    boxplot_kidney_mort_hdi, boxplot_kidney_mort_sdi,  
+    boxplot_colon_mort_edi, boxplot_colorec_mort_sdi, boxplot_pancr_mort_sdi,
+    ncol = 3,
+    nrow = 3
+    )
+
+### Indicators vs Incidence
+Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
+```{r}
+#Breast
+boxplot_breast_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "edi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = "Breast cancer"
+)
+
+boxplot_breast_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "hdi_category",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+boxplot_breast_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "sdi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+#Brain, central nervous
+boxplot_bcns_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = "Brain, central nervous system cancer"
+)
+
+boxplot_bcns_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+boxplot_bcns_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+#Hodgkin lymphoma
+boxplot_hodlym_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = "Hodgkin lymphoma"
+)
+
+boxplot_hodlym_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+boxplot_hodlym_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = NULL,
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+#Non-Hodgkin lymphoma
+boxplot_nonhodlym_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = NULL,
+  palette = my_palette_1,
+  title = "Non-Hodgkin lymphoma"
+)
+
+boxplot_nonhodlym_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = "Human Development Index",
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+boxplot_nonhodlym_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic Index",
+  y_label = NULL,
+  palette = my_palette_1,
+  title = " "
+)
+
+boxplot_global = 
+  ggarrange(
+    boxplot_breast_inc_edi, boxplot_breast_inc_hdi, boxplot_breast_inc_sdi,
+    boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi,
+    boxplot_hodlym_inc_edi, boxplot_hodlym_inc_hdi, boxplot_hodlym_inc_sdi,
+    boxplot_nonhodlym_inc_edi, boxplot_nonhodlym_inc_hdi, boxplot_nonhodlym_inc_sdi,
+    ncol = 3,
+    nrow = 4
+    )
+
+boxplot_global = 
+  annotate_figure(boxplot_global,
+                  left = text_grob("Age-Standarized Incidence Rate (per 100,000)", 
+                                    color = "black", 
+                                    rot = 90,
+                                    size = 22))
+```
+
+### Indicators vs Mortality
+Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
+```{r}
+#Brain, central nervous system
+boxplot_bcns_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = "Education and Income Index",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Brain, central nervous system cancer"
+)
+
+boxplot_bcns_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = " ",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Brain, central nervous system cancer"
+)
+
+boxplot_bcns_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = " ",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Brain, central nervous system cancer"
+)
+
+#Kidney
+boxplot_kidney_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Kidney",
+  x_var = "hdi_category",
+  x_label = " ",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Kidney cancer"
+)
+
+
+boxplot_kidney_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Kidney",
+  x_var = "sdi_categories",
+  x_label = " ",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Kidney cancer"
+)
+
+#Colon
+boxplot_colon_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Colon",
+  x_var = "hdi_category",
+  x_label = "Human Development Index",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Colon cancer"
+)
+
+#Colorectum cancer
+boxplot_colorec_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Colorectum",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic Index",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Colorectum cancer"
+)
+
+#Pancreas
+boxplot_pancr_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Pancreas",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic Index",
+  y_label = NULL,
+  palette = my_palette_2,
+  title = "Pancreas cancer"
+)
+
+
+boxplot_global_mort = 
+  ggarrange(
+    boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi, boxplot_bcns_mort_edi,
+    boxplot_kidney_mort_hdi, boxplot_kidney_mort_sdi,  
+    boxplot_colorec_mort_sdi, boxplot_colon_mort_hdi, boxplot_pancr_mort_sdi,
+    ncol = 3,
+    nrow = 3
+    )
+
+boxplot_global_mort = 
+  annotate_figure(boxplot_global_mort,
+                  left = text_grob("Age-Standarized Mortality Rate (per 100,000)", 
+                                    color = "black", 
+                                    rot = 90,
+                                    size = 22))
+```
+
+### Brain, central nervous system
+```{r}
+boxplot_bcns_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = "",
+  y_label = "Incidence Rate (per 100,000)",
+  palette = my_palette_1
+)
+
+boxplot_bcns_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_bcns_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_bcns_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = "Mortality Rate (per 100,000)",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_bcns_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = "Human development index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_bcns_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+# Arrange the plots
+ggarrange(
+  boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi,
+  boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi
+)
+```
+
 
 ### Hodgking lymphoma
 
@@ -1488,79 +1861,6 @@ ggarrange(
 ```
 
 
-### Brain, central nervous system
-
-```{r}
-boxplot_bcns_inc_edi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "incidence",
-  cancer_type = " Brain, central nervous system",
-  x_var = "edi_categories",
-  x_label = "",
-  y_label = "Incidence Rate (per 100,000)",
-  palette = my_palette_1
-)
-
-boxplot_bcns_inc_hdi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "incidence",
-  cancer_type = " Brain, central nervous system",
-  x_var = "hdi_category",
-  x_label = "",
-  y_label = "",
-  palette = my_palette_1
-)
-
-boxplot_bcns_inc_sdi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "incidence",
-  cancer_type = " Brain, central nervous system",
-  x_var = "sdi_categories",
-  x_label = "",
-  y_label = "",
-  palette = my_palette_1
-)
-
-boxplot_bcns_mort_edi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "mortality",
-  cancer_type = " Brain, central nervous system",
-  x_var = "edi_categories",
-  x_label = "Education and Income index",
-  y_label = "Mortality Rate (per 100,000)",
-  palette = my_palette_2,
-  plot_margin = c(1, 1, 0.7, 1)
-)
-
-boxplot_bcns_mort_hdi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "mortality",
-  cancer_type = " Brain, central nervous system",
-  x_var = "hdi_category",
-  x_label = "Human development index",
-  y_label = "",
-  palette = my_palette_2,
-  plot_margin = c(1, 1, 0.7, 1)
-)
-
-boxplot_bcns_mort_sdi <- create_boxplot(
-  data = cancers_for_anova,
-  indicator = "mortality",
-  cancer_type = " Brain, central nervous system",
-  x_var = "sdi_categories",
-  x_label = "Sociodemographic index",
-  y_label = "",
-  palette = my_palette_2,
-  plot_margin = c(1, 1, 0.7, 1)
-)
-
-# Arrange the plots
-ggarrange(
-  boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi,
-  boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi
-)
-```
-
 ### Breast cancer
 
 ```{r}
@@ -1633,12 +1933,6 @@ ggarrange(
   boxplot_breast_mort_edi, boxplot_breast_mort_hdi, boxplot_breast_mort_sdi
 )
 ```
-
-
-
-
-
-
 
 ```{r}
 
