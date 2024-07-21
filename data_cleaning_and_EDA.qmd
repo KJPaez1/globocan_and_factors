@@ -3,6 +3,8 @@ title: "cleaning_and_exploratory"
 title_project: "Cancer epidemiology and "
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Main references
@@ -1285,19 +1287,29 @@ stat_mort_v_sdi <-
 View(stat_mort_v_sdi)
 ```
 
+Filter
+
+```{r}
+
+```
+
+
 ## Plotting
 
 Adjusting colours
 
 ```{r}
-palette_colors <- get_pal("plains_wanderer")
-my_palette <- palette_colors[c(2:length(palette_colors), 1)]
+
+my_palette_1 = c("#008ECE", "#00A9E0", "#59C7EB", "#A6E1F4", "#CCEEF9")
+my_palette_2 = c("black", "#666666", "#999999", "#CCCCCC", "#E5E5E5")
 ```
+
+Adjusting categories and removing NAs
 
 ```{r}
 cancers_for_anova = globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(cancer_type %in% c(" Brain, central nervous system", "Breast")) |>
+  filter(cancer_type %in% c("Leukaemia" ,"Hodgkin lymphoma" ,"Non-Hodgkin lymphoma", " Brain, central nervous system", "Breast")) |>
   filter(edi_categories != "NA" & hdi_category != "NA" & sdi_categories != "NA" & sdi_categories != "") |> 
   mutate(edi_categories = 
            factor(edi_categories, 
@@ -1310,120 +1322,325 @@ cancers_for_anova = globocan_5 |>
                   levels = c("Low", "Low-middle", "Middle", "High-middle", "High")))
 ```
 
+# Define a function to create the boxplot
+```{r}
+create_boxplot <- function(data, indicator, cancer_type, x_var, x_label, y_label, palette, x_margin = 20, y_margin = 20, plot_margin = c(2, 1, 1, 1)) {
+  data %>%
+    filter(indicator == !!indicator, cancer_type == !!cancer_type) %>%
+    ggplot(aes(y = asr_world, x = .data[[x_var]], col = .data[[x_var]])) +
+    labs(x = x_label, y = y_label) +
+    geom_beeswarm(size = 6, alpha = 0.8) +
+    theme_classic(base_size = 23) +
+    theme(
+      legend.position = "none",
+      plot.margin = unit(plot_margin, "cm"),
+      axis.title.x = element_text(margin = margin(t = x_margin)),
+      axis.title.y = element_text(margin = margin(r = y_margin))
+    ) +
+    scale_colour_manual(values = palette)
+}
+```
+
+### Hodgking lymphoma
+
+```{r}
+boxplot_hodlym_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = "",
+  y_label = "Incidence Rate (per 100,000)",
+  palette = my_palette_1
+)
+
+boxplot_hodlym_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_hodlym_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_hodlym_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = "Mortality Rate (per 100,000)",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_hodlym_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = "Human development index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_hodlym_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+# Arrange the plots
+ggarrange(
+  boxplot_hodlym_inc_edi, boxplot_hodlym_inc_hdi, boxplot_hodlym_inc_sdi,
+  boxplot_hodlym_mort_edi, boxplot_hodlym_mort_hdi, boxplot_hodlym_mort_sdi
+)
+```
+
+### Non-Hodgking lymphoma
+
+```{r}
+boxplot_nonhodlym_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = "",
+  y_label = "Incidence Rate (per 100,000)",
+  palette = my_palette_1
+)
+
+boxplot_nonhodlym_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_nonhodlym_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
+
+boxplot_nonhodlym_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = "Mortality Rate (per 100,000)",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_nonhodlym_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "hdi_category",
+  x_label = "Human development index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_nonhodlym_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Non-Hodgkin lymphoma",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+# Arrange the plots
+ggarrange(
+  boxplot_nonhodlym_inc_edi, boxplot_nonhodlym_inc_hdi, boxplot_nonhodlym_inc_sdi,
+  boxplot_nonhodlym_mort_edi, boxplot_nonhodlym_mort_hdi, boxplot_nonhodlym_mort_sdi
+)
+```
+
+
 ### Brain, central nervous system
 
 ```{r}
-boxplot_bcns_inc_edi = 
-  cancers_for_anova |> 
-  filter(indicator == "incidence" & cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
-  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 1, 1), "cm"),
-        axis.title.y = element_text(margin = margin(r = 20))) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = "",
+  y_label = "Incidence Rate (per 100,000)",
+  palette = my_palette_1
+)
 
-boxplot_bcns_inc_hdi = 
-  cancers_for_anova |>
-  filter(indicator == "incidence", cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
-  labs(x = "", y = "") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 1, 1), "cm")) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
 
-boxplot_bcns_inc_sdi = 
-  cancers_for_anova |>
-  filter(indicator == "incidence", cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
-  labs(x = "", y = "") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 1, 1), "cm"),
-        axis.title.x = element_text(margin = margin(t = 20))) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
 
-boxplot_bcns_mort_edi = 
-  cancers_for_anova |> 
-  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
-  labs(x = "Education and Income index", y = "Age-Standarized mortality Rate (per 100,000)") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
-        axis.title.x = element_text(margin = margin(t = 20)),
-        axis.title.y = element_text(margin = margin(r = 20))) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = "Mortality Rate (per 100,000)",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
 
-boxplot_bcns_mort_hdi = 
-  cancers_for_anova |>
-  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
-  labs(x = "Human develepment index", y = "") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
-        axis.title.x = element_text(margin = margin(t = 20))) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "hdi_category",
+  x_label = "Human development index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
 
-boxplot_bcns_mort_sdi = 
-  cancers_for_anova |>
-  filter(indicator == "mortality", cancer_type == " Brain, central nervous system") |> 
-  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
-  labs(x = "Sociodemographic index", y = "") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 23) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(1, 1, 0.7, 1), "cm"),
-        axis.title.x = element_text(margin = margin(t = 20))) +
-  scale_colour_manual(values = my_palette)
+boxplot_bcns_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = " Brain, central nervous system",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
 
-ggarrange(boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi, 
-          boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi)
+# Arrange the plots
+ggarrange(
+  boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi,
+  boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi
+)
 ```
 
 ### Breast cancer
 
 ```{r}
-boxplot_bc_edi = 
-  breast_cancer |> 
-  filter(indicator == "incidence") |> 
-  ggplot(aes(y = asr_world, x = edi_categories, col = edi_categories)) +
-  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 22) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
-  scale_colour_manual(values = my_palette)
+boxplot_breast_inc_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "edi_categories",
+  x_label = "",
+  y_label = "Incidence Rate (per 100,000)",
+  palette = my_palette_1
+)
 
-boxplot_bc_hdi = 
-  breast_cancer |>
-  filter(indicator == "incidence") |> 
-  ggplot(aes(y = asr_world, x = hdi_category, col = hdi_category)) +
-  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 22) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
-  scale_colour_manual(values = my_palette)
+boxplot_breast_inc_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "hdi_category",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
 
-boxplot_bc_sdi = 
-  breast_cancer |>
-  filter(indicator == "incidence") |> 
-  ggplot(aes(y = asr_world, x = sdi_categories, col = sdi_categories)) +
-  labs(x = "", y = "Age-Standarized Incidence Rate (per 100,000)") +
-  geom_beeswarm(size = 6, alpha = 0.8) + 
-  theme_classic(base_size = 22) +
-  theme(legend.position = "none",
-        plot.margin = unit(c(2, 1, 2, 1), "cm")) +
-  scale_colour_manual(values = my_palette)
+boxplot_breast_inc_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "incidence",
+  cancer_type = "Breast",
+  x_var = "sdi_categories",
+  x_label = "",
+  y_label = "",
+  palette = my_palette_1
+)
 
-ggarrange(boxplot_bc_edi, boxplot_bc_hdi, boxplot_bc_sdi, boxplot_bc_sdi, boxplot_bc_sdi)
+boxplot_breast_mort_edi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Breast",
+  x_var = "edi_categories",
+  x_label = "Education and Income index",
+  y_label = "Mortality Rate (per 100,000)",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_breast_mort_hdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Breast",
+  x_var = "hdi_category",
+  x_label = "Human development index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+boxplot_breast_mort_sdi <- create_boxplot(
+  data = cancers_for_anova,
+  indicator = "mortality",
+  cancer_type = "Breast",
+  x_var = "sdi_categories",
+  x_label = "Sociodemographic index",
+  y_label = "",
+  palette = my_palette_2,
+  plot_margin = c(1, 1, 0.7, 1)
+)
+
+# Arrange the plots
+ggarrange(
+  boxplot_breast_inc_edi, boxplot_breast_inc_hdi, boxplot_breast_inc_sdi,
+  boxplot_breast_mort_edi, boxplot_breast_mort_hdi, boxplot_breast_mort_sdi
+)
 ```
+
+
+
+
+
+
+
+```{r}
+
+```
+
