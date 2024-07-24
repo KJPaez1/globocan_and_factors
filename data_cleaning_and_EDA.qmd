@@ -37,7 +37,7 @@ library(ggbeeswarm)
 
 Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
 
-Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from United Nations of the Development Program (https://hdr.undp.org/).
 
 SDI and quintiles were retrieved from IHME-Global Health Exchange Data: https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
 
@@ -1173,8 +1173,6 @@ stat_mort_v_hdi <-
     }
   }) |>
   ungroup()
-
-View(stat_mort_v_hdi)
 ```
 
 ### Sociodemographic index (SDI) vs Incidence
@@ -1232,8 +1230,6 @@ stat_incid_v_sdi <-
     }
   }) |>
   ungroup()
-
-View(stat_incid_v_sdi)
 ```
 
 ### Sociodemographic index (SDI) vs Mortality
@@ -1283,8 +1279,6 @@ stat_mort_v_sdi <-
     }
   }) |>
   ungroup()
-
-View(stat_mort_v_sdi)
 ```
 
 ## Plotting
@@ -1359,15 +1353,6 @@ colon
 
 sdi vs mortality
 colorectum, pancreas
-
-boxplot_global_mort = 
-  ggarrange(
-    boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi, boxplot_bcns_mort_edi,
-    boxplot_kidney_mort_hdi, boxplot_kidney_mort_sdi,  
-    boxplot_colon_mort_edi, boxplot_colorec_mort_sdi, boxplot_pancr_mort_sdi,
-    ncol = 3,
-    nrow = 3
-    )
 
 ### Indicators vs Incidence
 Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
@@ -1508,7 +1493,7 @@ boxplot_nonhodlym_inc_sdi <- create_boxplot(
   title = " "
 )
 
-boxplot_global = 
+boxplot_global_incid = 
   ggarrange(
     boxplot_breast_inc_edi, boxplot_breast_inc_hdi, boxplot_breast_inc_sdi,
     boxplot_bcns_inc_edi, boxplot_bcns_inc_hdi, boxplot_bcns_inc_sdi,
@@ -1518,8 +1503,8 @@ boxplot_global =
     nrow = 4
     )
 
-boxplot_global = 
-  annotate_figure(boxplot_global,
+boxplot_global_incid = 
+  annotate_figure(boxplot_global_incid,
                   left = text_grob("Age-Standarized Incidence Rate (per 100,000)", 
                                     color = "black", 
                                     rot = 90,
@@ -1859,7 +1844,6 @@ ggarrange(
   boxplot_nonhodlym_mort_edi, boxplot_nonhodlym_mort_hdi, boxplot_nonhodlym_mort_sdi
 )
 ```
-
 
 ### Breast cancer
 
