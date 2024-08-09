@@ -1,0 +1,497 @@
+---
+title: "web_test"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    social: menu
+    theme: simplex
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+# Load packages 
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(rstatix)
+library(finalfit)
+library(ggpubr)
+library(ggsci)
+library(broom)
+library(gtsummary)
+library(car)
+library(tidymodels)
+library(performance)
+library(rio)
+library(here)
+library(splines)
+library(ggformula)
+library(mgcv)
+library(DT)
+library(rfextras)
+library(shiny)
+library(flextable)
+library(plotly)
+
+# My function scripts
+rfextras::load_scripts()
+```
+
+```{r}
+# Import data
+globocan_6 <- globocan_5 |>
+  dplyr::select(
+    indicator,
+    cancer_type,
+    country_name,
+    asr_world,
+    crude_rate,
+    human_development_index,
+    education_and_income,
+    sdi_gdb_2021,
+    hdi_category,
+    edi_categories,
+    sdi_categories
+  ) |>
+  dplyr::rename(
+    `ASR (World)` = asr_world,
+    `Crude rate` = crude_rate,
+    Indicator = indicator,
+    HDI = human_development_index,
+    EdI = education_and_income,
+    SDI = sdi_gdb_2021
+  ) |>
+  dplyr::mutate(
+    Indicator = factor(Indicator) |>
+      forcats::fct_recode("Incidence" = "incidence",
+                          "Mortality" = "mortality") |>
+      forcats::fct_relevel("Incidence", "Mortality"),
+    # cancer_type = case_when(
+    #   cancer_type %in% c("Colon", "Rectum") ~ "Colorectum",
+    #   .default = as.character(cancer_type)
+    # ),
+    country_label = case_when(
+      country_name %in% c(
+        "United States of America",
+        "Bolivia",
+        "Spain",
+        "Ethiopia",
+        "China",
+        "Japan",
+        "India",
+        "Peru",
+        "Egypt",
+        "Saudi Arabia", 
+        "France (metropolitan)",
+        "Uganda"
+      )
+      ~ as.character(country_name),
+      TRUE ~ NA_character_
+    ) |>
+      forcats::fct_recode("USA" = "United States of America",
+                          "France" = "France (metropolitan)")
+  )
+
+# globocan_6 |>
+#   dplyr::select(country_name, SDI) |>
+#   dplyr::filter(SDI > 0.9 & SDI <=9.27) |>
+#   dplyr::arrange(SDI) |>
+#   dplyr::distinct(country_name)
+# 
+# 
+# globocan_6 |> dplyr::distinct(country_sdi)
+```
+
+Exploratory data analysis {data-orientation=rows}
+======================================================================
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input",
+  label = "Cancer type",
+  choices = unique(globocan_6$cancer_type),
+  selected = "Breast"
+)
+
+# selectInput(
+#   inputId = "country_input",
+#   label = "Countries",
+#   choices = unique(globocan_6$country_name),
+#   selected = "Peru"
+# )
+
+selectInput(
+  inputId = "variable_input",
+  label = "Variable",
+  choices = c("ASR (World)", "Crude rate", "HDI", "EdI", "SDI"),
+  selected = "ASR (World)"
+)
+
+filtered_data <- reactive({
+  globocan_6 |>
+    dplyr::filter(cancer_type == input$cancer_input)
+})
+```
+
+Row {data-height=600}
+-------------------------------------
+
+### Density plot
+    
+```{r}
+renderPlotly({
+  plot_1 <- ggplot2::ggplot(data = filtered_data(),
+                            aes(x = .data[[input$variable_input]], color = Indicator, fill = Indicator)) +
+    ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 0.8, na.rm = TRUE) +
+    ggplot2::labs(y = "Density", color = "Indicator", fill = "Indicator") +
+    ggsci::scale_color_bmj(alpha = 0.8) +
+    ggsci::scale_fill_bmj(alpha = 0.1) +
+    theme_1()
+  
+  plotly::ggplotly(plot_1, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+
+# globocan_5 |>
+#   dplyr::select(indicator, cancer_type, country_name, crude_rate, asr_world) |>
+#   dplyr::filter(cancer_type == "Breast") |>
+#   ggplot2::ggplot(aes(x =  asr_world, color = indicator, fill = indicator)) +
+#   ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 1, na.rm = TRUE) +
+#   labs(y = "Density", color = "Indicator", fill = "Indicator") +
+#   ggsci::scale_color_bmj(alpha = 0.8) +
+#   ggsci::scale_fill_bmj(alpha = 0.2) +
+#   ggplot2::theme(legend.position = "bottom")
+```
+
+### Boxplot with jitter
+
+    
+```{r}
+renderPlotly({
+  plot_2 <- ggplot2::ggplot(data = filtered_data(),
+                            aes(y = .data[[input$variable_input]], x = Indicator,
+                                fill = Indicator, color = Indicator)) +
+    ggplot2::geom_boxplot(alpha = 0.1, linewidth = 0.5) +
+    ggplot2::geom_jitter(alpha = 0.5, size = 2, width = 0.25) +
+    ggsci::scale_color_bmj() +
+    ggsci::scale_fill_bmj() +
+    theme_1(legend.position = "none")
+  
+  plotly::ggplotly(plot_2, tooltip = c("x", "y", "colour"))
+})
+```
+
+Row {data-height=200}
+-------------------------------------
+
+### Summary statistics and normality tests
+
+```{r}
+table_1 <- reactive({
+  filtered_data() |>
+    group_by(Indicator) |>
+    summarise(
+      Count = n(),
+      Min = round(min(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Mean = round(mean(.data[[input$variable_input]], na.rm = TRUE), 2),
+      SD = round(sd(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Median = round(median(.data[[input$variable_input]], na.rm = TRUE), 2),
+      IQR = paste(round(
+        quantile(.data[[input$variable_input]], probs = c(0.25, 0.75), na.rm = TRUE), 2
+      ), collapse = "-"),
+      Max = round(max(.data[[input$variable_input]], na.rm = TRUE), 2),
+      `Shapiro Wilk` = round(stats::shapiro.test(.data[[input$variable_input]])$p.value, 3),
+      `Lilliefors test` = round(nortest::lillie.test(.data[[input$variable_input]])$p.value, 3),
+      `Anderson Darling` = round(nortest::ad.test(.data[[input$variable_input]])$p.value, 3),
+      Kurtosis = round(moments::kurtosis(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Skewness = round(moments::skewness(.data[[input$variable_input]], na.rm = TRUE), 2)
+    )
+})
+
+DT::renderDataTable({
+  datatable(
+    table_1(),
+    options = list(lengthChange = FALSE, bPaginate = FALSE, searching = FALSE),
+    editable = FALSE) |>
+    formatStyle("Indicator",
+                target = "row",
+                backgroundColor = styleEqual(c("Mortality", "Incidence"), c("#fff0cb", "#d9eaff")))
+})
+
+# # levene_result <- leveneTest(formula(paste(.data[[selected_column]], "~ genero")), data = filtered_data())
+# # `Levene p-value` = levene_result$`Pr(>F)`[1]
+```
+
+Simple linear regression {data-orientation=rows}
+============================================================================
+
+```{r}
+globocan_7 <- globocan_6 |>
+  dplyr::distinct(cancer_type, country_name, Indicator, .keep_all = TRUE)
+  # dplyr::filter(
+  #   cancer_type %in% c(
+  #     "All cancers excl. non-melanoma skin cancer",
+  #     "Prostate",
+  #     "Breast",
+  #     "Colorectum",
+  #     "Melanoma of skin",
+  #     "Thyroid",
+  #     "Kidney",
+  #     "Trachea, bronchus and lung",
+  #     "Pancreas",
+  #     " Brain, central nervous system",
+  #     "Cervix uteri",
+  #     "Liver and intrahepatic bile ducts",
+  #     "Stomach"
+  #   )
+  # )
+```
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input_alt",
+  label = "Cancer type",
+  choices = unique(globocan_7$cancer_type),
+  selected = "All cancers excl. non-melanoma skin cancer"
+)
+
+selectInput(
+  inputId = "variable_x_input",
+  label = "Variable x",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "variable_y_input",
+  label = "Variable y",
+  choices = c("ASR (World)", "Crude rate"),
+  selected = "ASR (World)"
+)
+
+selectedData_plot <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_alt)
+})
+
+# selectedData_table <- reactive({
+#   globocan_7 |>
+#     dplyr::filter(Indicator == input$indicator_input)
+# })
+```
+
+Row {data-height=600}
+-------------------------------------
+    
+### geom_smooth Linear Regression
+    
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(data = selectedData_plot(),
+                            aes(
+                              x = .data[[input$variable_x_input]],
+                              y = .data[[input$variable_y_input]],
+                              color = Indicator,
+                              fill = Indicator
+                            )) +
+    ggplot2::geom_point(alpha = 0.5, size = 2.5, shape = 21) +
+    ggplot2::geom_smooth(method = "lm",
+                         formula = y ~ x,
+                         se = FALSE,
+                         linewidth = 0.7,
+                         alpha = 0.7) +
+    ggsci::scale_color_bmj() +
+    ggsci::scale_fill_bmj(alpha = 0.1) +
+    ggplot2::theme_minimal(base_size = 14)
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+
+# globocan_8 <- globocan_6 |>
+#   dplyr::filter(cancer_type == "All cancers excl. non-melanoma skin cancer")
+# 
+# ggplot2::ggplot(data = globocan_8,
+#                 aes(
+#                   x = EdI,
+#                   y = `ASR (World)`,
+#                   color = Indicator,
+#                   fill = Indicator,
+#                   label = country_label
+#                 )) +
+#   ggplot2::geom_label(show_guide  = FALSE) +
+#   ggplot2::geom_point(alpha = 0.5, size = 2.5, shape = 21) +
+#   ggplot2::geom_point(alpha = 0.5,
+#                       size = 2.5,
+#                       shape = 21) +
+#   ggplot2::geom_smooth(
+#     method = "lm",
+#     formula = y ~ x,
+#     se = FALSE,
+#     linewidth = 0.7,
+#     alpha = 0.7
+#   ) +
+#   ggsci::scale_color_bmj() +
+#   ggsci::scale_fill_bmj(alpha = 0.1) +
+#   ggplot2::theme_minimal(base_size = 14)
+```
+   
+Row {data-height=300}
+-------------------------------------
+   
+### Incidence
+
+```{r}
+models <- globocan_7 |>
+  dplyr::filter(Indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = map(data, function(data) {
+    lm(`ASR (World)` ~ HDI, data = data)
+  }))
+
+m1 <- models |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2 <- models |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m3 <- dplyr::bind_cols(m1, m2) |> 
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+renderDataTable({m3})
+
+# univ_tab <- linelist |>
+#   tbl_uvregression(                         
+#     method = lm,                         
+#     y = outcome
+#   )
+
+# models <-
+#   globocan_5 |>
+#   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+#   filter(indicator == "incidence") |>
+#   group_by(cancer_type) |>
+#   nest() |>
+#   mutate(model = map(data, function(data) {
+#     lm(asr_world ~ human_development_index, data = data)
+#   }))
+# 
+# models  |>
+#   mutate(summary = map(model, broom::glance)) |>
+#   unnest(summary) |>
+#   select(-data, -model) |>
+#   mutate(across(where(is.numeric), round, 2)) |> datatable()
+```
+
+
+```{r}
+# mgcv::gam(y ~ s(x, bs="cr"), data = filtered_data_1())
+```
+ 
+### Mortality
+    
+```{r}
+# renderDataTable({
+#   models <- globocan_7 |>
+#     dplyr::filter(Indicator == "Mortality") |>
+#     dplyr::group_by(cancer_type) |>
+#     tidyr::nest()  |>
+#     dplyr::mutate(model = map(data, function(data) {
+#       lm(`ASR (World)` ~ HDI, data = data)
+#     }))
+# 
+#   m1 <- models |>
+#     dplyr::mutate(summary = map(model, broom::tidy)) |>
+#     tidyr::unnest(summary) |>
+#     dplyr::filter(term != "(Intercept)") |>
+#     dplyr::select(-data, -model, -term) |>
+#     dplyr::mutate(across(where(is.numeric), round, 2))
+#   
+#   m2 <- models |>
+#     dplyr::mutate(summary = map(model, broom::glance)) |>
+#     tidyr::unnest(summary) |>
+#     dplyr::select(-data, -model) |>
+#     dplyr::mutate(across(where(is.numeric), round, 2))
+#   
+#   bind_cols(m1, m2) |>
+#     dplyr::select(
+#       cancer_type...1,
+#       estimate,
+#       r.squared,
+#       adj.r.squared,
+#       statistic...4,
+#       p.value...5,
+#       statistic...10,
+#       p.value...11,
+#       AIC,
+#       BIC,
+#       deviance
+#     ) |>
+#     dplyr::rename(
+#       `Cancer type` = cancer_type...1,
+#       Estimate = estimate,
+#       `R-squared` = r.squared,
+#       `Adjusted R-squared` = adj.r.squared,
+#       `T-statistic` = statistic...4,
+#       `T p-value` = p.value...5,
+#       `F-statistic` = statistic...10,
+#       `F p-value` = p.value...11,
+#       Deviance = deviance
+#     )
+# })
+# mgcv::gam(`ASR (World)` ~ s(HDI, k = 10, bs = "cr"), data = globocan_7)### Cubic spline regression
+```
