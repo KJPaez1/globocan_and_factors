@@ -15,7 +15,7 @@ editor: source
 
 -   Global and regional trends in incidence and mortality of female breast cancer and associated factors at national level in 2000 to 2019 (10.1097/CM9.0000000000001814)
 
-# Load packages
+# Load packages [-]
 
 ```{r include = FALSE}
 pacman::p_load(
@@ -31,7 +31,9 @@ pacman::p_load(
   rio, 
   here,
   janitor,
-  splines)
+  splines,
+  ggformula,
+  mgcv)
 ```
 
 # Import data
@@ -755,10 +757,12 @@ p_incidence_v_sdi =
 
 ```{r}
 data_test <- globocan_5 |>
-  dplyr::filter(cancer_type == "Breast" & indicator == "incidence")
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  dplyr::filter(indicator == "incidence", 
+                cancer_type == " Brain, central nervous system" | cancer_type == "Bladder")
 ```
 
-```{r}
+```{r fig.width=10}
 model <- lm(education_and_income ~ asr_world, data = data_test)
 
 a <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
@@ -768,7 +772,9 @@ a <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
     formula = y ~ x,
     se = FALSE,
     col = "dodgerblue1") +
-  theme_light()
+  theme_light() + 
+  facet_wrap(~cancer_type, 
+             scales = "free")
 a
 ```
 
@@ -784,13 +790,15 @@ b <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
     formula = y ~ log(x),
     se = FALSE,
     col = "dodgerblue1") +
-  theme_light()
+  theme_light() +
+  facet_wrap(~cancer_type, 
+             scales = "free")
 b
 ```
 
 # Model 3. Polynomial models
 
-```{r}
+```{r fig.width=10}
 model_poly_quadratic <- lm(education_and_income ~ asr_world + I(asr_world^2), data = data_test)
 
 c <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
@@ -800,7 +808,9 @@ c <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
     formula = y ~ x + I(x ^ 2), 
     se = FALSE,
     col = "dodgerblue1") +
-  theme_light()
+  theme_light() +
+  facet_wrap(~cancer_type, 
+             scales = "free")
 c
 ```
 
@@ -815,7 +825,9 @@ d <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
     formula = y ~ x + I(x ^ 2) + I(x ^ 3), 
     se = FALSE,
     col = "dodgerblue1") +
-  theme_light()
+  theme_light() +
+  facet_wrap(~cancer_type, 
+             scales = "free")
 d
 ```
 
@@ -825,28 +837,56 @@ d
 test <- data_test |>
   dplyr::select(education_and_income, asr_world)
 plot(test, pch=19, ylim=c(0, 15), las=1)
-abline(v=0.55, lty="dotted", col='tomato')
-abline(v=0-85, lty="dotted", col='tomato')
-text(x=0.55, y=0.3, 't=0.55', col='tomato')
-text(x=0-85, y=0.3, 't=0.55', col='tomato')
+abline(v=0.7, lty="dotted", col='tomato')
+abline(v=0.85, lty="dotted", col='tomato')
+text(x=0.7, y=0.3, 't=0.55', col='tomato')
+text(x=0.85, y=0.3, 't=0.55', col='tomato')
 ```
 
-```{r}
-model_spline_1_knot <- lm(education_and_income ~ ns(asr_world, df = 1), data_test)
+```{r fig.width=10}
+model_spline_1_knot <- lm(education_and_income ~ ns(asr_world, df = 3), data_test)
 
-plot(data_test$asr_world, data_test$education_and_income, main = "Spline Regression")
-lines(data_test$asr_world, predict(model_spline_1_knot), col = "red", lwd = 2)
+x <- data_test$asr_world
+y <- data_test$education_and_income
+
+plot(x, y, main = "Spline Regression", xlab = "X", ylab = "Y")
+lines(x, predict(model_spline_1_knot), col = "red", lwd = 2)
 legend("topright", legend = "Fitted Spline", col = "red", lwd = 2)
 
 d <- ggplot(data_test, aes(y = asr_world, x = education_and_income)) +
-  geom_point() +
+  geom_point()+
   geom_smooth(
     method = "lm",
     formula = y ~ x + I(x ^ 2) + I(x ^ 3), 
     se = FALSE,
-    col = "dodgerblue1") +
-  theme_light()
+    col = "dodgerblue1") + 
+  stat_spline() +
+  theme_light() +
+  facet_wrap(~cancer_type, 
+             scales = "free")
+d
+
+ggplot(d,aes(x,y)) + geom_point() + 
+  geom_line(data=data.frame(spline(d, n=n*10)))
+
+performance::compare_performance(model_poly_cubic, model_spline_1_knot)
+broom::glance(model_poly_cubic)
+broom::glance(model_spline_1_knot)
 ```
+
+
+```{r fig.width=12}
+plot(compare_performance(model_poly_cubic, model_spline_1_knot))
+```
+
+```{r}
+fit.sp = smooth.spline(education_and_income ~ asr_world, nknots=15,  data_test)
+```
+
+```{r}
+gam(wage ~ s(year, 4) + s(age, 5) + education, data = Wage)
+```
+
 
 ## Step one: fit the simple linear model grouped by cancer_type
 
@@ -865,19 +905,65 @@ slm_hdi <- function(data) {
 Incidence
 
 ```{r}
-models <- 
-  globocan_5 |> 
+data_x <-
+  globocan_5 |>
+  dplyr::distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
+  dplyr::filter(indicator == "incidence" & cancer_type == "Breast")
+
+lm(asr_world ~ human_development_index, data = data_x) |>
+  summary()
+
+
+models <-
+  globocan_5 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |> 
-  group_by(cancer_type) |> 
-  nest() |> 
-  mutate(model = map(data, slm_hdi))
+  filter(indicator == "incidence") |>
+  group_by(cancer_type) |>
+  nest() |>
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ human_development_index, data = data)
+  }))
 
-summarized = models  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary)
+m_1 <- models |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
 
-summarized = summarized |> select(-data, -model)
+m_2 <- models  |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+
+colnames(m_3)
+
+m_3 <- bind_cols(m_1, m_2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 Mortality
