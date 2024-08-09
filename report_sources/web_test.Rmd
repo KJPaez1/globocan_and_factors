@@ -374,20 +374,20 @@ models <- globocan_7 |>
     lm(`ASR (World)` ~ HDI, data = data)
   }))
 
-m1 <- models |>
+m1_incidence <- models |>
   dplyr::mutate(summary = map(model, broom::tidy)) |>
   tidyr::unnest(summary) |>
   dplyr::filter(term != "(Intercept)") |>
   dplyr::select(-data, -model, -term) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m2 <- models |>
+m2_incidence <- models |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m3 <- dplyr::bind_cols(m1, m2) |> 
+m3_incidence <- dplyr::bind_cols(m1_incidence, m2_incidence) |> 
   dplyr::select(
     cancer_type...1,
     estimate,
@@ -412,29 +412,13 @@ m3 <- dplyr::bind_cols(m1, m2) |>
     `F p-value` = p.value...11,
     Deviance = deviance
   )
-renderDataTable({m3})
+renderDataTable({m3_incidence})
 
 # univ_tab <- linelist |>
 #   tbl_uvregression(                         
 #     method = lm,                         
 #     y = outcome
 #   )
-
-# models <-
-#   globocan_5 |>
-#   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-#   filter(indicator == "incidence") |>
-#   group_by(cancer_type) |>
-#   nest() |>
-#   mutate(model = map(data, function(data) {
-#     lm(asr_world ~ human_development_index, data = data)
-#   }))
-# 
-# models  |>
-#   mutate(summary = map(model, broom::glance)) |>
-#   unnest(summary) |>
-#   select(-data, -model) |>
-#   mutate(across(where(is.numeric), round, 2)) |> datatable()
 ```
 
 
@@ -445,53 +429,52 @@ renderDataTable({m3})
 ### Mortality
     
 ```{r}
-# renderDataTable({
-#   models <- globocan_7 |>
-#     dplyr::filter(Indicator == "Mortality") |>
-#     dplyr::group_by(cancer_type) |>
-#     tidyr::nest()  |>
-#     dplyr::mutate(model = map(data, function(data) {
-#       lm(`ASR (World)` ~ HDI, data = data)
-#     }))
-# 
-#   m1 <- models |>
-#     dplyr::mutate(summary = map(model, broom::tidy)) |>
-#     tidyr::unnest(summary) |>
-#     dplyr::filter(term != "(Intercept)") |>
-#     dplyr::select(-data, -model, -term) |>
-#     dplyr::mutate(across(where(is.numeric), round, 2))
-#   
-#   m2 <- models |>
-#     dplyr::mutate(summary = map(model, broom::glance)) |>
-#     tidyr::unnest(summary) |>
-#     dplyr::select(-data, -model) |>
-#     dplyr::mutate(across(where(is.numeric), round, 2))
-#   
-#   bind_cols(m1, m2) |>
-#     dplyr::select(
-#       cancer_type...1,
-#       estimate,
-#       r.squared,
-#       adj.r.squared,
-#       statistic...4,
-#       p.value...5,
-#       statistic...10,
-#       p.value...11,
-#       AIC,
-#       BIC,
-#       deviance
-#     ) |>
-#     dplyr::rename(
-#       `Cancer type` = cancer_type...1,
-#       Estimate = estimate,
-#       `R-squared` = r.squared,
-#       `Adjusted R-squared` = adj.r.squared,
-#       `T-statistic` = statistic...4,
-#       `T p-value` = p.value...5,
-#       `F-statistic` = statistic...10,
-#       `F p-value` = p.value...11,
-#       Deviance = deviance
-#     )
-# })
+models <- globocan_7 |>
+  dplyr::filter(Indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = map(data, function(data) {
+    lm(`ASR (World)` ~ HDI, data = data)
+  }))
+
+m1_mortality <- models |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality <- models |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m3_mortality <- dplyr::bind_cols(m1_mortality, m2_mortality) |> 
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+renderDataTable({m3_mortality})
 # mgcv::gam(`ASR (World)` ~ s(HDI, k = 10, bs = "cr"), data = globocan_7)### Cubic spline regression
 ```
