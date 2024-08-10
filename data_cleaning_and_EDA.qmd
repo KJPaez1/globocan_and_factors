@@ -31,6 +31,12 @@ library(tidymodels)
 library(performance)
 library(feathers)
 library(ggbeeswarm)
+library(rio) 
+library(here)
+library(janitor)
+library(splines)
+library(ggformula)
+library(mgcv)
 ```
 
 # Import data
@@ -765,12 +771,6 @@ https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
 
 ### Education and Income index (edi)
 
-```{r}
-slm_edi <- function(data) {
-  lm(asr_world ~ education_and_income, data = data)
-}
-```
-
 Incidence
 
 ```{r}
@@ -780,38 +780,104 @@ slm_edi_inc <-
   filter(indicator == "incidence") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_edi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ education_and_income, data = data)
+  })) 
 
-summarized_ei = slm_edi_inc  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> 
-  select(-data, -model)
+slm_edi_inc_m1 <- slm_edi_inc |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_edi_inc_m2 <- slm_edi_inc |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_edi_inc_m3 <- bind_cols(slm_edi_inc_m1, slm_edi_inc_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 Mortality
 
 ```{r}
-mod_edi_mort <- 
+slm_edi_mort <- 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |> 
+  filter(indicator == "mortality") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_edi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ education_and_income, data = data)
+  })) 
 
-summarized_em = mod_edi_mort  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> 
-  select(-data, -model)
+slm_edi_mort_m1 <- slm_edi_mort |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_edi_mort_m2 <- slm_edi_mort |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_edi_mort_m3 <- bind_cols(slm_edi_mort_m1, slm_edi_mort_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 ### human development index (hdi)
-
-```{r}
-slm_hdi <- function(data) {
-  lm(asr_world ~ human_development_index, data = data)
-}
-```
 
 Incidence
 
@@ -822,37 +888,104 @@ slm_hdi_inc <-
   filter(indicator == "incidence") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_hdi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ human_development_index, data = data)
+  })) 
 
-summarized_hi = slm_hdi_inc  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> select(-data, -model)
+slm_hdi_inc_m1 <- slm_hdi_inc |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_hdi_inc_m2 <- slm_hdi_inc |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_hdi_inc_m3 <- bind_cols(slm_hdi_inc_m1, slm_hdi_inc_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 Mortality
 
 ```{r}
-mod_hdi_mort <- 
+slm_hdi_mort <- 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |> 
+  filter(indicator == "mortality") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_hdi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ human_development_index, data = data)
+  })) 
 
-summarized_hm = models  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> 
-  select(-data, -model)
+slm_hdi_mort_m1 <- slm_hdi_mort |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_hdi_mort_m2 <- slm_hdi_mort |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_hdi_mort_m3 <- bind_cols(slm_hdi_mort_m1, slm_hdi_mort_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 ### Sociodemographic index
-
-```{r}
-slm_sdi <- function(data) {
-  lm(asr_world ~ sdi_gdb_2021, data = data)
-}
-```
 
 Incidence
 
@@ -863,28 +996,101 @@ slm_sdi_inc <-
   filter(indicator == "incidence") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_sdi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ sdi_gdb_2021, data = data)
+  })) 
 
-summarized_si = slm_sdi_inc  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> select(-data, -model)
+slm_sdi_inc_m1 <- slm_sdi_inc |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_sdi_inc_m2 <- slm_hdi_inc |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_sdi_inc_m3 <- bind_cols(slm_sdi_inc_m1, slm_sdi_inc_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 Mortality
 
 ```{r}
-mod_sdi_mort <- 
+slm_sdi_mort <- 
   globocan_5 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |> 
+  filter(indicator == "mortality") |> 
   group_by(cancer_type) |> 
   nest() |> 
-  mutate(model = map(data, slm_sdi))
+  mutate(model = map(data, function(data) {
+    lm(asr_world ~ sdi_gdb_2021, data = data)
+  })) 
 
-summarized_sm = mod_sdi_mort  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary) |> 
-  select(-data, -model)
+slm_sdi_mort_m1 <- slm_sdi_mort |>
+  mutate(summary = map(model, broom::tidy)) |>
+  unnest(summary) |>
+  filter(term != "(Intercept)") |>
+  select(-data, -model, -term) |>
+  mutate(across(where(is.numeric), round, 2))
+
+slm_sdi_mort_m2 <- slm_hdi_mort |>
+  mutate(summary = map(model, broom::glance)) |>
+  unnest(summary) |>
+  select(-data, -model) |>
+  mutate(across(where(is.numeric), round, 2))
+         
+slm_sdi_mort_m3 <- bind_cols(slm_sdi_mort_m1, slm_sdi_mort_m2) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...4,
+    p.value...5,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `T-statistic` = statistic...4,
+    `T p-value` = p.value...5,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
 ```
 
 ## Step two: Check model assumptions by cancer types
@@ -979,7 +1185,7 @@ View(stat_incid_v_edi)
 **Table 1.** Selection of cancer types and statistics for incidence vs edi
 
 | N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|---------|-------------------|---------|---------|---------|---------|---------|
+|----------|-----------|----------|----------|----------|----------|----------|
 | 1   | All cancers excl. non-melanoma skin cancer | 0.6  | 0.155           | 0.683          | \<0.001        |     |
 | 2   | Breast                                     | 0.63 | 0.449           | 0.282          | \<0.001        |     |
 | 3   | Hodking Lymphoma                           | 0.54 | 0.570           | 0.182          | \<0.001        |     |
@@ -1053,7 +1259,7 @@ View(stat_mort_v_edi)
 **Table 2.** Selection of cancer types and statistics for mortality vs edi
 
 | N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|---------|-------------------|---------|---------|---------|---------|---------|
+|----------|-----------|----------|----------|----------|----------|----------|
 | 1   | All cancers excl. non-melanoma skin cancer |      |                 |                |                |     |
 | 2   |                                            |      |                 |                |                |     |
 | 3   |                                            |      |                 |                |                |     |
@@ -1312,6 +1518,7 @@ cancers_for_anova = globocan_5 |>
 ```
 
 # Define a function to create the boxplot
+
 ```{r}
 create_boxplot <- function(data, indicator, cancer_type, x_var, x_label, 
                            y_label, palette, x_margin = 20, y_margin = 10, 
@@ -1338,24 +1545,23 @@ create_boxplot <- function(data, indicator, cancer_type, x_var, x_label,
   return(p)
 }
 ```
+
 ## Summary
-edi, hdi, sdi vs incidence
-Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
 
-edi, hdi, sdi vs mortality
-Brain, central nervous system
+edi, hdi, sdi vs incidence Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
 
-hdi, sdi vs mortality
-kidney
+edi, hdi, sdi vs mortality Brain, central nervous system
 
-hdi vs mortality
-colon
+hdi, sdi vs mortality kidney
 
-sdi vs mortality
-colorectum, pancreas
+hdi vs mortality colon
+
+sdi vs mortality colorectum, pancreas
 
 ### Indicators vs Incidence
+
 Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
+
 ```{r}
 #Breast
 boxplot_breast_inc_edi <- create_boxplot(
@@ -1512,7 +1718,9 @@ boxplot_global_incid =
 ```
 
 ### Indicators vs Mortality
+
 Brain, central nervous system, Breast, Hodking lymphoma, non-hodking lymphoma
+
 ```{r}
 #Brain, central nervous system
 boxplot_bcns_mort_edi <- create_boxplot(
@@ -1627,6 +1835,7 @@ boxplot_global_mort =
 ```
 
 ### Brain, central nervous system
+
 ```{r}
 boxplot_bcns_inc_edi <- create_boxplot(
   data = cancers_for_anova,
@@ -1697,7 +1906,6 @@ ggarrange(
   boxplot_bcns_mort_edi, boxplot_bcns_mort_hdi, boxplot_bcns_mort_sdi
 )
 ```
-
 
 ### Hodgking lymphoma
 
@@ -1921,4 +2129,3 @@ ggarrange(
 ```{r}
 
 ```
-
