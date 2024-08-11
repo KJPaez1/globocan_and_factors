@@ -271,7 +271,7 @@ selectInput(
   selected = "ASR (World)"
 )
 
-selectedData_plot <- reactive({
+selectedData_plot_lm <- reactive({
   globocan_7 |>
     dplyr::filter(cancer_type == input$cancer_input_lm)
 })
@@ -289,7 +289,7 @@ Row {data-height=500}
     
 ```{r}
 renderPlotly({
-  plot_3 <- ggplot2::ggplot(data = selectedData_plot(),
+  plot_3 <- ggplot2::ggplot(data = selectedData_plot_lm(),
                             aes(
                               x = .data[[input$variable_x_input]],
                               y = .data[[input$variable_y_input]],
@@ -483,7 +483,7 @@ selectInput(
   selected = "ASR (World)"
 )
 
-selectedData_plot <- reactive({
+selectedData_plot_gam <- reactive({
   globocan_7 |>
     dplyr::filter(cancer_type == input$cancer_input_gam)
 })
@@ -501,7 +501,7 @@ Row {data-height=500}
 
 ```{r}
 renderPlotly({
-  plot_3 <- ggplot2::ggplot(data = selectedData_plot(),
+  plot_3 <- ggplot2::ggplot(data = selectedData_plot_gam(),
                             aes(
                               x = .data[[input$variable_x_input_gam]],
                               y = .data[[input$variable_y_input_gam]],
@@ -678,6 +678,49 @@ m3_mortality_gam <- dplyr::bind_cols(m1_mortality_gam, m2_mortality_gam) |>
 renderDataTable({m3_incidence_gam})
 ```
 
+Natural cubic splines {data-orientation=rows}
+============================================================================
+
+Inputs {.sidebar}
+-------------------------------------
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input_ns",
+  label = "Cancer type",
+  choices = unique(globocan_7$cancer_type),
+  selected = "All cancers excl. non-melanoma skin cancer"
+)
+
+selectInput(
+  inputId = "variable_x_input_ns",
+  label = "Variable x",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "variable_y_input_ns",
+  label = "Variable y",
+  choices = c("ASR (World)", "Crude rate"),
+  selected = "ASR (World)"
+)
+
+selectedData_plot <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_ns)
+})
+
+# selectedData_table <- reactive({
+#   globocan_7 |>
+#     dplyr::filter(Indicator == input$indicator_input)
+# })
+``` 
+
+
+
+
 ```{r}
 # data_x <-
 #   globocan_5 |>
@@ -687,14 +730,17 @@ renderDataTable({m3_incidence_gam})
 
 ```{r}
 # modelo_gam <- mgcv::gam(asr_world ~ s(human_development_index, bs = "cr"), data = data_x)
+# modelo_gam <- mgcv::gam(asr_world ~ s(human_development_index, bs = "bs"), data = data_x)
 # summary(modelo_gam)
 ```
 
 ```{r}
-# modelo_bsplines <- lm(asr_world ~ bs(human_development_index, df = 3, degree = 3), data = data_x)
-# summary(modelo_bsplines)
-# modelo_nsplines <- lm(asr_world ~ ns(human_development_index, df = 3), data = data_x)
+# modelo_bsplines_1 <- lm(asr_world ~ bs(human_development_index, df = 2, degree = 3), data = data_x)
+# modelo_bsplines_2 <- lm(asr_world ~ bs(human_development_index, df = 6, degree = 3), data = data_x)
+# summary(modelo_bsplines_2)
+# modelo_nsplines <- lm(asr_world ~ ns(human_development_index, df = 4), data = data_x)
 # summary(modelo_nsplines)
-# attr(ns(data_x$human_development_index, df = 6), "knots")
+# attr(bs(data_x$human_development_index, df = 6, degree = 3), "knots")
+# attr(ns(data_x$human_development_index, df = 4), "knots") #-2 df
 ```
 
