@@ -12,7 +12,7 @@ runtime: shiny
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r}
+```{r message=FALSE, results='hide', warning=FALSE}
 # Load packages 
 library(tidyverse)
 library(skimr)
@@ -102,8 +102,6 @@ globocan_6 <- globocan_5 |>
 #   dplyr::filter(SDI > 0.9 & SDI <=9.27) |>
 #   dplyr::arrange(SDI) |>
 #   dplyr::distinct(country_name)
-# 
-# 
 # globocan_6 |> dplyr::distinct(country_sdi)
 ```
 
@@ -135,7 +133,9 @@ selectInput(
   choices = c("ASR (World)", "Crude rate", "HDI", "EdI", "SDI"),
   selected = "ASR (World)"
 )
+```
 
+```{r}
 filtered_data <- reactive({
   globocan_6 |>
     dplyr::filter(cancer_type == input$cancer_input)
@@ -180,7 +180,6 @@ renderPlotly({
 
 ### Boxplot with jitter
 
-    
 ```{r}
 renderPlotly({
   plot_2 <- ggplot2::ggplot(data = filtered_data(),
@@ -233,8 +232,8 @@ DT::renderDataTable({
                 backgroundColor = styleEqual(c("Mortality", "Incidence"), c("#fff0cb", "#d9eaff")))
 })
 
-# # levene_result <- leveneTest(formula(paste(.data[[selected_column]], "~ genero")), data = filtered_data())
-# # `Levene p-value` = levene_result$`Pr(>F)`[1]
+# levene_result <- leveneTest(formula(paste(.data[[selected_column]], "~ genero")), data = filtered_data())
+# `Levene p-value` = levene_result$`Pr(>F)`[1]
 ```
 
 Simple linear regression {data-orientation=rows}
@@ -271,22 +270,33 @@ selectInput(
   selected = "ASR (World)"
 )
 
+selectInput(
+  inputId = "incidence_model_input",
+  label = "Incidence models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+
+selectInput(
+  inputId = "mortality_model_input",
+  label = "Mortality models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+```
+
+```{r}
 selectedData_plot_lm <- reactive({
   globocan_7 |>
     dplyr::filter(cancer_type == input$cancer_input_lm)
 })
-
-# selectedData_table <- reactive({
-#   globocan_7 |>
-#     dplyr::filter(Indicator == input$indicator_input)
-# })
 ```
 
 Row {data-height=500}
 -------------------------------------
-    
-### geom_smooth Linear Regression
-    
+
+### Simple Linear Regression (SLR)
+
 ```{r}
 renderPlotly({
   plot_3 <- ggplot2::ggplot(data = selectedData_plot_lm(),
@@ -340,42 +350,46 @@ renderPlotly({
 #   ggsci::scale_fill_bmj(alpha = 0.1) +
 #   ggplot2::theme_minimal(base_size = 14)
 ```
-   
+
 Row {data-height=400}
 -------------------------------------
-   
+
 ### Incidence
 
 ```{r}
-models_incidence <- globocan_7 |>
-  dplyr::filter(Indicator == "Incidence") |>
-  dplyr::group_by(cancer_type) |>
-  tidyr::nest()  |>
-  dplyr::mutate(model = map(data, function(data) {
-    lm(`ASR (World)` ~ HDI, data = data)
-  }))
+globocan_8 <- globocan_7 |>
+  janitor::clean_names()
+```
 
-m1_incidence <- models_incidence |>
+```{r}
+# mutate(models = map(data, ~ lm(formula = as.formula(paste("asr_world ~ hdi")), data = .)))
+models_incidence_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ hdi, data = .)))
+
+# Summarizes information about the models
+m1_incidence_hdi <- models_incidence_hdi |>
   dplyr::mutate(summary = map(model, broom::tidy)) |>
   tidyr::unnest(summary) |>
   dplyr::filter(term != "(Intercept)") |>
   dplyr::select(-data, -model, -term) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m2_incidence <- models_incidence |>
+m2_incidence_hdi <- models_incidence_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m3_incidence <- dplyr::bind_cols(m1_incidence, m2_incidence) |> 
+# Renamed
+ASR_HDI_incidence <- dplyr::bind_cols(m1_incidence_hdi, m2_incidence_hdi) |>
   dplyr::select(
     cancer_type...1,
     estimate,
     r.squared,
     adj.r.squared,
-    statistic...4,
-    p.value...5,
     statistic...10,
     p.value...11,
     AIC,
@@ -387,53 +401,144 @@ m3_incidence <- dplyr::bind_cols(m1_incidence, m2_incidence) |>
     Estimate = estimate,
     `R-squared` = r.squared,
     `Adjusted R-squared` = adj.r.squared,
-    `T-statistic` = statistic...4,
-    `T p-value` = p.value...5,
     `F-statistic` = statistic...10,
     `F p-value` = p.value...11,
     Deviance = deviance
   )
-renderDataTable({m3_incidence})
+```
 
-# univ_tab <- linelist |>
-#   tbl_uvregression(                         
-#     method = lm,                         
-#     y = outcome
-#   )
+```{r}
+models_incidence_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ed_i, data = .)))
+
+# Summarizes information about the models
+m1_incidence_edi <- models_incidence_edi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_edi <- models_incidence_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EdI_incidence <- dplyr::bind_cols(m1_incidence_edi, m2_incidence_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_incidence_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ sdi, data = .)))
+
+# Summarizes information about the models
+m1_incidence_sdi <- models_incidence_sdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_sdi <- models_incidence_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_incidence <- dplyr::bind_cols(m1_incidence_sdi, m2_incidence_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+renderDataTable({
+  selected_table <- switch(
+    input$incidence_model_input,
+    "ASR (World) ~ HDI" = ASR_HDI_incidence,
+    "ASR (World) ~ EdI" = ASR_EdI_incidence,
+    "ASR (World) ~ SDI" = ASR_SDI_incidence
+  )
+  selected_table
+})
 ```
  
 ### Mortality
     
 ```{r}
-models_mortality <- globocan_7 |>
-  dplyr::filter(Indicator == "Mortality") |>
+models_mortality_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
   dplyr::group_by(cancer_type) |>
-  tidyr::nest()  |>
-  dplyr::mutate(model = map(data, function(data) {
-    lm(`ASR (World)` ~ HDI, data = data)
-  }))
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ hdi, data = .)))
 
-m1_mortality <- models_mortality |>
+# Summarizes information about the models
+m1_mortality_hdi <- models_mortality_hdi |>
   dplyr::mutate(summary = map(model, broom::tidy)) |>
   tidyr::unnest(summary) |>
   dplyr::filter(term != "(Intercept)") |>
   dplyr::select(-data, -model, -term) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m2_mortality <- models_mortality |>
+m2_mortality_hdi <- models_mortality_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m3_mortality <- dplyr::bind_cols(m1_mortality, m2_mortality) |> 
+# Renamed
+ASR_HDI_mortality <- dplyr::bind_cols(m1_mortality_hdi, m2_mortality_hdi) |>
   dplyr::select(
     cancer_type...1,
     estimate,
     r.squared,
     adj.r.squared,
-    statistic...4,
-    p.value...5,
     statistic...10,
     p.value...11,
     AIC,
@@ -445,13 +550,112 @@ m3_mortality <- dplyr::bind_cols(m1_mortality, m2_mortality) |>
     Estimate = estimate,
     `R-squared` = r.squared,
     `Adjusted R-squared` = adj.r.squared,
-    `T-statistic` = statistic...4,
-    `T p-value` = p.value...5,
     `F-statistic` = statistic...10,
     `F p-value` = p.value...11,
     Deviance = deviance
   )
-renderDataTable({m3_mortality})
+```
+
+```{r}
+models_mortality_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ed_i, data = .)))
+
+# Summarizes information about the models
+m1_mortality_edi <- models_mortality_edi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_edi <- models_mortality_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EdI_mortality <- dplyr::bind_cols(m1_mortality_edi, m2_mortality_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_mortality_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ sdi, data = .)))
+
+# Summarizes information about the models
+m1_mortality_sdi <- models_mortality_sdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_sdi <- models_mortality_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_mortality <- dplyr::bind_cols(m1_mortality_sdi, m2_mortality_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `F p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+renderDataTable({
+  selected_table <- switch(
+    input$mortality_model_input,
+    "ASR (World) ~ HDI" = ASR_HDI_mortality,
+    "ASR (World) ~ EdI" = ASR_EdI_mortality,
+    "ASR (World) ~ SDI" = ASR_SDI_mortality
+  )
+  selected_table
+})
 ```
 
 Cubic regression spline {data-orientation=rows}
@@ -483,21 +687,32 @@ selectInput(
   selected = "ASR (World)"
 )
 
+selectInput(
+  inputId = "incidence_model_input_gam",
+  label = "Incidence models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+
+selectInput(
+  inputId = "mortality_model_input_gam",
+  label = "Mortality models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+```
+
+```{r}
 selectedData_plot_gam <- reactive({
   globocan_7 |>
     dplyr::filter(cancer_type == input$cancer_input_gam)
 })
-
-# selectedData_table <- reactive({
-#   globocan_7 |>
-#     dplyr::filter(Indicator == input$indicator_input)
-# })
 ```
 
 Row {data-height=500}
 -------------------------------------
 
-### geom_smooth Generalized Additive Model (GAM)
+### Generalized Additive Model (GAM) - Generalized Cross-Validation (GCV) for cubic regression spline
 
 ```{r}
 renderPlotly({
@@ -510,7 +725,7 @@ renderPlotly({
                             )) +
     ggplot2::geom_point(alpha = 0.5, size = 2.5, shape = 21) +
     ggplot2::geom_smooth(method = "gam",
-                         formula = y ~ s(x, bs = "cr"), 
+                         formula = y ~ s(x, bs = "cr", k=-1), 
                          se = FALSE,
                          linewidth = 0.7,
                          alpha = 0.7) +
@@ -582,33 +797,38 @@ Row {data-height=400}
 ### Incidence
 
 ```{r}
-globocan_8 <- globocan_7 |>
-  janitor::clean_names()
-
-models_incidence_gam <- globocan_8 |>
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_hdi <- globocan_8 |>
   dplyr::filter(indicator == "Incidence") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = map(data, function(data) {
-    mgcv::gam(asr_world ~ s(hdi, bs = "cr"), data = data)
-  }))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), data = .)))
 
-m1_incidence_gam <- models_incidence_gam |>
-  dplyr::mutate(summary = map(model, broom::tidy)) |>
+# Summarizes information about the models
+m0_incidence_gam_hdi <- models_incidence_gam_hdi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_hdi <- models_incidence_gam_hdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
   tidyr::unnest(summary) |>
   dplyr::filter(term != "(Intercept)") |>
   dplyr::select(-data, -model, -term) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m2_incidence_gam <- models_incidence_gam |>
+m2_incidence_gam_hdi <- models_incidence_gam_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m3_incidence_gam <- dplyr::bind_cols(m1_incidence_gam, m2_incidence_gam) |> 
+# Renamed
+ASR_HDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_hdi, m1_incidence_gam_hdi, m2_incidence_gam_hdi) |>
   dplyr::select(
     cancer_type...1,
+    r_squared,
     edf,
     ref.df,
     statistic,
@@ -620,6 +840,7 @@ m3_incidence_gam <- dplyr::bind_cols(m1_incidence_gam, m2_incidence_gam) |>
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
     EDF = edf,
     Ref.df = ref.df,
     `T-statistic` = statistic,
@@ -627,36 +848,163 @@ m3_incidence_gam <- dplyr::bind_cols(m1_incidence_gam, m2_incidence_gam) |>
     Df = df,
     Deviance = deviance
   )
-renderDataTable({m3_incidence_gam})
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), data = .)))
+
+# Summarizes information about the models
+m0_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_edi, m1_incidence_gam_edi, m2_incidence_gam_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    edf,
+    ref.df,
+    statistic,
+    p.value,
+    df,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
+    EDF = edf,
+    Ref.df = ref.df,
+    `T-statistic` = statistic,
+    `T p-value` = p.value,
+    Df = df,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), data = .)))
+
+# Summarizes information about the models
+m0_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_sdi, m1_incidence_gam_sdi, m2_incidence_gam_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    edf,
+    ref.df,
+    statistic,
+    p.value,
+    df,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
+    EDF = edf,
+    Ref.df = ref.df,
+    `T-statistic` = statistic,
+    `T p-value` = p.value,
+    Df = df,
+    Deviance = deviance
+  )
+```
+
+```{r}
+renderDataTable({
+  selected_table <- switch(
+    input$incidence_model_input_gam,
+    "ASR (World) ~ HDI" = ASR_HDI_incidence_gam,
+    "ASR (World) ~ EdI" = ASR_EDI_incidence_gam,
+    "ASR (World) ~ SDI" = ASR_SDI_incidence_gam
+  )
+  selected_table
+})
 ```
 
 ### Mortality
 
 ```{r}
-models_mortality_gam <- globocan_8 |>
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_hdi <- globocan_8 |>
   dplyr::filter(indicator == "Mortality") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = map(data, function(data) {
-    mgcv::gam(asr_world ~ s(hdi, bs = "cr"), data = data)
-  }))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), data = .)))
 
-m1_mortality_gam <- models_mortality_gam |>
-  dplyr::mutate(summary = map(model, broom::tidy)) |>
+# Summarizes information about the models
+m0_mortality_gam_hdi <- models_mortality_gam_hdi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_hdi <- models_mortality_gam_hdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
   tidyr::unnest(summary) |>
   dplyr::filter(term != "(Intercept)") |>
   dplyr::select(-data, -model, -term) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m2_mortality_gam <- models_mortality_gam |>
+m2_mortality_gam_hdi <- models_mortality_gam_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
-m3_mortality_gam <- dplyr::bind_cols(m1_mortality_gam, m2_mortality_gam) |> 
+# Renamed
+ASR_HDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_hdi, m1_mortality_gam_hdi, m2_mortality_gam_hdi) |>
   dplyr::select(
     cancer_type...1,
+    r_squared,
     edf,
     ref.df,
     statistic,
@@ -668,6 +1016,7 @@ m3_mortality_gam <- dplyr::bind_cols(m1_mortality_gam, m2_mortality_gam) |>
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
     EDF = edf,
     Ref.df = ref.df,
     `T-statistic` = statistic,
@@ -675,7 +1024,126 @@ m3_mortality_gam <- dplyr::bind_cols(m1_mortality_gam, m2_mortality_gam) |>
     Df = df,
     Deviance = deviance
   )
-renderDataTable({m3_incidence_gam})
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), data = .)))
+
+# Summarizes information about the models
+m0_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_edi, m1_mortality_gam_edi, m2_mortality_gam_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    edf,
+    ref.df,
+    statistic,
+    p.value,
+    df,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
+    EDF = edf,
+    Ref.df = ref.df,
+    `T-statistic` = statistic,
+    `T p-value` = p.value,
+    Df = df,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), data = .)))
+
+# Summarizes information about the models
+m0_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
+  tidyr::unnest(r_squared) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_sdi, m1_mortality_gam_sdi, m2_mortality_gam_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    edf,
+    ref.df,
+    statistic,
+    p.value,
+    df,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `R-sq.(adj)` = r_squared,
+    EDF = edf,
+    Ref.df = ref.df,
+    `T-statistic` = statistic,
+    `T p-value` = p.value,
+    Df = df,
+    Deviance = deviance
+  )
+```
+
+```{r}
+renderDataTable({
+  selected_table <- switch(
+    input$mortality_model_input_gam,
+    "ASR (World) ~ HDI" = ASR_HDI_mortality_gam,
+    "ASR (World) ~ EdI" = ASR_EDI_mortality_gam,
+    "ASR (World) ~ SDI" = ASR_SDI_mortality_gam
+  )
+  selected_table
+})
 ```
 
 Natural cubic splines {data-orientation=rows}
