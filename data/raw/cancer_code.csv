@@ -1,0 +1,39 @@
+Cancer code,ICD Code,Label
+40,C00-97/C44,All cancers excl. non-melanoma skin cancer
+1,C00-06,"Lip, oral cavity"
+2,C07-08,Salivary glands
+3,C09-10,Oropharynx
+4,C11,Nasopharynx
+5,C12-13,Hypopharynx
+6,C15,Oesophagus
+7,C16,Stomach
+41,C18-C21,Colorectum
+11,C22,Liver and intrahepatic bile ducts
+12,C23,Gallbladder
+13,C25,Pancreas
+14,C32,Larynx
+15,C33-34,"Trachea, bronchus and lung"
+16,C43,Melanoma of skin
+18,C45,Mesothelioma
+19,C46,Kaposi sarcoma
+20,C50,Breast
+21,C51,Vulva
+22,C52,Vagina
+23,C53,Cervix uteri
+24,C54,Corpus uteri
+25,C56,Ovary
+26,C60,Penis
+27,C61,Prostate
+28,C62,Testis
+29,C64,Kidney
+30,C67,Bladder
+31,C70-72," Brain, central nervous system"
+32,C73,Thyroid
+33,C81,Hodgkin lymphoma
+34,C82-86+C88,Non-Hodgkin lymphoma
+35,C90,Multiple myeloma
+36,C91-95,Leukaemia
+8,C18,Colon
+9,C19-20,Rectum
+10,C21,Anus
+17,C44,Non-melanoma skin cancer
