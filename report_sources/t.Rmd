@@ -1,0 +1,70 @@
+---
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+runtime: shiny
+---
+
+```{r}
+data <- structure(
+  list(
+    Season = c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2),
+    player_name = c("Pecus", "Butter_Man", "arecue", "mattmmz123", "Jamesian", "Caenum", "Caenum", "coleam", "Karova", "Enzo", "LegoGuy162", "monkeykilling", "Toasty_boii", "arecue"),
+    death_time = structure(c(748, 1982, 4779, 4998, NA, NA, 3098, 3902, 4020, 4022, 4556, 4937, 5691, NA), class = c("hms", "difftime"), units = "secs"),
+    team_color = c("Green", "Purple", "Purple", "Green", "Blue", "Blue", "Green", "Blue", "Yellow", "Blue", "Green", "Red", "Red", "Yellow")
+  ),
+  row.names = c(NA, -14L), class = c("tbl_df", "tbl", "data.frame")
+)
+```
+
+```{r,libraries,include=FALSE}
+library(tidyverse)
+library(shiny)
+library(flexdashboard)
+```
+
+# Seasons
+
+## Inputs {.sidebar data-width=250}
+
+```{r}
+seasonUiInput <- function(id) {
+  ns <- NS(id)
+  fillCol(
+    inputPanel(
+      selectInput(ns("season"), "Season ", choices = data$Season),
+    )
+  )
+}
+
+seasonUiOutput <- function(id) {
+  ns <- NS(id)
+  fillCol(
+    tableOutput(ns("seasonPlot"))
+  )
+}
+
+seasonServer <- function(id) {
+  moduleServer(
+    id,
+    function(input, output, session, ...) {
+      output$seasonPlot <- renderTable({
+        data[data$Season %in% input$season, ]
+      })
+    }
+  )
+}
+```
+
+```{r}
+seasonUiInput("seasons")
+seasonServer("seasons")
+```
+
+## Seasons
+
+### Seasons
+
+```{r}
+seasonUiOutput("seasons")
+```
