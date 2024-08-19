@@ -15,7 +15,7 @@ editor: source
 
 -   Global and regional trends in incidence and mortality of female breast cancer and associated factors at national level in 2000 to 2019 (10.1097/CM9.0000000000001814)
 
-# Load packages [-]
+# Load packages \[-\]
 
 ```{r include = FALSE}
 pacman::p_load(
@@ -874,7 +874,6 @@ broom::glance(model_poly_cubic)
 broom::glance(model_spline_1_knot)
 ```
 
-
 ```{r fig.width=12}
 plot(compare_performance(model_poly_cubic, model_spline_1_knot))
 ```
@@ -887,115 +886,13 @@ fit.sp = smooth.spline(education_and_income ~ asr_world, nknots=15,  data_test)
 gam(wage ~ s(year, 4) + s(age, 5) + education, data = Wage)
 ```
 
+<!-- ## Step one: fit the simple linear model grouped by cancer_type -->
 
-## Step one: fit the simple linear model grouped by cancer_type
+<!-- https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions -->
 
-https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions
+<!-- https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r -->
 
-https://stackoverflow.com/questions/1169539/linear-regression-and-group-by-in-r
-
-### human development index
-
-```{r}
-slm_hdi <- function(data) {
-  lm(asr_world ~ human_development_index, data = data)
-}
-```
-
-Incidence
-
-```{r}
-data_x <-
-  globocan_5 |>
-  dplyr::distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  dplyr::filter(indicator == "incidence" & cancer_type == "Breast")
-
-lm(asr_world ~ human_development_index, data = data_x) |>
-  summary()
-
-
-models <-
-  globocan_5 |>
-  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |>
-  group_by(cancer_type) |>
-  nest() |>
-  mutate(model = map(data, function(data) {
-    lm(asr_world ~ human_development_index, data = data)
-  }))
-
-m_1 <- models |>
-  mutate(summary = map(model, broom::tidy)) |>
-  unnest(summary) |>
-  filter(term != "(Intercept)") |>
-  select(-data, -model, -term) |>
-  mutate(across(where(is.numeric), round, 2))
-
-m_2 <- models  |>
-  mutate(summary = map(model, broom::glance)) |>
-  unnest(summary) |>
-  select(-data, -model) |>
-  mutate(across(where(is.numeric), round, 2))
-
-colnames(m_3)
-
-m_3 <- bind_cols(m_1, m_2) |>
-  dplyr::select(
-    cancer_type...1,
-    estimate,
-    r.squared,
-    adj.r.squared,
-    statistic...4,
-    p.value...5,
-    statistic...10,
-    p.value...11,
-    AIC,
-    BIC,
-    deviance
-  ) |>
-  dplyr::rename(
-    `Cancer type` = cancer_type...1,
-    Estimate = estimate,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
-    `T-statistic` = statistic...4,
-    `T p-value` = p.value...5,
-    `F-statistic` = statistic...10,
-    `F p-value` = p.value...11,
-    Deviance = deviance
-  )
-```
-
-Mortality
-
-```{r}
-models <- 
-  globocan_5 |> 
-  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-  filter(indicator == "incidence") |> 
-  group_by(cancer_type) |> 
-  nest() |> 
-  mutate(model = map(data, slm_hdi))
-
-summarized = models  |> 
-  mutate(summary = map(model, broom::glance)) %>%
-  unnest(summary)
-
-summarized = summarized |> select(-data, -model)
-```
-
-```{r}
-lm_spec <- linear_reg() |> 
-  set_mode("regression") |> 
-  set_engine("lm")
-
-lm_fit <- fit(lm_spec, asr_world ~ human_development_index, data = incid)
-
-lm_fit %>%
-  check_model()
-```
-
-# Model 3. One-factor ANOVA on selected cancers
+# Model 5. One-factor ANOVA on selected cancers
 
 Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
 
@@ -1064,20 +961,29 @@ View(stat_incid_v_edi)
 
 **Table 1.** Selection of cancer types and statistics for incidence vs edi
 
-| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|---------|-------------------|---------|---------|---------|---------|---------|
-| 1   | All cancers excl. non-melanoma skin cancer | 0.6  | 0.155           | 0.683          | \<0.001        |     |
-| 2   | Breast                                     | 0.63 | 0.449           | 0.282          | \<0.001        |     |
-| 3   | Hodking Lymphoma                           | 0.54 | 0.570           | 0.182          | \<0.001        |     |
-| 4   | *Larynx*                                   | 0.1  | 0.055           | 0.086          | \<0.001        |     |
-| 5   | Leukaemia                                  | 0.62 | 0.598           | 0.167          | \<0.001        |     |
-| 6   | Prostate                                   | 0.23 | 0.106           | 0.210          | \<0.001        |     |
-| 7   | Trachea, bronchus and lung                 | 0.43 | 0.620           | 0.092          | \<0.001        |     |
-| 8   | Colorectum                                 | 0.64 | 0.090           | 0.002          | \<0.001        |     |
-| 9   | Non-hodking lymphoma                       | 0.43 | 0.975           | 0.001          | \<0.001        |     |
-| 10  | Pancreas                                   | 0.62 | 0.204           | 0.017          | \<0.001        |     |
-| 11  | Rectum                                     | 0.45 | 0.397           | \<0.001        | \<0.001        |     |
-| 12  |                                            |      |                 |                |                |     |
+| N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Breast                        |      | 0.358           | \<0.001        | \<0.001        |     |
+| 2   | Hodgkin lymphoma              |      | 0.558           | \<0.001        | \<0.001        |     |
+| 3   | Leukaemia                     |      | 0.251           | 0.002          | \<0.001        |     |
+| 4   | Non-hodgkin lymphoma          |      | 0.819           | \<0.001        | \<0.001        |     |
+| 5   | Brain, central nervous system |      | 0.635           | 0.001          | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with unequal variances
+
+```{r}
+pw_gh_test_inc_edi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence" & 
+           cancer_type %in% c("Breast", 
+                              "Hodking lymphoma",
+                              "Non-Hodgkin lymphoma",
+                              "Leukaemia",
+                              " Brain, central nervous system")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ edi_categories)
+```
 
 ### Education and Income index (EDI) vs mortality
 
@@ -1138,20 +1044,21 @@ View(stat_mort_v_edi)
 
 **Table 2.** Selection of cancer types and statistics for mortality vs edi
 
-| N°  | Cancer type                                | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|---------|-------------------|---------|---------|---------|---------|---------|
-| 1   | All cancers excl. non-melanoma skin cancer |      |                 |                |                |     |
-| 2   |                                            |      |                 |                |                |     |
-| 3   |                                            |      |                 |                |                |     |
-| 4   |                                            |      |                 |                |                |     |
-| 5   |                                            |      |                 |                |                |     |
-| 6   |                                            |      |                 |                |                |     |
-| 7   |                                            |      |                 |                |                |     |
-| 8   |                                            |      |                 |                |                |     |
-| 9   |                                            |      |                 |                |                |     |
-| 10  |                                            |      |                 |                |                |     |
-| 11  |                                            |      |                 |                |                |     |
-| 12  |                                            |      |                 |                |                |     |
+| N°  | Cancer type                   | R\^2 | Shapiro P value | Levene P value | ANOVA P values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Brain, central nervous system |      | 0.158           | 0.004          | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with unequal variances
+
+```{r}
+pw_gh_test_mort_hdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality" & 
+           cancer_type %in% c(" Brain, central nervous system")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ hdi_category)
+```
 
 ### Human Development Index (HDI) vs Incidence
 
@@ -1212,6 +1119,30 @@ stat_incid_v_hdi <-
 View(stat_incid_v_hdi)
 ```
 
+**Table 3.** Selection of cancer types and statistics for incidence vs hdi
+
+| N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Breast                        |      | 0.920           | \<0.001        | \<0.001        |     |
+| 2   | Hodking Lymphoma              |      | 0.838           | \<0.001        | \<0.001        |     |
+| 3   | Brain, central nervous system |      | 0.562           | 0.001          |                |     |
+| 4   | Non-Hodgkin lymphoma          |      | 0.180           | \<0.001        |                |     |
+
+Pairwise comparison for normally distributed data with unequal variances
+
+```{r}
+pw_gh_test_inc_hdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence" & 
+           cancer_type %in% c("Breast", 
+                              "Hodking Lymphoma",
+                              " Brain, central nervous system",
+                              "Non-Hodgkin lymphoma")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ hdi_category)
+```
+
 ### Human Development Index (HDI) vs Mortality
 
 ```{r}
@@ -1261,6 +1192,28 @@ stat_mort_v_hdi <-
   ungroup()
 
 View(stat_mort_v_hdi)
+```
+
+**Table 4.** Selection of cancer types and statistics for incidence vs hdi
+
+| N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Brain, central nervous system |      | 0.279           | 0.005          | \<0.001        |     |
+| 2   | Kidney                        |      | 0.263           | \<0.001        | \<0.001        |     |
+| 3   | Colon                         |      | 0.058           | \<0.001        | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with equal variances
+
+```{r}
+pw_gh_test_mort_hdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality" & 
+           cancer_type %in% c("Kidney", 
+                              " Brain, central nervous system",
+                              "Colon")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ hdi_category)
 ```
 
 ### Sociodemographic index (SDI) vs Incidence
@@ -1322,6 +1275,32 @@ stat_incid_v_sdi <-
 View(stat_incid_v_sdi)
 ```
 
+**Table 5.** Selection of cancer types and statistics for incidence vs hdi
+
+| N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Hodgkin lymphoma              |      | 0.896           | \<0.001        | \<0.001        |     |
+| 2   | Leukaemia                     |      | 0.495           | 0.023          | \<0.001        |     |
+| 3   | Brain, central nervous system |      | 0.486           | \<0.001        | \<0.001        |     |
+| 4   | Breast                        |      | 0.185           | \<0.001        | \<0.001        |     |
+| 5   | Prostate                      |      | 0.119           | 0.034          | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with equal variances
+
+```{r}
+pw_gh_test_inc_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "incidence" & 
+           cancer_type %in% c("Hodgkin lymphoma", 
+                              "Leukaemia",
+                              " Brain, central nervous system",
+                              "Breast",
+                              "Prostate")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ sdi_categories)
+```
+
 ### Sociodemographic index (SDI) vs Mortality
 
 ```{r}
@@ -1371,4 +1350,28 @@ stat_mort_v_sdi <-
   ungroup()
 
 View(stat_mort_v_sdi)
+```
+
+**Table 6.** Selection of cancer types and statistics for incidence vs hdi
+
+| N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Brain, central nervous system |      | 0.699           | 0.013          | \<0.001        |     |
+| 2   | Colorectum                    |      | 0.311           | \<0.001        | \<0.001        |     |
+| 3   | Kidney                        |      | 0.214           | 0.002          | \<0.001        |     |
+| 4   | Pancreas                      |      | 0.106           | \<0.001        | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with equal variances
+
+```{r}
+pw_gh_test_mort_sdi = 
+  globocan_5 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "mortality" & 
+           cancer_type %in% c("Kidney", 
+                              "Colorectum",
+                              " Brain, central nervous system",
+                              "Pancreas")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ sdi_categories)
 ```
