@@ -21,6 +21,7 @@ library(rstatix)
 library(finalfit)
 library(ggpubr)
 library(ggsci)
+library(ggrepel)
 library(broom)
 library(gtsummary)
 library(car)
@@ -29,7 +30,7 @@ library(performance)
 library(rio) 
 library(here)
 library(splines)
-library(ggformula)
+library(RColorBrewer)
 library(mgcv)
 library(splines)
 library(DT)
@@ -44,7 +45,6 @@ library(patchwork)
 # My function scripts
 rfextras::load_scripts()
 ```
-
 
 # Exploratory data analysis {data-orientation="rows"}
 
