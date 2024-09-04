@@ -1,2 +1,2 @@
 # globocan_and_factors
-factors asssociated with cancer epidemiology
+This repo contains the scripts and data to reproduce the results of: 
