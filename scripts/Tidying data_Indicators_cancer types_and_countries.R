@@ -303,7 +303,6 @@ globocan_8 <- globocan_7 |>
   dplyr::mutate(
     cancer_type = case_when(
       cancer_type == " Brain, central nervous system" ~ "Brain, nervous system",
-      cancer_type == "Trachea, bronchus and lung" ~ "Lung",
       cancer_type == "Liver and intrahepatic bile ducts" ~ "Liver",
       .default = as.character(cancer_type))
   )
@@ -440,16 +439,16 @@ figure_2A <- my_ggplot(figure_2A_data) +
 figure_2B_data <- globocan_8 |>
   dplyr::filter(
     cancer_type %in% c(
+      "Trachea, bronchus and lung", 
       "Pancreas",
-      "Lung",
       "Brain, nervous system"
     )
   ) |>
   dplyr::mutate(cancer_type = factor(
     cancer_type,
     levels = c(
+      "Trachea, bronchus and lung", 
       "Pancreas",
-      "Lung",
       "Brain, nervous system"
     )
   ))
@@ -463,16 +462,16 @@ figure_2C_data <- globocan_8 |>
   dplyr::filter(
     cancer_type %in% c(
       "Cervix uteri",
-      "Stomach",
-      "Larynx"
+      "Liver",
+      "Stomach"
     )
   ) |>
   dplyr::mutate(cancer_type = factor(
     cancer_type,
     levels = c(
       "Cervix uteri",
-      "Stomach",
-      "Larynx"
+      "Liver",
+      "Stomach"
     )
   ))
 
@@ -497,13 +496,7 @@ ggsave(
   dpi = 500,
   units = "in")
 
-#   
-globocan_10 <- globocan_8 |>
-  dplyr::filter(
-    !cancer_type %in% c("All cancers excl. non-melanoma skin cancer", "Colon", "Rectum", "Anus") &
-      !neoplasia_sex == "Male" & indicator == "Incidence"
-  )
-
+# 
 globocan_10 <- globocan_8 |>
   dplyr::filter(
     !cancer_type %in% c(
@@ -516,14 +509,16 @@ globocan_10 <- globocan_8 |>
     cancer_type = case_when(
       cancer_type %in% c(
         "Mesothelioma",
-        "Vagina",
         "Anus",
         "Gallbladder",
         "Salivary glands",
         "Vulva",
         "Mesothelioma",
-        "Penis"
-      ) ~ "Others/Unspec",
+        "Penis") ~ "Others/Unspec",
+      cancer_type %in% c(
+        "Hypopharynx",
+        "Nasopharynx",
+        "Oropharynx") ~ "Other pharynx", 
       .default = as.character(cancer_type)
     )
   ) |> 
@@ -537,26 +532,28 @@ globocan_10 <- globocan_8 |>
       "Corpus uteri",
       "Bladder",
       "Non-Hodgkin lymphoma",
-      "Thyroid",
-      "Testis",
       "Kidney",
+      "Thyroid",
       "Leukaemia",
-      "Ovary",
+      "Testis",
       "Multiple myeloma",
       "Hodgkin lymphoma",
+      "Trachea, bronchus and lung", 
       "Pancreas",
-      "Lung",
       "Brain, nervous system",
       "Cervix uteri",
+      "Liver",
       "Stomach",
       "Larynx",
+      "Vagina",
       "Kaposi sarcoma",
-      "Liver",
-      "Oesophagus",
+      "Ovary",
       "Lip, oral cavity",
-      "Oropharynx",
-      "Hypopharynx",
-      "Nasopharynx",
+      "Oesophagus",
+      "Other pharynx",
+      "Anus",
+      "Gallbladder",
+      "Salivary glands",
       "Others/Unspec"
     )
   ),
@@ -569,29 +566,31 @@ globocan_10 <- globocan_8 |>
       "Corpus uteri",
       "Bladder",
       "Non-Hodgkin lymphoma",
-      "Thyroid",
-      "Testis",
       "Kidney",
+      "Thyroid",
       "Leukaemia",
-      "Ovary",
+      "Testis",
       "Multiple myeloma",
       "Hodgkin lymphoma") ~ "Group A",
     cancer_type %in% c(
-      "Pancreas", 
-      "Lung", 
+      "Trachea, bronchus and lung", 
+      "Pancreas",
       "Brain, nervous system") ~ "Group B",
     cancer_type %in% c(
       "Cervix uteri",
+      "Liver",
       "Stomach",
       "Larynx",
-      "Kaposi sarcoma",
-      "Liver",
-      "Oesophagus") ~ "Group C",
+      "Vagina",
+      "Kaposi sarcoma") ~ "Group C",
     cancer_type %in% c(
+      "Ovary",
       "Lip, oral cavity",
-      "Oropharynx",
-      "Hypopharynx",
-      "Nasopharynx") ~ "Group D",
+      "Oesophagus",
+      "Other pharynx",
+      "Anus",
+      "Gallbladder",
+      "Salivary glands") ~ "Group D",
     .default = as.character(cancer_type)
   ))
 
@@ -599,10 +598,10 @@ globocan_10 <- globocan_8 |>
 colourCount <- length(unique(globocan_10$cancer_type))
 
 # Define the four palettes
-palette1 <- colorRampPalette(brewer.pal(4, "Reds"))(14)
+palette1 <- colorRampPalette(brewer.pal(4, "Reds"))(13)
 palette2 <- colorRampPalette(brewer.pal(3, "Purples"))(3)
 palette3 <- colorRampPalette(brewer.pal(6, "Greens"))(6)
-palette4 <- colorRampPalette(brewer.pal(3, "Blues"))(4)
+palette4 <- colorRampPalette(brewer.pal(3, "Blues"))(7)
 palette5 <- colorRampPalette(brewer.pal(3, "Greys"))(1)
 
 # Combine the palettes
