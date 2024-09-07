@@ -462,16 +462,16 @@ figure_2C_data <- globocan_8 |>
   dplyr::filter(
     cancer_type %in% c(
       "Cervix uteri",
-      "Liver",
-      "Stomach"
+      "Stomach",
+      "Liver"
     )
   ) |>
   dplyr::mutate(cancer_type = factor(
     cancer_type,
     levels = c(
       "Cervix uteri",
-      "Liver",
-      "Stomach"
+      "Stomach",
+      "Liver"
     )
   ))
 
@@ -508,13 +508,11 @@ globocan_10 <- globocan_8 |>
   dplyr::mutate(
     cancer_type = case_when(
       cancer_type %in% c(
-        "Mesothelioma",
-        "Anus",
         "Gallbladder",
         "Salivary glands",
-        "Vulva",
         "Mesothelioma",
-        "Penis") ~ "Others/Unspec",
+        "Penis",
+        "Kaposi sarcoma") ~ "Others/Unspec",
       cancer_type %in% c(
         "Hypopharynx",
         "Nasopharynx",
@@ -535,25 +533,23 @@ globocan_10 <- globocan_8 |>
       "Kidney",
       "Thyroid",
       "Leukaemia",
+      "Ovary",
       "Testis",
       "Multiple myeloma",
       "Hodgkin lymphoma",
+      "Vulva",
+      "Anus",
       "Trachea, bronchus and lung", 
       "Pancreas",
       "Brain, nervous system",
       "Cervix uteri",
-      "Liver",
       "Stomach",
+      "Liver",
       "Larynx",
       "Vagina",
-      "Kaposi sarcoma",
-      "Ovary",
       "Lip, oral cavity",
       "Oesophagus",
       "Other pharynx",
-      "Anus",
-      "Gallbladder",
-      "Salivary glands",
       "Others/Unspec"
     )
   ),
@@ -569,28 +565,27 @@ globocan_10 <- globocan_8 |>
       "Kidney",
       "Thyroid",
       "Leukaemia",
+      "Ovary",
       "Testis",
       "Multiple myeloma",
-      "Hodgkin lymphoma") ~ "Group A",
+      "Hodgkin lymphoma",
+      "Vulva",
+      "Anus") ~ "Group A",
     cancer_type %in% c(
       "Trachea, bronchus and lung", 
       "Pancreas",
       "Brain, nervous system") ~ "Group B",
     cancer_type %in% c(
       "Cervix uteri",
-      "Liver",
       "Stomach",
+      "Liver",
       "Larynx",
-      "Vagina",
-      "Kaposi sarcoma") ~ "Group C",
+      "Vagina") ~ "Group C",
     cancer_type %in% c(
-      "Ovary",
       "Lip, oral cavity",
       "Oesophagus",
       "Other pharynx",
-      "Anus",
-      "Gallbladder",
-      "Salivary glands") ~ "Group D",
+      "Others/Unspec") ~ "Group D",
     .default = as.character(cancer_type)
   ))
 
@@ -598,10 +593,10 @@ globocan_10 <- globocan_8 |>
 colourCount <- length(unique(globocan_10$cancer_type))
 
 # Define the four palettes
-palette1 <- colorRampPalette(brewer.pal(4, "Reds"))(13)
+palette1 <- colorRampPalette(brewer.pal(4, "Reds"))(16)
 palette2 <- colorRampPalette(brewer.pal(3, "Purples"))(3)
-palette3 <- colorRampPalette(brewer.pal(6, "Greens"))(6)
-palette4 <- colorRampPalette(brewer.pal(3, "Blues"))(7)
+palette3 <- colorRampPalette(brewer.pal(6, "Greens"))(5)
+palette4 <- colorRampPalette(brewer.pal(3, "Blues"))(4)
 palette5 <- colorRampPalette(brewer.pal(3, "Greys"))(1)
 
 # Combine the palettes
@@ -666,3 +661,374 @@ ggsave(
 #   color = "gray80"
 # )
 
+# Figure S1
+figure_S1 <- ggplot2::ggplot(
+  data = globocan_9, aes(
+    x = hdi,
+    y = asr_world,
+    color = indicator
+  )
+) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+  ggplot2::geom_smooth(method = "gam",
+                       formula = y ~ s(x, bs = "cr", k = -1),
+                       se = FALSE) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$hdi, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+  ggplot2::guides(fill = "none") +
+  ggplot2::labs(x = "Human Development Index (HDI)", y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::facet_wrap(
+    vars(cancer_type),
+    labeller = labeller(cancer_type = label_wrap_gen(50)),
+    ncol = 3,
+    scales = "free"
+  ) +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+# Save figure S1 (JPEG)
+ggsave(
+  plot = figure_S1,
+  filename = here("outputs", "FIG_S1.jpeg"),
+  width = 12,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+# My ggplot function for figure S2
+my_ggplot <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = hdi,
+      y = asr_world,
+      color = indicator
+    )
+  ) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+    ggplot2::geom_smooth(method = "gam",
+                         formula = y ~ s(x, bs = "cr", k = -1),
+                         se = FALSE) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data$hdi, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
+      linetype = c(0, 0),
+      shape = c(1, 1),
+      size = c(4, 4)
+    ))) +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::guides(fill = "none") +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 22, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    )
+}
+
+# Figure S2A
+figure_S2A_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+figure_S2A <- my_ggplot(figure_S2A_data) +
+  ggplot2::labs(title = "Group A") + 
+  ggplot2::theme(axis.title = element_blank())
+
+# Figure S2B
+figure_S2B_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Trachea, bronchus and lung", 
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung", 
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+figure_S2B <- my_ggplot(figure_S2B_data) +
+  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
+
+# Figure S2C
+figure_S2C_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_S2C <- my_ggplot(figure_S2C_data) +
+  ggplot2::labs(x = "Human Development Index (HDI)", title = "Group C") + 
+  ggplot2::theme(axis.title.y = element_blank())
+
+# Arrange on one page
+figure_S2 <-
+  figure_S2A + (figure_S2B + figure_S2C + plot_layout(ncol = 1)) +
+  plot_layout(ncol = 1,
+              guides = 'collect',
+              axis_titles = 'collect') &
+  theme(legend.position = 'bottom')
+
+# Save figure S2 (PNG)
+ggsave(
+  plot = figure_S2,
+  filename = here("outputs", "FIG_S2.png"),
+  width = 20,
+  height = 15,
+  dpi = 500,
+  units = "in")
+
+# Figure S3
+figure_S3 <- ggplot2::ggplot(
+  data = globocan_9, aes(
+    x = sdi,
+    y = asr_world,
+    color = indicator
+  )
+) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+  ggplot2::geom_smooth(method = "gam",
+                       formula = y ~ s(x, bs = "cr", k = -1),
+                       se = FALSE) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$sdi, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+  ggplot2::guides(fill = "none") +
+  ggplot2::labs(x = "Socio-demographic Index (SDI)", y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::facet_wrap(
+    vars(cancer_type),
+    labeller = labeller(cancer_type = label_wrap_gen(50)),
+    ncol = 3,
+    scales = "free"
+  ) +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+# Save figure S3 (JPEG)
+ggsave(
+  plot = figure_S3,
+  filename = here("outputs", "FIG_S3.jpeg"),
+  width = 12,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+# My ggplot function for figure S4
+my_ggplot <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = sdi,
+      y = asr_world,
+      color = indicator
+    )
+  ) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+    ggplot2::geom_smooth(method = "gam",
+                         formula = y ~ s(x, bs = "cr", k = -1),
+                         se = FALSE) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data$sdi, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
+      linetype = c(0, 0),
+      shape = c(1, 1),
+      size = c(4, 4)
+    ))) +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::guides(fill = "none") +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 22, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    )
+}
+
+# Figure S4A
+figure_S4A_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+figure_S4A <- my_ggplot(figure_S4A_data) +
+  ggplot2::labs(title = "Group A") + 
+  ggplot2::theme(axis.title = element_blank())
+
+# Figure S4B
+figure_S4B_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Trachea, bronchus and lung", 
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung", 
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+figure_S4B <- my_ggplot(figure_S4B_data) +
+  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
+
+# Figure S4C
+figure_S4C_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_S4C <- my_ggplot(figure_S4C_data) +
+  ggplot2::labs(x = "Socio-demographic Index (SDI)", title = "Group C") + 
+  ggplot2::theme(axis.title.y = element_blank())
+
+# Arrange on one page
+figure_S4 <-
+  figure_S4A + (figure_S4B + figure_S4C + plot_layout(ncol = 1)) +
+  plot_layout(ncol = 1,
+              guides = 'collect',
+              axis_titles = 'collect') &
+  theme(legend.position = 'bottom')
+
+# Save figure S4 (PNG)
+ggsave(
+  plot = figure_S4,
+  filename = here("outputs", "FIG_S4.png"),
+  width = 20,
+  height = 15,
+  dpi = 500,
+  units = "in")
