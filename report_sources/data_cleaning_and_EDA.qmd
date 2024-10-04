@@ -1366,7 +1366,7 @@ View(stat_incid_v_edi)
 **Table 1.** Selection of 5 cancer types based on normality test, qqplot
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |
-|-----------|-----------------|-----------|-----------|-----------|-----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|
 | 1   | Breast                        |      | 0.358           | \<0.001        | \<0.001        |
 | 2   | Hodgkin lymphoma              |      | 0.558           | \<0.001        | \<0.001        |
 | 3   | Leukaemia                     |      | 0.251           | 0.002          | \<0.001        |
@@ -1466,7 +1466,7 @@ View(stat_mort_v_edi)
 **Table 2.** Selection of cancer types and statistics for mortality vs edi
 
 | N°  | Cancer type                   | R\^2 | Shapiro P value | Levene P value | ANOVA P values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|-----|
 | 1   | Brain, central nervous system |      | 0.158           | 0.004          | \<0.001        |     |
 
 Pairwise comparison for normally distributed data with unequal variances
@@ -1649,7 +1649,7 @@ View(stat_incid_v_hdi)
 **Table 3.** Selection of cancer types and statistics for incidence vs hdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|-----|
 | 1   | Breast                        |      | 0.920           | \<0.001        | \<0.001        |     |
 | 2   | Hodking Lymphoma              |      | 0.838           | \<0.001        | \<0.001        |     |
 | 3   | Brain, central nervous system |      | 0.562           | 0.001          |                |     |
@@ -1745,7 +1745,7 @@ View(stat_mort_v_hdi)
 **Table 4.** Selection of cancer types and statistics for mortality vs hdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|-----|
 | 1   | Brain, central nervous system |      | 0.279           | 0.005          | \<0.001        |     |
 | 2   | Kidney                        |      | 0.263           | \<0.001        | \<0.001        |     |
 | 3   | Colon                         |      | 0.058           | \<0.001        | \<0.001        |     |
@@ -1826,7 +1826,7 @@ View(stat_incid_v_sdi)
 **Table 5.** Selection of cancer types and statistics for incidence vs sdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|-----|
 | 1   | Hodgkin lymphoma              |      | 0.896           | \<0.001        | \<0.001        |     |
 | 2   | Leukaemia                     |      | 0.495           | 0.023          | \<0.001        |     |
 | 3   | Brain, central nervous system |      | 0.486           | \<0.001        | \<0.001        |     |
@@ -1904,7 +1904,7 @@ View(stat_mort_v_sdi)
 **Table 6.** Selection of cancer types and statistics for mortality vs sdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----|-------------------------------|------|-----------------|----------------|----------------|-----|
 | 1   | Brain, central nervous system |      | 0.699           | 0.013          | \<0.001        |     |
 | 2   | Colorectum                    |      | 0.311           | \<0.001        | \<0.001        |     |
 | 3   | Kidney                        |      | 0.214           | 0.002          | \<0.001        |     |
