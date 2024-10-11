@@ -439,7 +439,7 @@ edi_labels <- data.frame(edi_categories = c("High", "Low", "Medium", "Very high"
 globocan_8 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
-  ggplot(aes(x = human_development_index,
+  ggplot(aes(x = hdi,
              fill = hdi_category)) +
   geom_histogram(alpha = 0.5) +
   facet_wrap(~hdi_category, scales = "free") +
@@ -455,7 +455,7 @@ globocan_8 |>
 globocan_8 |>
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
-  ggplot(aes(x = education_and_income,
+  ggplot(aes(x = ed_i,
              fill = edi_categories)) +
   geom_histogram(alpha = 0.5) +
   facet_wrap(~edi_categories, scales = "free") +
@@ -469,10 +469,10 @@ globocan_8 |>
 
 ```{r}
 hdi_p =
-  globocan_5 |> 
+  globocan_8 |> 
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
-  ggplot(aes(x = human_development_index,
+  ggplot(aes(x = hdi,
              fill = hdi_category)) +
   geom_histogram(position = "identity", 
                  alpha = .5) +
@@ -481,10 +481,10 @@ hdi_p =
   theme(text = element_text(size = 20))
 
 edi_p = 
-  globocan_5 |> 
+  globocan_8 |> 
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
-  ggplot(aes(x = education_and_income,
+  ggplot(aes(x = ed_i,
              fill = edi_categories)) +
   geom_histogram(position = "identity", 
                  alpha = .5) +
@@ -495,10 +495,10 @@ edi_p =
 ggarrange(hdi_p, edi_p, nrow = 2, ncol = 1)
 
 sdi_p = 
-  globocan_5 |> 
+  globocan_8 |> 
   filter(sdi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
-  ggplot(aes(x = sdi_gdb_2021,
+  ggplot(aes(x = sdi,
              fill = sdi_categories)) +
   geom_histogram(position = "identity", 
                  alpha = .5) +
@@ -514,7 +514,7 @@ ggarrange(hdi_p, edi_p, sdi_p,
 
 ```{r}
 hdi_cat = 
-  globocan_5 |>
+  globocan_8 |>
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = hdi_category, fill = hdi_category)) + 
@@ -522,7 +522,7 @@ hdi_cat =
   theme_minimal()
 
 hdi_prop = 
-  globocan_5 |>
+  globocan_8 |>
   filter(hdi_category != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   count(hdi_category) |> 
@@ -533,14 +533,14 @@ hdi_prop =
   theme_minimal()
 
 edi_cat = 
-  globocan_5 |>
+  globocan_8 |>
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = edi_categories, fill = edi_categories)) + 
   geom_bar(alpha = .4)
 
 edi_prop = 
-  globocan_5 |> 
+  globocan_8 |> 
   filter(edi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   count(edi_categories) |> 
@@ -550,14 +550,14 @@ edi_prop =
   geom_bar(stat = "identity", alpha = 0.4) 
 
 sdi_cat = 
-  globocan_5 |>
+  globocan_8 |>
   filter(sdi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   ggplot(aes(x = sdi_categories, fill = sdi_categories)) + 
   geom_bar(alpha = .4)
 
 sdi_prop = 
-  globocan_5 |> 
+  globocan_8 |> 
   filter(sdi_categories != "") |>
   distinct(country_name, .keep_all = TRUE) |> 
   count(sdi_categories) |> 
@@ -630,7 +630,8 @@ mean_miratio =
 
 globocan_8 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(indicator == "miratio") |> 
+  filter(indicator == "miratio") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
   ggplot(aes(asr_world)) + 
   geom_histogram() +
   facet_wrap(~cancer_type,
@@ -820,7 +821,7 @@ p_incidence_v_sdi =
 
 ```{r}
 p_motality_v_sdi = 
-  globocan_5 |> 
+  globocan_8 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
   filter(indicator == "Mortality") |> 
   ggplot(aes(sdi, asr_world)) +
@@ -1366,7 +1367,7 @@ View(stat_incid_v_edi)
 **Table 1.** Selection of 5 cancer types based on normality test, qqplot
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |
-|-----------|-----------------|-----------|-----------|-----------|-----------|
+|------------|------------|------------|------------|------------|------------|
 | 1   | Breast                        |      | 0.358           | \<0.001        | \<0.001        |
 | 2   | Hodgkin lymphoma              |      | 0.558           | \<0.001        | \<0.001        |
 | 3   | Leukaemia                     |      | 0.251           | 0.002          | \<0.001        |
@@ -1466,7 +1467,99 @@ View(stat_mort_v_edi)
 **Table 2.** Selection of cancer types and statistics for mortality vs edi
 
 | N°  | Cancer type                   | R\^2 | Shapiro P value | Levene P value | ANOVA P values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Brain, central nervous system |      | 0.158           | 0.004          | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with unequal variances
+
+```{r}
+pw_gh_test_mort_hdi = 
+  globocan_8 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "Mortality" & 
+           cancer_type %in% c("Brain, nervous system")) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ edi_categories)
+View(pw_gh_test_mort_hdi)
+```
+
+### Education and Income index (EDI) vs mortality to incidence ratio
+
+Visual inspection
+
+```{r}
+p_miratio_v_edi
+
+globocan_8 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "miratio") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
+  ggplot(aes(sample = asr_world)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  facet_wrap(~cancer_type,
+             scales = "free") + 
+  labs(x = "Theoretical Quantiles", 
+       y = "Sample Quantiles") + 
+  theme_minimal()
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+
+```{r include=FALSE}
+stat_miratio_v_edi <- 
+  globocan_8 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "miratio") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ edi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ edi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_miratio_v_edi)
+```
+
+**Table 2.** Selection of cancer types and statistics for mortality vs edi
+
+| N°  | Cancer type                   | R\^2 | Shapiro P value | Levene P value | ANOVA P values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | 1   | Brain, central nervous system |      | 0.158           | 0.004          | \<0.001        |     |
 
 Pairwise comparison for normally distributed data with unequal variances
@@ -1649,7 +1742,7 @@ View(stat_incid_v_hdi)
 **Table 3.** Selection of cancer types and statistics for incidence vs hdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | 1   | Breast                        |      | 0.920           | \<0.001        | \<0.001        |     |
 | 2   | Hodking Lymphoma              |      | 0.838           | \<0.001        | \<0.001        |     |
 | 3   | Brain, central nervous system |      | 0.562           | 0.001          |                |     |
@@ -1745,7 +1838,7 @@ View(stat_mort_v_hdi)
 **Table 4.** Selection of cancer types and statistics for mortality vs hdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | 1   | Brain, central nervous system |      | 0.279           | 0.005          | \<0.001        |     |
 | 2   | Kidney                        |      | 0.263           | \<0.001        | \<0.001        |     |
 | 3   | Colon                         |      | 0.058           | \<0.001        | \<0.001        |     |
@@ -1776,7 +1869,7 @@ Perform ANOVA, extract residuals, test normality and homogeneity of variances by
 
 ```{r}
 stat_incid_v_sdi <-
-  globocan_5 |>
+  globocan_8 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
   filter(indicator == "incidence") |>
   group_by(cancer_type) |>
@@ -1826,7 +1919,7 @@ View(stat_incid_v_sdi)
 **Table 5.** Selection of cancer types and statistics for incidence vs sdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | 1   | Hodgkin lymphoma              |      | 0.896           | \<0.001        | \<0.001        |     |
 | 2   | Leukaemia                     |      | 0.495           | 0.023          | \<0.001        |     |
 | 3   | Brain, central nervous system |      | 0.486           | \<0.001        | \<0.001        |     |
@@ -1904,7 +1997,7 @@ View(stat_mort_v_sdi)
 **Table 6.** Selection of cancer types and statistics for mortality vs sdi
 
 | N°  | Cancer type                   | R\^2 | Shapiro p value | Levene p value | anova p values |     |
-|----------|---------------|----------|----------|----------|----------|----------|
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | 1   | Brain, central nervous system |      | 0.699           | 0.013          | \<0.001        |     |
 | 2   | Colorectum                    |      | 0.311           | \<0.001        | \<0.001        |     |
 | 3   | Kidney                        |      | 0.214           | 0.002          | \<0.001        |     |
@@ -1924,6 +2017,7 @@ pw_gh_test_mort_sdi =
   group_by(cancer_type) |> 
   rstatix::games_howell_test(asr_world ~ sdi_categories)
 ```
+
 
 # Model 2. Logarithmic models
 
@@ -1983,11 +2077,24 @@ d
 ```{r}
 test <- data_test |>
   dplyr::select(education_and_income, asr_world)
-plot(test, pch=19, ylim=c(0, 15), las=1)
-abline(v=0.7, lty="dotted", col='tomato')
-abline(v=0.85, lty="dotted", col='tomato')
-text(x=0.7, y=0.3, 't=0.55', col='tomato')
-text(x=0.85, y=0.3, 't=0.55', col='tomato')
+plot(test,
+     pch = 19,
+     ylim = c(0, 15),
+     las = 1)
+abline(v = 0.7,
+       lty = "dotted",
+       col = 'tomato')
+abline(v = 0.85,
+       lty = "dotted",
+       col = 'tomato')
+text(x = 0.7,
+     y = 0.3,
+     't=0.55',
+     col = 'tomato')
+text(x = 0.85,
+     y = 0.3,
+     't=0.55',
+     col = 'tomato')
 ```
 
 ```{r fig.width=10}
