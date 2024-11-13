@@ -2,10 +2,30 @@
 
 ## Epidemiological indicators
 globocan_mortality <-
-  import(here("data", "raw", "globocan_mortality.csv"))
+  import(here("data", "raw", "globocan_mortality.csv")) |>
+  janitor::clean_names() |>
+  dplyr::filter(label != "Total") |>
+  dplyr::select(-sex) |>
+  dplyr::mutate(indicator = "mortality")
+  
 
 globocan_incidence <-
-  import(here("data", "raw", "globocan_incidence.csv"))
+  import(here("data", "raw", "globocan_incidence.csv")) |>
+  janitor::clean_names() |>
+  dplyr::filter(label != "Total") |>
+  dplyr::select(-sex)
+
+common_columns <- c("alpha_3_code", "cancer_code", "label", "population_code_iso_un", "country")
+
+# globocan <- globocan_incidence |> merge(globocan_mortality, by = common_columns, all.x = TRUE)
+
+globocan <- globocan_incidence |>
+  dplyr::left_join(globocan_mortality, by = common_columns) |>
+  dplyr::mutate(MIR = round(asr_world.y/asr_world.x, 2), indicator = "MIR")
+
+# globocan |> dplyr::select(asr_world.x, asr_world.y, MIR) |> summary() # Check NA's
+
+# globocan |> dplyr::filter(if_all(starts_with("asr"), ~ !is.na(.))) # Filter NA's in indicators
 
 ## Socio-demographic indicators
 hdi_and_comp_2022 <-
@@ -21,9 +41,11 @@ gdb_sdi_2021_and_quintiles <-
   import(here("data", "raw", "ihme_gdb_sdi_2021_and_quintiles.csv"))
 
 ## Complementary data
-regiones_mundo <- import(here("data", "raw", "regiones_mundo.txt"))
+regiones_mundo <- import(here("data", "raw", "regiones_mundo.txt")) |>
+  janitor::clean_names()
 
-cancer_code <- import(here("data", "raw", "cancer_code.csv"))
+cancer_code <- import(here("data", "raw", "cancer_code.csv")) |>
+  janitor::clean_names()
 
 # Function to calculate Education and Income (EdI) Index
 
@@ -63,23 +85,20 @@ hdi_and_comp_2022_0 <-
         GNI_per_capita = GNI_per_capita_2017PPP_dolar
       ),
     edi_categories = case_when(
-      Education_and_Income < .53 ~ "Low",
-      Education_and_Income >= .53 & Education_and_Income < .70 ~ "Medium",
-      Education_and_Income >= .70 & Education_and_Income < .80 ~ "High",
-      Education_and_Income >= .80 ~ "Very high"
+      Education_and_Income < .55 ~ "Low",
+      Education_and_Income >= .55 & Education_and_Income < 69 ~ "Medium",
+      Education_and_Income >= .69 & Education_and_Income < .81 ~ "High",
+      Education_and_Income >= .81 ~ "Very high"
     )
   )
 
 # Tidying data
 
 ## Epidemiological data
-globocan <- janitor::clean_names(rbind(globocan_incidence, globocan_mortality))
-cancer_code <- janitor::clean_names(cancer_code)
-
 globocan_0 <- merge(globocan, cancer_code, by = "cancer_code", all.x = TRUE)
 
 globocan_0 <- globocan_0 |>
-  dplyr::rename(cancer_type = "label.y", Country_name = "label.x") |>
+  dplyr::rename(cancer_type = label.y, Country_name = label.x) |>
   dplyr::filter(Country_name != "Total")
 
 countries_with_epid_data <- unique(globocan_0$Country_name)
@@ -96,10 +115,10 @@ gdb_sdi_2021_and_quintiles <- gdb_sdi_2021_and_quintiles |>
 gdb_sdi_2021_and_quintiles_0 <- gdb_sdi_2021_and_quintiles |>
   dplyr::select(-location_id) |>
   dplyr::rename(
-    Country_name = "location_name",
-    sdi_gdb_2021 = "x2021_sdi_index_value",
-    sdi_categories = "sdi_quintile"
-  ) |>
+    Country_name = location_name,
+    sdi_gdb_2021 = x2021_sdi_index_value,
+    sdi_categories = sdi_quintile
+  ) |> 
   dplyr::filter(gdb_sdi_2021_and_quintiles$location_name %in% countries_with_epid_data)
 
 ## HDI
@@ -108,7 +127,7 @@ hdi_and_comp_2017_0 <- hdi_and_comp_2017 |>
 
 hdi_and_comp_2022_0 <- hdi_and_comp_2022_0 |>
   dplyr::filter(hdi_and_comp_2022_0$Country %in% countries_with_epid_data) |>
-  dplyr::rename(Country_name = "Country")
+  dplyr::rename(Country_name = Country)
 
 # Countries without indicator data
 dplyr::setdiff(countries_with_epid_data, gdb_sdi_2021_and_quintiles$Location.Name)
@@ -190,57 +209,49 @@ globocan_4 <- globocan_3 |>
       cancer_type == "Thyroid" ~ "Thyroid and other endocrine glands",
       cancer_type == " Brain, central nervous system" ~ "Eye, brain and other parts of central nervous system",
       TRUE ~ "Others"
-    ), 
-    number_quartiles = case_when(
-      indicator == "incidence" & number <= 31.00 ~ "incidence_Q1",
-      indicator == "incidence" &
-        number > 31.00 & number <= 195.00 ~ "incidence_Q2",
-      indicator == "incidence" &
-        number > 195.00 & number <= 1088.25 ~ "incidence_Q3",
-      indicator == "incidence" &
-        number > 1088.25 & number <= 4775419.00 ~ "incidence_Q4",
-      indicator == "mortality" & number <= 19.00 ~ "mortality_Q1",
-      indicator == "mortality" &
-        number > 19.00 & number <= 112.00 ~ "mortality_Q2",
-      indicator == "mortality" &
-        number > 112.00 & number <= 635.75 ~ "mortality_Q3",
-      indicator == "mortality" &
-        number > 635.75 & number <= 2560612.00 ~ "mortality_Q4"
     ),
-    asr_world_quartiles = case_when(
-      indicator == "incidence" & asr_world <= 0.65 ~ "incidence_Q1",
-      indicator == "incidence" &
-        asr_world > 0.65 & asr_world <= 2.50 ~ "incidence_Q2",
-      indicator == "incidence" &
-        asr_world > 2.50 & asr_world <= 7.20 ~ "incidence_Q3",
-      indicator == "incidence" &
-        asr_world > 7.20 & asr_world <= 349.80 ~ "incidence_Q4",
-      indicator == "mortality" & asr_world <= 0.31 ~ "mortality_Q1",
-      indicator == "mortality" &
-        asr_world > 0.31 & asr_world <= 1.50 ~ "mortality_Q2",
-      indicator == "mortality" &
-        asr_world > 1.50 & asr_world <= 4.10 ~ "mortality_Q3",
-      indicator == "mortality" &
-        asr_world > 4.10 & asr_world <= 181.30 ~ "mortality_Q4"
+    asr_incidence_quartiles = case_when(
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_x == "incidence" &
+        asr_world_x <= 113.5 ~ "incidence_Q1",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_x == "incidence" &
+        asr_world_x > 113.5 & asr_world_x <= 152.5 ~ "incidence_Q2",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_x == "incidence" &
+        asr_world_x > 152.5 & asr_world_x <= 227.3 ~ "incidence_Q3",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_x == "incidence" &
+        asr_world_x > 227.3 ~ "incidence_Q4"
     ),
-    crude_rate_quartiles = case_when(
-      indicator == "incidence" & crude_rate <= 0.64 ~ "incidence_Q1",
-      indicator == "incidence" &
-        crude_rate > 0.64 & crude_rate <= 2.40 ~ "incidence_Q2",
-      indicator == "incidence" &
-        crude_rate > 2.40 & crude_rate <= 9.60 ~ "incidence_Q3",
-      indicator == "incidence" &
-        crude_rate > 9.60 & crude_rate <= 790.60 ~ "incidence_Q4",
-      indicator == "mortality" &
-        crude_rate <= 0.33 ~ "mortality_Q1",
-      indicator == "mortality" &
-        crude_rate > 0.33 & crude_rate <= 1.40 ~ "mortality_Q2",
-      indicator == "mortality" &
-        crude_rate > 1.40 & crude_rate <= 5.90 ~ "mortality_Q3",
-      indicator == "mortality" &
-        crude_rate > 5.90 & crude_rate <= 338.40 ~ "mortality_Q4"
-    )
-  )
+    asr_mortality_quartiles = case_when(
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_y == "mortality" &
+        asr_world_y <= 74.90 ~ "mortality_Q1",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_y == "mortality" &
+        asr_world_y > 74.90 & asr_world_y <= 89.50 ~ "mortality_Q2",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" & 
+        indicator_y == "mortality" &
+        asr_world_y > 89.50 & asr_world_y <= 103.20 ~ "mortality_Q3",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator_y == "mortality" &
+        asr_world_y > 103.20 ~ "mortality_Q4"
+    ),
+    mir_quartiles = case_when(
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator == "MIR" &
+        mir <= 0.4600 ~ "MIR_Q1",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator == "MIR" &
+        mir > 0.4600 & mir <= 0.5700 ~ "MIR_Q2",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator == "MIR" &
+        mir > 0.5700 & mir <= 0.6900 ~ "MIR_Q3",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" &
+        indicator == "MIR" &
+        mir > 0.6900 ~ "MIR_Q4"
+    ))
 
 # Adding world regions
 globocan_5 <- globocan_4 |> 
@@ -248,11 +259,11 @@ globocan_5 <- globocan_4 |>
 
 globocan_6 <- globocan_5 |>
   dplyr::select(
-    indicator,
     cancer_type,
     country_name,
-    asr_world,
-    crude_rate,
+    mir,
+    asr_world_x,
+    asr_world_y,
     human_development_index,
     education_and_income,
     sdi_gdb_2021,
@@ -262,19 +273,21 @@ globocan_6 <- globocan_5 |>
     neoplasia_sex
   ) |>
   dplyr::rename(
-    `ASR (World)` = asr_world,
-    `Crude rate` = crude_rate,
-    Indicator = indicator,
     HDI = human_development_index,
     EdI = education_and_income,
     SDI = sdi_gdb_2021
   ) |>
+  tidyr::pivot_longer(
+    cols = c("mir", "asr_world_x", "asr_world_y"),
+    names_to = "indicator",
+    values_to = "asr_world"
+  ) |>
   dplyr::mutate(
-    Indicator = factor(Indicator) |>
+    indicator = factor(indicator) |>
       forcats::fct_recode(
-        "Incidence" = "incidence", 
-        "Mortality" = "mortality") |>
-      forcats::fct_relevel("Incidence", "Mortality"),
+        "Incidence" = "asr_world_x", 
+        "Mortality" = "asr_world_y",
+        "MIR" = "mir"),
     country_label = case_when(
       country_name %in% c(
         "United States of America", "Bolivia", "Spain", "Ethiopia", "China",
@@ -295,30 +308,79 @@ globocan_6 <- globocan_5 |>
 
 # Complex names data
 globocan_7 <- globocan_6 |>
-  dplyr::distinct(cancer_type, country_name, Indicator, .keep_all = TRUE)
+  dplyr::distinct(cancer_type, country_name, indicator, .keep_all = TRUE)
 
 # Clean names data
 globocan_8 <- globocan_7 |>
-  janitor::clean_names() |>
   dplyr::mutate(
     cancer_type = case_when(
       cancer_type == " Brain, central nervous system" ~ "Brain, nervous system",
       cancer_type == "Liver and intrahepatic bile ducts" ~ "Liver",
       .default = as.character(cancer_type))
-  )
+  ) |>
+  janitor::clean_names()
 
 globocan_9 <- globocan_8 |>
-  dplyr::filter(cancer_type == "All cancers excl. non-melanoma skin cancer") 
+  dplyr::filter(indicator != "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer")
 
 # Figure 1
 figure_1 <- ggplot2::ggplot(
   data = globocan_9, aes(
     x = ed_i,
     y = asr_world,
-    color = indicator
+    color = indicator,
+    shape = indicator
     )
   ) +
-  ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+  ggplot2::geom_smooth(method = "gam",
+                       formula = y ~ s(x, bs = "cr", k = -1),
+                       se = FALSE) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_shape_manual(values = c(21, 24)) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+  ggplot2::guides(fill = "none") +
+  ggplot2::labs(x = "Education and Income index (EdI)", 
+                y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::facet_wrap(
+    vars(cancer_type),
+    labeller = labeller(cancer_type = label_wrap_gen(50)),
+    ncol = 3,
+    scales = "free"
+  ) +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+# Save figure 1 (JPEG)
+ggsave(
+  plot = figure_1,
+  filename = here("outputs", "FIG_1.jpeg"),
+  width = 12,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+# Figure 2
+figure_2 <- globocan_8 |>
+  dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
+  ggplot2::ggplot(aes(x = ed_i, y = asr_world)) +
+  ggplot2::geom_point(size = 2.5) +
   ggplot2::geom_smooth(method = "gam",
                        formula = y ~ s(x, bs = "cr", k = -1),
                        se = FALSE) +
@@ -333,7 +395,8 @@ figure_1 <- ggplot2::ggplot(
   ggsci::scale_fill_igv(alpha = 0.1) +
   ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
   ggplot2::guides(fill = "none") +
-  ggplot2::labs(x = "Education and Income index (EdI)", y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::labs(x = "Education and Income index (EdI)", 
+                y = "Mortality-to-Incidence Ratio") +
   ggplot2::theme_minimal() +
   ggplot2::facet_wrap(
     vars(cancer_type),
@@ -367,10 +430,11 @@ my_ggplot <- function(data, ...) {
     aes(
       x = ed_i,
       y = asr_world,
-      color = indicator
+      color = indicator,
+      shape = indicator
       )
     ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
     ggplot2::geom_smooth(method = "gam",
                          formula = y ~ s(x, bs = "cr", k = -1),
                          se = FALSE) +
@@ -380,6 +444,7 @@ my_ggplot <- function(data, ...) {
       color = "gray70",
       linewidth = 1
     ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
       linetype = c(0, 0),
       shape = c(1, 1),
@@ -718,10 +783,11 @@ my_ggplot <- function(data, ...) {
     aes(
       x = hdi,
       y = asr_world,
-      color = indicator
+      color = indicator,
+      shape = indicator
     )
   ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
     ggplot2::geom_smooth(method = "gam",
                          formula = y ~ s(x, bs = "cr", k = -1),
                          se = FALSE) +
@@ -731,6 +797,7 @@ my_ggplot <- function(data, ...) {
       color = "gray70",
       linewidth = 1
     ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
       linetype = c(0, 0),
       shape = c(1, 1),
@@ -904,10 +971,11 @@ my_ggplot <- function(data, ...) {
     aes(
       x = sdi,
       y = asr_world,
-      color = indicator
+      color = indicator,
+      shape = indicator
     )
   ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
     ggplot2::geom_smooth(method = "gam",
                          formula = y ~ s(x, bs = "cr", k = -1),
                          se = FALSE) +
@@ -917,6 +985,7 @@ my_ggplot <- function(data, ...) {
       color = "gray70",
       linewidth = 1
     ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
       linetype = c(0, 0),
       shape = c(1, 1),
