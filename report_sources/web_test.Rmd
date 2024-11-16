@@ -73,7 +73,7 @@ selectInput(
 ```{r}
 filtered_data <- reactive({
   globocan_6 |>
-    dplyr::filter(cancer_type == input$cancer_input)
+    dplyr::filter(cancer_type == input$cancer_input, Indicator != "MIR")
 })
 ```
 
@@ -83,8 +83,12 @@ filtered_data <- reactive({
 
 ```{r}
 renderPlotly({
-  plot_1 <- ggplot2::ggplot(data = filtered_data(),
-                            aes(x = .data[[input$variable_input]], color = Indicator, fill = Indicator)) +
+  plot_1 <- ggplot2::ggplot(
+    data = filtered_data(),
+    aes(x = .data[[input$variable_input]],
+        color = Indicator,
+        fill = Indicator)
+    ) +
     ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 0.8, na.rm = TRUE) +
     ggplot2::labs(y = "Density", color = "Indicator", fill = "Indicator") +
     ggsci::scale_color_igv(alpha = 0.8) +
@@ -116,9 +120,13 @@ renderPlotly({
 
 ```{r}
 renderPlotly({
-  plot_2 <- ggplot2::ggplot(data = filtered_data(),
-                            aes(y = .data[[input$variable_input]], x = Indicator,
-                                fill = Indicator, color = Indicator)) +
+  plot_2 <- ggplot2::ggplot(
+    data = filtered_data(),
+    aes(y = .data[[input$variable_input]], 
+        x = Indicator, 
+        fill = Indicator, 
+        color = Indicator)
+    ) +
     ggplot2::geom_boxplot(alpha = 0.1, linewidth = 0.5) +
     ggplot2::geom_jitter(alpha = 0.5, size = 2, width = 0.25) +
     ggsci::scale_color_igv() +
@@ -144,8 +152,7 @@ table_1 <- reactive({
       SD = round(sd(.data[[input$variable_input]], na.rm = TRUE), 2),
       Median = round(median(.data[[input$variable_input]], na.rm = TRUE), 2),
       IQR = paste(round(
-        quantile(.data[[input$variable_input]], probs = c(0.25, 0.75), na.rm = TRUE), 2
-      ), collapse = "-"),
+        quantile(.data[[input$variable_input]], probs = c(0.25, 0.75), na.rm = TRUE), 2), collapse = "-"),
       Max = round(max(.data[[input$variable_input]], na.rm = TRUE), 2),
       `Shapiro Wilk` = round(stats::shapiro.test(.data[[input$variable_input]])$p.value, 3),
       `Lilliefors test` = round(nortest::lillie.test(.data[[input$variable_input]])$p.value, 3),
@@ -180,28 +187,35 @@ selectInput(
 )
 
 selectInput(
-  inputId = "variable_x_input",
+  inputId = "variable_x_input_lm",
   label = "Variable x",
   choices = c("HDI", "EdI", "SDI"),
   selected = "EdI"
 )
 
 selectInput(
-  inputId = "variable_y_input",
+  inputId = "variable_y_input_lm",
   label = "Variable y",
   choices = c("ASR (World)", "Crude rate"),
   selected = "ASR (World)"
 )
 
 selectInput(
-  inputId = "incidence_model_input",
+  inputId = "variable_x_input_lm_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "incidence_model_input_lm",
   label = "Incidence models",
   choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
   selected = "ASR (World) ~ EdI"
 )
 
 selectInput(
-  inputId = "mortality_model_input",
+  inputId = "mortality_model_input_lm",
   label = "Mortality models",
   choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
   selected = "ASR (World) ~ EdI"
@@ -211,49 +225,106 @@ selectInput(
 ```{r}
 selectedData_plot_lm <- reactive({
   globocan_7 |>
-    dplyr::filter(cancer_type == input$cancer_input_lm)
+    dplyr::filter(cancer_type == input$cancer_input_lm, Indicator != "MIR")
+})
+
+selectedData_plot_lm_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_lm, Indicator == "MIR")
 })
 ```
 
 ## Row {data-height="500"}
 
-### Simple Linear Regression (SLR)
+### Age-Standardized Rate (per 100,000)
 
 ```{r}
 renderPlotly({
-  plot_3 <- ggplot2::ggplot(data = selectedData_plot_lm(),
-                            aes(
-                              x = .data[[input$variable_x_input]],
-                              y = .data[[input$variable_y_input]],
-                              color = Indicator,
-                              fill = Indicator
-                            )) +
-    ggplot2::geom_point(alpha = 0.5,
-                        size = 2.5,
-                        shape = 21) +
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_lm(),
+    aes(x = .data[[input$variable_x_input_lm]],
+        y = .data[[input$variable_y_input_lm]],
+        shape = Indicator,
+        color = Indicator,
+        fill = Indicator)
+    ) +
+    ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
       method = "lm",
       formula = y ~ x,
       se = FALSE,
-      linewidth = 0.7,
-      alpha = 0.7
+      linewidth = 0.8
     ) +
     ggplot2::geom_vline(
-      xintercept = quantile(selectedData_plot_lm()[[input$variable_x_input]],
-                            probs = c(0.25, 0.5, 0.75),
-                            na.rm = TRUE),
+      xintercept = quantile(
+        selectedData_plot_lm()[[input$variable_x_input_lm]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
       linetype = "dashed",
       color = "gray70"
     ) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15))+
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme_minimal() +
     ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
-      panel.grid.minor = element_blank(),
-      panel.grid.major = element_blank(),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_lm_mir(),
+    aes(x = .data[[input$variable_x_input_lm_mir]],
+        y = `ASR (World)`,
+        color = `ASR (World)`)
+    ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ x,
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_lm()[[input$variable_x_input_lm_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
       axis.title = element_text(color = "black")
     )
   
@@ -411,7 +482,7 @@ ASR_SDI_incidence <- dplyr::bind_cols(m1_incidence_sdi, m2_incidence_sdi) |>
 ```{r}
 renderDataTable({
   selected_table <- switch(
-    input$incidence_model_input,
+    input$incidence_model_input_lm,
     "ASR (World) ~ HDI" = ASR_HDI_incidence,
     "ASR (World) ~ EdI" = ASR_EdI_incidence,
     "ASR (World) ~ SDI" = ASR_SDI_incidence
@@ -560,7 +631,7 @@ ASR_SDI_mortality <- dplyr::bind_cols(m1_mortality_sdi, m2_mortality_sdi) |>
 ```{r}
 renderDataTable({
   selected_table <- switch(
-    input$mortality_model_input,
+    input$mortality_model_input_lm,
     "ASR (World) ~ HDI" = ASR_HDI_mortality,
     "ASR (World) ~ EdI" = ASR_EdI_mortality,
     "ASR (World) ~ SDI" = ASR_SDI_mortality
@@ -569,7 +640,7 @@ renderDataTable({
 })
 ```
 
-# GCV cubic splines {data-orientation="rows"}
+# Generalized Additive Model (GAM) {data-orientation="rows"}
 
 ## Inputs {.sidebar}
 
@@ -597,6 +668,13 @@ selectInput(
 )
 
 selectInput(
+  inputId = "variable_x_input_gam_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
   inputId = "incidence_model_input_gam",
   label = "Incidence models",
   choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
@@ -614,51 +692,106 @@ selectInput(
 ```{r}
 selectedData_plot_gam <- reactive({
   globocan_7 |>
-    dplyr::filter(cancer_type == input$cancer_input_gam)
+    dplyr::filter(cancer_type == input$cancer_input_gam, Indicator != "MIR")
+})
+
+selectedData_plot_gam_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_gam, Indicator == "MIR")
 })
 ```
 
 ## Row {data-height="500"}
 
-### GAM - Generalized Cross-Validation criteria (GCV) for cubic regression spline
+### Generalized Cross Validation (GCV) criterion for cubic regression spline
 
 ```{r}
 renderPlotly({
-  plot_3 <- ggplot2::ggplot(data = selectedData_plot_gam(),
-                            aes(
-                              x = .data[[input$variable_x_input_gam]],
-                              y = .data[[input$variable_y_input_gam]],
-                              color = Indicator,
-                              fill = Indicator
-                            )) +
-    ggplot2::geom_point(alpha = 0.5,
-                        size = 2.5,
-                        shape = 21) +
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_gam(),
+    aes(x = .data[[input$variable_x_input_gam]],
+        y = .data[[input$variable_y_input_gam]],
+        shape = Indicator,
+        color = Indicator,
+        fill = Indicator)
+    ) +
+    ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
       method = "gam",
       formula = y ~ s(x, bs = "cr", k = -1),
       se = FALSE,
-      linewidth = 0.7,
-      alpha = 0.7
+      linewidth = 0.8
     ) +
     ggplot2::geom_vline(
       xintercept = quantile(
-        selectedData_plot_lm()[[input$variable_x_input_gam]],
-        probs = c(0.25, 0.5, 0.75),
-        na.rm = TRUE
-      ),
+        selectedData_plot_gam()[[input$variable_x_input_gam]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
       linetype = "dashed",
       color = "gray70"
     ) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme_minimal() +
     ggplot2::theme(
-      axis.line = element_line(colour = "black"),
-      axis.ticks = element_line(colour = "black"),
-      panel.grid.minor = element_blank(),
-      panel.grid.major = element_blank(),
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_gam_mir(),
+    aes(x = .data[[input$variable_x_input_gam_mir]],
+        y = `ASR (World)`,
+        color = `ASR (World)`)
+    ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam_mir()[[input$variable_x_input_gam_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
       axis.title = element_text(color = "black")
     )
   
@@ -1055,6 +1188,13 @@ selectInput(
 )
 
 selectInput(
+  inputId = "variable_x_input_ns_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
   inputId = "incidence_model_input_ns",
   label = "Incidence models",
   choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
@@ -1072,7 +1212,12 @@ selectInput(
 ```{r}
 selectedData_plot_ns <- reactive({
   globocan_7 |>
-    dplyr::filter(cancer_type == input$cancer_input_ns)
+    dplyr::filter(cancer_type == input$cancer_input_ns, Indicator != "MIR")
+})
+
+selectedData_plot_ns_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_ns, Indicator == "MIR")
 })
 ```
 
@@ -1082,41 +1227,91 @@ selectedData_plot_ns <- reactive({
 
 ```{r}
 renderPlotly({
-  plot_3 <- ggplot2::ggplot(data = selectedData_plot_ns(),
-                            aes(
-                              x = .data[[input$variable_x_input_ns]],
-                              y = .data[[input$variable_y_input_ns]],
-                              color = Indicator,
-                              fill = Indicator
-                            )) +
-    ggplot2::geom_point(alpha = 0.5,
-                        size = 2.5,
-                        shape = 21) +
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_ns(),
+    aes(x = .data[[input$variable_x_input_ns]],
+        y = .data[[input$variable_y_input_ns]],
+        shape = Indicator,
+        color = Indicator,
+        fill = Indicator)
+    ) +
+    ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
       method = "lm",
       formula = y ~ ns(x, df = 4),
       se = FALSE,
-      linewidth = 0.7,
-      alpha = 0.7
+      linewidth = 0.8
     ) +
     ggplot2::geom_vline(
       xintercept = quantile(
-        selectedData_plot_lm()[[input$variable_x_input_ns]],
-        probs = c(0.25, 0.5, 0.75),
-        na.rm = TRUE
-      ),
+        selectedData_plot_gam()[[input$variable_x_input_ns]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
       linetype = "dashed",
       color = "gray70"
     ) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme_minimal() +
     ggplot2::theme(
-      axis.line = element_line(colour = "black"),
-      axis.ticks = element_line(colour = "black"),
-      panel.grid.minor = element_blank(),
-      panel.grid.major = element_blank(),
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_ns_mir(),
+    aes(x = .data[[input$variable_x_input_ns_mir]],
+        y = `ASR (World)`,
+        color = `ASR (World)`)
+    ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ ns(x, df = 4),
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam_mir()[[input$variable_x_input_ns_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
       axis.title = element_text(color = "black")
     )
   
@@ -1285,7 +1480,7 @@ models_mortality_ns_sdi <- globocan_8 |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(sdi, df = 4), data = .)))
-                
+
 # Summarizes information about the models
 m2_mortality_ns_sdi <- models_mortality_ns_sdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
@@ -1318,23 +1513,21 @@ renderDataTable({
 
 ```{r}
 # data_x <-
-#   globocan_5 |>
-#   dplyr::distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |>
-#   dplyr::filter(indicator == "incidence" & cancer_type == "Breast")
+#   globocan_8 |>
+#   dplyr::filter(indicator == "Incidence" & cancer_type == "Breast")
 ```
 
 ```{r}
-# modelo_gam <- mgcv::gam(asr_world ~ s(human_development_index, bs = "cr"), data = data_x)
-# modelo_gam <- mgcv::gam(asr_world ~ s(human_development_index, bs = "bs"), data = data_x)
+# modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "cr"), data = data_x)
+# modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "bs"), data = data_x)
 # summary(modelo_gam)
 ```
 
 ```{r}
-# modelo_bsplines_1 <- lm(asr_world ~ bs(human_development_index, df = 2, degree = 3), data = data_x)
-# modelo_bsplines_2 <- lm(asr_world ~ bs(human_development_index, df = 6, degree = 3), data = data_x)
-# summary(modelo_bsplines_2)
-# modelo_nsplines <- lm(asr_world ~ ns(human_development_index, df = 4), data = data_x)
+# modelo_bsplines <- lm(asr_world ~ bs(hdi, df = 6, degree = 3), data = data_x) # 3 knots
+# summary(modelo_bsplines)
+# modelo_nsplines <- lm(asr_world ~ ns(hdi, df = 4), data = data_x) # 3 knots
 # summary(modelo_nsplines)
-# attr(bs(data_x$human_development_index, df = 6, degree = 3), "knots") # k+2 df
-# attr(ns(data_x$human_development_index, df = 4), "knots") # k-2 df
+# attr(bs(data_x$hdi, df = 6, degree = 3), "knots")
+# attr(ns(data_x$hdi, df = 4), "knots") # k-2 df
 ```
