@@ -465,7 +465,7 @@ my_ggplot <- function(data, ...) {
 }
 
 # Figure 3A
-figure_2A_data <- globocan_8 |>
+figure_3A_data <- globocan_8 |>
   dplyr::filter(
     indicator != "MIR",
     cancer_type %in% c(
@@ -489,59 +489,14 @@ figure_2A_data <- globocan_8 |>
     )
   ))
 
-figure_2A <- my_ggplot(figure_2A_data) +
+figure_3A <- my_ggplot(figure_3A_data) +
   ggplot2::labs(title = "Group A") +
   ggplot2::theme(axis.title = element_blank())
 
-# My ggplot function for figure 4 (MIR)
-my_ggplot <- function(data, ...) {
-  ggplot2::ggplot(
-    data = data,
-    aes(
-      x = ed_i,
-      y = asr_world,
-      color = indicator,
-      shape = indicator
-    )
-  ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
-    ggplot2::geom_smooth(
-      method = "gam",
-      formula = y ~ s(x, bs = "cr", k = -1),
-      se = FALSE,
-      linewidth = 1) +
-    ggplot2::geom_vline(
-      xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-      linetype = "dashed",
-      color = "gray70",
-      linewidth = 1
-    ) +
-    ggplot2::scale_shape_manual(values = c(21, 24)) +
-    ggsci::scale_color_igv() +
-    ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-    ggplot2::theme_minimal() +
-    ggplot2::facet_wrap(
-      vars(cancer_type),
-      labeller = labeller(cancer_type = label_wrap_gen(50)),
-      ncol = 3,
-      scales = "free"
-    ) +
-    ggplot2::theme(
-      strip.text.x = element_text(hjust = 0),
-      legend.position = "bottom",
-      legend.title = element_blank(),
-      text = element_text(size = 18, color = "black", family = "Syne"),
-      axis.line = element_line(colour = "black", linetype = "solid"),
-      axis.ticks = element_line(colour = "black", linetype = "solid"),
-      panel.grid = element_blank(),
-      plot.title = element_text(size = 24)
-    )
-}
-
-# Figure 2B
-figure_2B_data <- globocan_8 |>
+# Figure 3B
+figure_3B_data <- globocan_8 |>
   dplyr::filter(
+    indicator != "MIR",
     cancer_type %in% c(
       "Trachea, bronchus and lung",
       "Pancreas",
@@ -557,58 +512,123 @@ figure_2B_data <- globocan_8 |>
     )
   ))
 
+figure_3B <- my_ggplot(figure_3B_data) +
+  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
 
+# Figure 3C
+figure_3C_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
 
+figure_3C <- my_ggplot(figure_3C_data) +
+  ggplot2::labs(x = "Education and Income index (EdI)", title = "Group C") +
+  ggplot2::theme(axis.title.y = element_blank())
 
+# Arrange on one page
+figure_3 <-
+  figure_3A + (figure_3B + figure_3C + plot_layout(ncol = 1)) +
+  plot_layout(ncol = 1,
+              guides = 'collect',
+              axis_titles = 'collect') &
+  theme(legend.position = 'bottom')
 
+# Save figure 3 (PNG)
+ggsave(
+  plot = figure_3,
+  filename = here("outputs", "FIG_3.png"),
+  width = 20,
+  height = 15,
+  dpi = 500,
+  units = "in")
 
+# My ggplot function for figure 4 (MIR)
+my_ggplot_mir <- function(data, ...) {
+  ggplot2::ggplot(data = data, aes(x = ed_i, y = asr_world)) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "black"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        data$ed_i,
+        probs = c(0.25, 0.5, 0.75),
+        na.rm = TRUE
+      ),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(
+        size = 18,
+        color = "black",
+        family = "Syne"
+      ),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      axis.title = element_text(color = "black"),
+      panel.grid = element_blank()
+    )
+}
 
+# Figure 4A
+figure_4A_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
 
+figure_4A <- my_ggplot_mir(figure_4A_data) +
+  ggplot2::labs(title = "Group A") +
+  ggplot2::theme(axis.title = element_blank())
 
-# figure_2B <- my_ggplot(figure_2B_data) +
-#   ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
-#   ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
-# 
-# # Figure 2C
-# figure_2C_data <- globocan_8 |>
-#   dplyr::filter(
-#     cancer_type %in% c(
-#       "Cervix uteri",
-#       "Stomach",
-#       "Liver"
-#     )
-#   ) |>
-#   dplyr::mutate(cancer_type = factor(
-#     cancer_type,
-#     levels = c(
-#       "Cervix uteri",
-#       "Stomach",
-#       "Liver"
-#     )
-#   ))
-# 
-# figure_2C <- my_ggplot(figure_2C_data) +
-#   ggplot2::labs(x = "Education and Income index (EdI)", title = "Group C") + 
-#   ggplot2::theme(axis.title.y = element_blank())
-# 
-# # Arrange on one page
-# figure_2 <-
-#   figure_2A + (figure_2B + figure_2C + plot_layout(ncol = 1)) +
-#   plot_layout(ncol = 1,
-#               guides = 'collect',
-#               axis_titles = 'collect') &
-#   theme(legend.position = 'bottom')
-# 
-# # Save figure 2 (PNG)
-# ggsave(
-#   plot = figure_2,
-#   filename = here("outputs", "FIG_2.png"),
-#   width = 20,
-#   height = 15,
-#   dpi = 500,
-#   units = "in")
-# 
-# # 
 # globocan_10 <- globocan_8 |>
 #   dplyr::filter(
 #     !cancer_type %in% c(
