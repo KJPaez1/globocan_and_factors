@@ -328,184 +328,243 @@ globocan_8 <- globocan_7 |>
 globocan_9 <- globocan_8 |>
   dplyr::filter(indicator != "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer")
 
-# # Figure 1
-# figure_1 <- ggplot2::ggplot(
-#   data = globocan_9, aes(
-#     x = ed_i,
-#     y = asr_world,
-#     color = indicator,
-#     shape = indicator
-#     )
-#   ) +
-#   ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
-#   ggplot2::geom_smooth(method = "gam",
-#                        formula = y ~ s(x, bs = "cr", k = -1),
-#                        se = FALSE) +
-#   ggplot2::geom_vline(
-#     xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-#     linetype = "dashed",
-#     color = "gray70",
-#     linewidth = 1
-#   ) +
-#   ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
-#   ggplot2::scale_shape_manual(values = c(21, 24)) +
-#   ggsci::scale_color_igv() +
-#   ggsci::scale_fill_igv(alpha = 0.1) +
-#   ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-#   ggplot2::labs(x = "Education and Income index (EdI)", 
-#                 y = "Age-Standardized Rate (per 100,000)") +
-#   ggplot2::theme_minimal() +
-#   ggplot2::theme(
-#     strip.text.x = element_text(hjust = 0),
-#     legend.position = "bottom",
-#     legend.title = element_blank(),
-#     text = element_text(size = 18, color = "black", family = "Syne"),
-#     axis.line = element_line(colour = "black", linetype = "solid"),
-#     axis.ticks = element_line(colour = "black", linetype = "solid"),
-#     panel.grid = element_blank()
-#   )
-# 
-# # Save figure 1 (JPEG)
-# ggsave(
-#   plot = figure_1,
-#   filename = here("outputs", "FIG_1.jpeg"),
-#   width = 12,
-#   height = 8,
-#   dpi = 500,
-#   units = "in")
-# 
-# # Figure 2
-# figure_2 <- globocan_8 |>
-#   dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
-#   ggplot2::ggplot(aes(x = ed_i, y = asr_world)) +
-#   ggplot2::geom_point(size = 2.5, shape = 1) +
-#   ggplot2::geom_smooth(method = "gam",
-#                        formula = y ~ s(x, bs = "cr", k = -1),
-#                        se = FALSE, color = "salmon") +
-#   ggplot2::geom_vline(
-#     xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-#     linetype = "dashed",
-#     color = "gray70",
-#     linewidth = 1
-#   ) +
-#   ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
-#   ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-#   ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
-#   ggplot2::labs(x = "Education and Income index (EdI)", 
-#                 y = "Mortality-to-Incidence Ratio") +
-#   ggplot2::theme_minimal() +
-#   ggplot2::theme(
-#     strip.text.x = element_text(hjust = 0),
-#     text = element_text(size = 18, color = "black", family = "Syne"),
-#     axis.line = element_line(colour = "black", linetype = "solid"),
-#     axis.ticks = element_line(colour = "black", linetype = "solid"),
-#     panel.grid = element_blank()
-#   )
-# 
-# # Save figure 2 (JPEG)
-# ggsave(
-#   plot = figure_2,
-#   filename = here("outputs", "FIG_2.jpeg"),
-#   width = 12,
-#   height = 8,
-#   dpi = 500,
-#   units = "in")
-# 
-# # My ggplot function for figure 2
-# my_ggplot <- function(data, ...) {
-#   ggplot2::ggplot(
-#     data = data,
-#     aes(
-#       x = ed_i,
-#       y = asr_world,
-#       color = indicator,
-#       shape = indicator
-#       )
-#     ) +
-#     ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
-#     ggplot2::geom_smooth(method = "gam",
-#                          formula = y ~ s(x, bs = "cr", k = -1),
-#                          se = FALSE) +
-#     ggplot2::geom_vline(
-#       xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-#       linetype = "dashed",
-#       color = "gray70",
-#       linewidth = 1
-#     ) +
-#     ggplot2::scale_shape_manual(values = c(21, 24)) +
-#     ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
-#       linetype = c(0, 0),
-#       shape = c(1, 1),
-#       size = c(4, 4)
-#     ))) +
-#     ggsci::scale_fill_igv(alpha = 0.1) +
-#     ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-#     ggplot2::guides(fill = "none") +
-#     ggplot2::theme_minimal() +
-#     ggplot2::facet_wrap(
-#       vars(cancer_type),
-#       labeller = labeller(cancer_type = label_wrap_gen(50)),
-#       ncol = 3,
-#       scales = "free"
-#     ) +
-#     ggplot2::theme(
-#       strip.text.x = element_text(hjust = 0),
-#       legend.position = "bottom",
-#       legend.title = element_blank(),
-#       text = element_text(size = 22, color = "black", family = "Syne"),
-#       axis.line = element_line(colour = "black", linetype = "solid"),
-#       axis.ticks = element_line(colour = "black", linetype = "solid"),
-#       panel.grid = element_blank(),
-#       plot.title = element_text(size = 24)
-#     )
-# }
-# 
-# # Figure 2A
-# figure_2A_data <- globocan_8 |>
-#   dplyr::filter(
-#     cancer_type %in% c(
-#       "Breast",
-#       "Prostate",
-#       "Colorectum",
-#       "Melanoma of skin",
-#       "Corpus uteri",
-#       "Bladder"
-#     )
-#   ) |>
-#   dplyr::mutate(cancer_type = factor(
-#     cancer_type,
-#     levels = c(
-#       "Breast",
-#       "Prostate",
-#       "Colorectum",
-#       "Melanoma of skin",
-#       "Corpus uteri",
-#       "Bladder"
-#     )
-#   ))
-# 
-# figure_2A <- my_ggplot(figure_2A_data) +
-#   ggplot2::labs(title = "Group A") + 
-#   ggplot2::theme(axis.title = element_blank())
-# 
-# # Figure 2B
-# figure_2B_data <- globocan_8 |>
-#   dplyr::filter(
-#     cancer_type %in% c(
-#       "Trachea, bronchus and lung", 
-#       "Pancreas",
-#       "Brain, nervous system"
-#     )
-#   ) |>
-#   dplyr::mutate(cancer_type = factor(
-#     cancer_type,
-#     levels = c(
-#       "Trachea, bronchus and lung", 
-#       "Pancreas",
-#       "Brain, nervous system"
-#     )
-#   ))
-# 
+# Figure 1
+figure_1 <- ggplot2::ggplot(
+  data = globocan_9, aes(
+    x = ed_i,
+    y = asr_world,
+    color = indicator,
+    shape = indicator
+    )
+  ) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_shape_manual(values = c(21, 24)) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::labs(x = "Education and Income index (EdI)",
+                y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+# Save figure 1 (JPEG)
+ggsave(
+  plot = figure_1,
+  filename = here("outputs", "FIG_1.jpeg"),
+  width = 12,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+# Figure 2
+figure_2 <- globocan_8 |>
+  dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
+  ggplot2::ggplot(aes(x = ed_i, y = asr_world)) +
+  ggplot2::geom_point(size = 2, shape = 21) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1,
+    color = "black"
+  ) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::labs(x = "Education and Income index (EdI)",
+                y = "Mortality-to-Incidence Ratio") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    axis.title = element_text(color = "black"),
+    panel.grid = element_blank()
+  )
+
+# Save figure 2 (JPEG)
+ggsave(
+  plot = figure_2,
+  filename = here("outputs", "FIG_2.jpeg"),
+  width = 12,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+# My ggplot function for figure 3 (ASR)
+my_ggplot <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = ed_i,
+      y = asr_world,
+      color = indicator,
+      shape = indicator
+      )
+    ) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+      )
+}
+
+# Figure 3A
+figure_2A_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum",
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+figure_2A <- my_ggplot(figure_2A_data) +
+  ggplot2::labs(title = "Group A") +
+  ggplot2::theme(axis.title = element_blank())
+
+# My ggplot function for figure 4 (MIR)
+my_ggplot <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = ed_i,
+      y = asr_world,
+      color = indicator,
+      shape = indicator
+    )
+  ) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    )
+}
+
+# Figure 2B
+figure_2B_data <- globocan_8 |>
+  dplyr::filter(
+    cancer_type %in% c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+
+
+
+
+
+
+
+
 # figure_2B <- my_ggplot(figure_2B_data) +
 #   ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
 #   ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
