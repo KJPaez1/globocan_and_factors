@@ -40,14 +40,16 @@ pacman::p_load(
   ggstream,
   colorRamps,
   grDevices,
-  RColorBrewer)
+  RColorBrewer,
+  patchwork,
+  ggbeeswarm)
 ```
 
 ## Import data
 
 Incidence and mortality were retrieved from GLOBOCAN (<https://gco.iarc.fr/>)
 
-Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from (Junior completalo !!!)
+Human Development Index (hdi), hdi composites, and socio demographic (sdi) index were retrieved from 
 
 SDI and quintiles were retrieved from IHME-Global Health Exchange Data: https://ghdx.healthdata.org/record/global-burden-disease-study-2021-gbd-2021-socio-demographic-index-sdi-1950%E2%80%932021
 
@@ -934,7 +936,7 @@ globocan_9 <- globocan_8 |>
 ### Figure 1
 
 ```{r}
-figure_1 <- ggplot2::ggplot(
+p_edi <- ggplot2::ggplot(
   data = globocan_9, aes(
     x = ed_i,
     y = asr_world,
@@ -959,8 +961,8 @@ figure_1 <- ggplot2::ggplot(
   ggsci::scale_color_igv() +
   ggsci::scale_fill_igv(alpha = 0.1) +
   ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-  ggplot2::labs(x = "Education and Income index (EdI)", 
-                y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::labs(x = "Education and Income index", 
+                y = "") +
   ggplot2::theme_minimal() +
   ggplot2::theme(
     strip.text.x = element_text(hjust = 0),
@@ -972,21 +974,7 @@ figure_1 <- ggplot2::ggplot(
     panel.grid = element_blank()
   )
 
-# Save figure 1 (JPEG)
-ggsave(
-  plot = figure_1,
-  filename = here("outputs", "FIG_1.jpeg"),
-  width = 12,
-  height = 8,
-  dpi = 500,
-  units = "in")
-```
-
-### Figure 2
-
-```{r}
-# Figure 2
-figure_2 <- globocan_8 |>
+p_edi_mir <- globocan_8 |>
   dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
   ggplot2::ggplot(aes(x = ed_i, y = asr_world)) +
   ggplot2::geom_point(size = 2, shape = 21) +
@@ -1006,7 +994,78 @@ figure_2 <- globocan_8 |>
   ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
   ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
   ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
-  ggplot2::labs(x = "Education and Income index (EdI)",
+  ggplot2::labs(x = "Education and Income index",
+                y = "") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    axis.title = element_text(color = "black"),
+    panel.grid = element_blank()
+  )
+
+p_hdi <- ggplot2::ggplot(
+  data = globocan_9, aes(
+    x = hdi,
+    y = asr_world,
+    color = indicator,
+    shape = indicator
+    )
+  ) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_shape_manual(values = c(21, 24)) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+  ggplot2::labs(x = "Human Development Index", 
+                y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+
+p_hdi_mir <- globocan_8 |>
+  dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
+  ggplot2::ggplot(aes(x = hdi, y = asr_world)) +
+  ggplot2::geom_point(size = 2, shape = 21) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1,
+    color = "black"
+  ) +
+  ggplot2::geom_vline(
+    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::labs(x = "Human Development Index",
                 y = "Mortality-to-Incidence Ratio") +
   ggplot2::theme_minimal() +
   ggplot2::theme(
@@ -1018,16 +1077,101 @@ figure_2 <- globocan_8 |>
     panel.grid = element_blank()
   )
 
+p_sdi <- ggplot2::ggplot(
+  data = globocan_9, aes(
+    x = sdi,
+    y = asr_world,
+    color = indicator,
+    shape = indicator
+    )
+  ) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1) +
+  ggplot2::geom_vline(
+    xintercept = c(0.45, 0.61, 0.69, 0.81), (na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_shape_manual(values = c(21, 24)) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+  ggplot2::labs(x = "Sociodemographic Index", 
+                y = "") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
+
+
+p_sdi_mir <- globocan_8 |>
+  dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
+  ggplot2::ggplot(aes(x = sdi, y = asr_world)) +
+  ggplot2::geom_point(size = 2, shape = 21) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1,
+    color = "black"
+  ) +
+  ggplot2::geom_vline(
+    xintercept = c(0.45, 0.61, 0.69, 0.81), na.rm = TRUE,
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::labs(x = "Sociodemographic Index",
+                y = "") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    text = element_text(size = 18, color = "black", family = "Syne"),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    axis.title = element_text(color = "black"),
+    panel.grid = element_blank()
+  )
+
+# Arrange on one page
+figure_1 <- (
+  p_edi + p_edi_mir + 
+  p_hdi + p_hdi_mir + 
+  p_sdi + p_sdi_mir
+) +
+  plot_layout(ncol = 2, guides = 'collect', axis_titles = 'keep') &
+  theme(legend.position = 'bottom')
+
+
 # Save figure 2 (JPEG)
 ggsave(
-  plot = figure_2,
-  filename = here("outputs", "FIG_2.jpeg"),
-  width = 12,
-  height = 8,
+  plot = figure_1,
+  filename = here("outputs", "FIG_1.jpeg"),
+  width = 13,
+  height = 13,
   dpi = 500,
   units = "in")
 
-# My ggplot function for figure 3 (ASR)
+```
+### Figure 2
+
+```{r}
+#My ggplot function for figure 2 (ASR)
 my_ggplot <- function(data, ...) {
   ggplot2::ggplot(
     data = data,
@@ -1038,7 +1182,7 @@ my_ggplot <- function(data, ...) {
       shape = indicator
       )
     ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.1) +
     ggplot2::geom_smooth(
       method = "gam",
       formula = y ~ s(x, bs = "cr", k = -1),
@@ -1073,246 +1217,33 @@ my_ggplot <- function(data, ...) {
       )
 }
 
-# Figure 3A
-figure_3A_data <- globocan_8 |>
-  dplyr::filter(
-    indicator != "MIR",
-    cancer_type %in% c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
+s_my_ggplot <- function(data, indicator, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = .data[[indicator]],
+      y = asr_world,
+      color = indicator,
+      shape = indicator
     )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
-    )
-  ))
-
-figure_3A <- my_ggplot(figure_3A_data) +
-  ggplot2::labs(title = "Group A") +
-  ggplot2::theme(axis.title = element_blank())
-
-# Figure 3A MIR
-figure_3A_data_mir <- globocan_8 |>
-  dplyr::filter(
-    indicator == "MIR",
-    cancer_type %in% c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
-    )
-  ))
-
-figure_3A_mir <- my_ggplot(figure_3A_data_mir) +
-  ggplot2::labs(title = "Group A") +
-  ggplot2::theme(axis.title = element_blank(),
-                 legend.position = "none") +
-  ggplot2::geom_point(
-    aes(x = ed_i, y = asr_world),
-    color = "black",
-    fill = "black",
-    size = 2.5,
-    alpha = 0.6,
-    inherit.aes = FALSE
   ) +
-  ggplot2::geom_smooth(
-    method = "gam",
-    formula = y ~ s(x, bs = "cr", k = -1),
-    se = FALSE,
-    linewidth = 1,
-    color = "black"
-  )
-
-
-# Figure 3B
-figure_3B_data <- globocan_8 |>
-  dplyr::filter(
-    indicator != "MIR",
-    cancer_type %in% c(
-      "Trachea, bronchus and lung",
-      "Pancreas",
-      "Brain, nervous system"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Trachea, bronchus and lung",
-      "Pancreas",
-      "Brain, nervous system"
-    )
-  ))
-
-figure_3B <- my_ggplot(figure_3B_data) +
-  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
-  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
-
-# Figure 3B MIR
-figure_3B_data_mir <- globocan_8 |>
-  dplyr::filter(
-    indicator == "MIR",
-    cancer_type %in% c(
-      "Trachea, bronchus and lung",
-      "Pancreas",
-      "Brain, nervous system"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Trachea, bronchus and lung",
-      "Pancreas",
-      "Brain, nervous system"
-    )
-  ))
-
-figure_3B_mir <- my_ggplot(figure_3B_data_mir) +
-  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
-  ggplot2::theme(axis.title.y = element_text(hjust = 0), 
-                 axis.title.x = element_blank(),
-                 legend.position = "none") +
-  ggplot2::geom_point(
-    aes(x = ed_i, y = asr_world),
-    color = "black",
-    fill = "black",
-    size = 2.5,
-    alpha = 0.6,
-    inherit.aes = FALSE
-  ) +
-  ggplot2::geom_smooth(
-    method = "gam",
-    formula = y ~ s(x, bs = "cr", k = -1),
-    se = FALSE,
-    linewidth = 1,
-    color = "black"
-  )
-
-# Figure 3C
-figure_3C_data <- globocan_8 |>
-  dplyr::filter(
-    indicator != "MIR",
-    cancer_type %in% c(
-      "Cervix uteri",
-      "Stomach",
-      "Liver"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Cervix uteri",
-      "Stomach",
-      "Liver"
-    )
-  ))
-
-figure_3C <- my_ggplot(figure_3C_data) +
-  ggplot2::labs(x = "Education and Income index (EdI)", title = "Group C") +
-  ggplot2::theme(axis.title.y = element_blank())
-
-# Figure 3C MIR
-figure_3C_data_mir <- globocan_8 |>
-  dplyr::filter(
-    indicator == "MIR",
-    cancer_type %in% c(
-      "Cervix uteri",
-      "Stomach",
-      "Liver"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Cervix uteri",
-      "Stomach",
-      "Liver"
-    )
-  ))
-
-figure_3C_mir <- my_ggplot(figure_3C_data_mir) +
-  ggplot2::labs(x = "Education and Income index (EdI)", title = "Group C") +
-  ggplot2::theme(axis.title.y = element_blank(),
-                 legend.position = "none") +
-  ggplot2::geom_point(
-    aes(x = ed_i, y = asr_world),
-    color = "black",
-    fill = "black",
-    size = 2.5,
-    alpha = 0.6,
-    inherit.aes = FALSE
-  ) +
-  ggplot2::geom_smooth(
-    method = "gam",
-    formula = y ~ s(x, bs = "cr", k = -1),
-    se = FALSE,
-    linewidth = 1,
-    color = "black"
-  )
-
-# Arrange on one page
-figure_3_mir <-
-  figure_3A_mir + (figure_3B_mir + figure_3C_mir + plot_layout(ncol = 1)) +
-  plot_layout(ncol = 1,
-              guides = 'collect',
-              axis_titles = 'collect') &
-  theme(legend.position = 'none')
-
-# Save figure 3 (PNG)
-ggsave(
-  plot = figure_3_mir,
-  filename = here("outputs", "figure_3_mir.png"),
-  width = 20,
-  height = 15,
-  dpi = 500,
-  units = "in")
-
-# My ggplot function for figure 4 (MIR)
-my_ggplot_mir <- function(data, ...) {
-  ggplot2::ggplot(data = data, aes(x = ed_i, y = asr_world)) +
-    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.1) +
     ggplot2::geom_smooth(
       method = "gam",
       formula = y ~ s(x, bs = "cr", k = -1),
       se = FALSE,
-      linewidth = 1,
-      color = "black"
+      linewidth = 1
     ) +
     ggplot2::geom_vline(
-      xintercept = quantile(
-        data$ed_i,
-        probs = c(0.25, 0.5, 0.75),
-        na.rm = TRUE
-      ),
+      xintercept = quantile(data[[indicator]], probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
       linetype = "dashed",
       color = "gray70",
       linewidth = 1
     ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
     ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
     ggplot2::theme_minimal() +
     ggplot2::facet_wrap(
       vars(cancer_type),
@@ -1322,26 +1253,154 @@ my_ggplot_mir <- function(data, ...) {
     ) +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
-      text = element_text(
-        size = 18,
-        color = "black",
-        family = "Syne"
-      ),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
-      axis.title = element_text(color = "black"),
-      panel.grid = element_blank()
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
     )
 }
 
-# Figure 4A
-figure_4A_data <- globocan_8 |>
+my_ggplot_mir <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = ed_i,
+      y = asr_world
+    )
+  ) +
+    ggplot2::geom_point(size = 2.1, shape = 21, fill = "gray80") +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "black"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    ) +
+    ggplot2::labs(
+      x = "Education and Income index",
+      y = "Age-Standardized Rate (ASR)",
+      title = "ASR vs. EdI by Cancer Type"
+    )
+}
+
+s_my_ggplot_mir <- function(data, indicator, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = .data[[indicator]],  # Use 'indicator' to specify the x variable dynamically
+      y = asr_world
+    )
+  ) +
+    ggplot2::geom_point(size = 2.1, shape = 21, fill = "gray80") +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "black"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(data[[indicator]], probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    ) +
+    ggplot2::labs(
+      x = "Education and Income Index",
+      y = "Mortality to Incidence Ratio (MIR)",
+      title = element_blank()
+    )
+}
+
+
+# Group A
+figure_a1_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ))
+
+figure_a1_mir_data <- globocan_8 |>
   dplyr::filter(
     indicator == "MIR",
     cancer_type %in% c(
       "Breast",
       "Prostate",
-      "Colorectum",
+      "Colorectum"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ))
+
+figure_a2_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
       "Melanoma of skin",
       "Corpus uteri",
       "Bladder"
@@ -1350,19 +1409,660 @@ figure_4A_data <- globocan_8 |>
   dplyr::mutate(cancer_type = factor(
     cancer_type,
     levels = c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
       "Melanoma of skin",
       "Corpus uteri",
       "Bladder"
     )
   ))
 
-figure_4A <- my_ggplot_mir(figure_4A_data) +
+figure_a2_mir_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+
+figure_a1 <- my_ggplot(figure_a1_data) +
   ggplot2::labs(title = "Group A") +
   ggplot2::theme(axis.title = element_blank())
+
+figure_a1_mir <- my_ggplot_mir(figure_a1_mir_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+figure_a2 <- my_ggplot(figure_a1_data) +
+  ggplot2::labs(title = "Group A") +
+  ggplot2::theme(axis.title = element_blank())
+
+figure_a2_mir <- my_ggplot_mir(figure_a2_mir_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+# #Group A - Supplementary
+ 
+s_figure_a_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+      "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+      "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+      "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+      "Vulva", "Anus", "Lip, oral cavity"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+      "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+      "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+      "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+      "Vulva", "Anus", "Lip, oral cavity"
+      )
+  ))
+
+s_figure_a_mir_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+      "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+      "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+      "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+      "Vulva", "Anus", "Lip, oral cavity"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+      "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+      "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+      "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+      "Vulva", "Anus", "Lip, oral cavity"
+      )
+  ))
+
+
+s_figure_a <- s_my_ggplot(s_figure_a_data, indicator = "ed_i") +
+  ggplot2::labs(title = "Group A") +
+  ggplot2::theme(axis.title = element_blank())
+
+s_figure_a_mir <- s_my_ggplot_mir(s_figure_a_mir_data, indicator = "ed_i") +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+# Group B
+figure_b_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+figure_b <- my_ggplot(figure_b_data) +
+  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
+
+# Group b MIR
+figure_b_mir_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+
+figure_b_mir <- my_ggplot_mir(figure_b_mir_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+# #Group B - Supplementary
+# 
+# s_figure_b_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator != "MIR",
+#     cancer_type %in% c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#       )
+#   ))
+# 
+# s_figure_b_mir_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator == "MIR",
+#     cancer_type %in% c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#       )
+#   ))
+# 
+# 
+# s_figure_b <- my_ggplot(s_figure_b_data) +
+#   ggplot2::labs(title = "Group B") +
+#   ggplot2::theme(axis.title = element_blank())
+# 
+# s_figure_b_mir <- my_ggplot_mir(s_figure_b_mir_data) +
+#   ggplot2::labs(title = element_blank()) +
+#   ggplot2::theme(axis.title = element_blank())
+
+###################
+
+# Group c
+figure_c_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_c <- my_ggplot(figure_c_data) +
+  ggplot2::labs(x = element_blank(), title = "Group C") +
+  ggplot2::theme(axis.title.y = element_blank())
+
+# Group C MIR
+figure_c_mir_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_c_mir <- my_ggplot_mir(figure_c_mir_data) +
+  ggplot2::labs(x = "Education and Income index",
+                title = element_blank()) +
+  ggplot2::theme(axis.title.y = element_blank())
+
+# #Group C - Supplementary
+# 
+# s_figure_c_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator != "MIR",
+#     cancer_type %in% c(
+#       "Stomach", "Cervix uteri", 
+#       "Oesophagus", "Larynx", 
+#       "Vagina", "Kaposi sarcoma"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Stomach", "Cervix uteri", 
+#       "Oesophagus", "Larynx", 
+#       "Vagina", "Kaposi sarcoma"
+#       )
+#   ))
+# 
+# s_figure_c_mir_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator == "MIR",
+#     cancer_type %in% c(
+#       "Stomach", "Cervix uteri", 
+#       "Oesophagus", "Larynx", 
+#       "Vagina", "Kaposi sarcoma"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Stomach", "Cervix uteri", 
+#       "Oesophagus", "Larynx", 
+#       "Vagina", "Kaposi sarcoma"
+#       )
+#   ))
+# 
+# 
+# s_figure_c <- my_ggplot(s_figure_c_data) +
+#   ggplot2::labs(title = "Group C") +
+#   ggplot2::theme(axis.title = element_blank())
+# 
+# s_figure_c_mir <- my_ggplot_mir(s_figure_c_mir_data) +
+#   ggplot2::labs(title = element_blank()) +
+#   ggplot2::theme(axis.title = element_blank())
+# 
+# # Group D - Supplementary
+# 
+# s_figure_d_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator != "MIR",
+#     cancer_type %in% c(
+#       "Ovary", "Penis", "Salivary glands", 
+#       "Hypopharynx", "Gallbladder", 
+#       "Liver and intrahepatic bile ducts", 
+#       "Nasopharynx"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Ovary", "Penis", "Salivary glands", 
+#       "Hypopharynx", "Gallbladder", 
+#       "Liver and intrahepatic bile ducts", 
+#       "Nasopharynx"
+#       )
+#   ))
+# 
+# s_figure_d_mir_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator == "MIR",
+#     cancer_type %in% c(
+#       "Ovary", "Penis", "Salivary glands", 
+#       "Hypopharynx", "Gallbladder", 
+#       "Liver and intrahepatic bile ducts", 
+#       "Nasopharynx"
+#       )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Ovary", "Penis", "Salivary glands", 
+#       "Hypopharynx", "Gallbladder", 
+#       "Liver and intrahepatic bile ducts", 
+#       "Nasopharynx"
+#       )
+#   ))
+# 
+# 
+# s_figure_d <- my_ggplot(s_figure_d_data) +
+#   ggplot2::labs(title = "Group D") +
+#   ggplot2::theme(axis.title = element_blank())
+# 
+# s_figure_d_mir <- my_ggplot_mir(s_figure_d_mir_data) +
+#   ggplot2::labs(title = element_blank()) +
+#   ggplot2::theme(axis.title = element_blank())
+
+# Part 2
+
+my_ggplot_sdi <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = sdi,
+      y = asr_world,
+      color = indicator,
+      shape = indicator
+      )
+    ) +
+    ggplot2::geom_point(aes(fill = indicator), size = 2.1) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1) +
+    ggplot2::geom_vline(
+      xintercept = c(0.45, 0.61, 0.69, 0.81), na.rm = TRUE,
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+      )
+}
+
+my_ggplot_mir_sdi <- function(data, ...) {
+  ggplot2::ggplot(
+    data = data,
+    aes(
+      x = sdi,
+      y = asr_world
+    )
+  ) +
+    ggplot2::geom_point(size = 2.1, shape = 21, fill = "gray80") +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "black"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = c(0.45, 0.61, 0.69, 0.81), na.rm = TRUE,
+      linetype = "dashed",
+      color = "gray70",
+      linewidth = 1
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
+    ggplot2::theme_minimal() +
+    ggplot2::facet_wrap(
+      vars(cancer_type),
+      labeller = labeller(cancer_type = label_wrap_gen(50)),
+      ncol = 3,
+      scales = "free"
+    ) +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      text = element_text(size = 18, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      plot.title = element_text(size = 24)
+    ) +
+    ggplot2::labs(
+      x = "Sociodemographic index",
+      y = "Age-Standardized Rate (ASR)",
+      title = element_blank()
+    )
+}
+
+# Group A
+figure_a1_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ))
+
+figure_a1_sdi_mir_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Breast",
+      "Prostate",
+      "Colorectum"
+      )
+  ))
+
+figure_a2_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+figure_a2_mir_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Melanoma of skin",
+      "Corpus uteri",
+      "Bladder"
+    )
+  ))
+
+
+figure_a1_sdi <- my_ggplot_sdi(figure_a1_sdi_data) +
+  ggplot2::labs(title = "Group A") +
+  ggplot2::theme(axis.title = element_blank()) 
+
+figure_a1_mir_sdi <- my_ggplot_mir_sdi(figure_a1_sdi_mir_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+figure_a2_sdi <- my_ggplot_sdi(figure_a2_sdi_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+figure_a2_mir_sdi <- my_ggplot_mir_sdi(figure_a2_mir_sdi_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+# Group B
+figure_b_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+figure_b_sdi <- my_ggplot_sdi(figure_b_sdi_data) +
+  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
+
+# Group b MIR
+figure_b_mir_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Trachea, bronchus and lung",
+      "Pancreas",
+      "Brain, nervous system"
+    )
+  ))
+
+
+figure_b_mir_sdi <- my_ggplot_mir_sdi(figure_b_mir_sdi_data) +
+  ggplot2::labs(title = element_blank()) +
+  ggplot2::theme(axis.title = element_blank())
+
+# Group c
+figure_c_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_c_sdi <- my_ggplot_sdi(figure_c_sdi_data) +
+  ggplot2::labs(x = element_blank(), title = "Group C") +
+  ggplot2::theme(axis.title.y = element_blank())
+
+# Group C MIR
+figure_c_mir_sdi_data <- globocan_8 |>
+  dplyr::filter(
+    indicator == "MIR",
+    cancer_type %in% c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Cervix uteri",
+      "Stomach",
+      "Liver"
+    )
+  ))
+
+figure_c_mir_sdi <- my_ggplot_mir_sdi(figure_c_mir_sdi_data) +
+  ggplot2::labs(x = "Sociodemographic index", 
+                title = element_blank()) +
+  ggplot2::theme(axis.title.y = element_blank())
+
+# Arrange on one page
+
+figure_2.1 <- (
+  figure_a1 / figure_a1_mir /
+  figure_a2 / figure_a2_mir/
+  figure_b / figure_b_mir /
+  figure_c / figure_c_mir
+) +
+  plot_layout(ncol = 1, guides = 'collect', axis_titles = 'collect') &
+  theme(legend.position = 'bottom')
+
+figure_2.2 <- (
+  figure_a1_sdi / figure_a1_mir_sdi /
+  figure_a2_sdi / figure_a2_mir_sdi /
+  figure_b_sdi / figure_b_mir_sdi /
+  figure_c_sdi / figure_c_mir_sdi
+) +
+  plot_layout(ncol = 1, guides = 'collect', axis_titles = 'collect') &
+  theme(legend.position = 'bottom')
+
+figure_2 <- (figure_2.1 | figure_2.2) +
+  plot_layout(ncol = 2, guides = 'collect') &
+  theme(legend.position = 'bottom')
+
+
+ggsave(
+  plot = figure_2,
+  filename = here("outputs", "figure_2.jpg"),
+  width = 20,
+  height = 26,
+  dpi = 500,
+  units = "in")
 ```
+
 
 ```{r}
 # globocan_10 <- globocan_8 |>
@@ -1717,7 +2417,7 @@ figure_4A <- my_ggplot_mir(figure_4A_data) +
 #   dpi = 500,
 #   units = "in")
 # 
-# # Figure S3
+# Figure S3
 # figure_S3 <- ggplot2::ggplot(
 #   data = globocan_9, aes(
 #     x = sdi,
@@ -1904,10 +2604,122 @@ figure_4A <- my_ggplot_mir(figure_4A_data) +
 #   height = 15,
 #   dpi = 500,
 #   units = "in")
+
+# # Figure S5A
+# figure_S5A_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator != "MIR",
+#     cancer_type %in% c(
+#       "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+#       "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+#       "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+#       "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+#       "Vulva", "Anus", "Lip, oral cavity"
+#     )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Breast", "Prostate", "Colorectum", "Melanoma of skin",
+#       "Colon", "Corpus uteri", "Bladder", "Non-Hodgkin lymphoma",
+#       "Rectum", "Kidney", "Thyroid", "Leukaemia", "Testis",
+#       "Multiple myeloma", "Hodgkin lymphoma", "Oropharynx",
+#       "Vulva", "Anus", "Lip, oral cavity"
+#     )
+#   ))
+# 
+# figure_S5A <- my_ggplot(figure_S5A_data) +
+#   ggplot2::labs(title = "Group A") +
+#   ggplot2::theme(axis.title = element_blank())
+
+
+# # Figure S5B
+# figure_S5B_data <- globocan_8 |>
+#   dplyr::filter(
+#     indicator != "MIR",
+#     cancer_type %in% c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#     )
+#   ) |>
+#   dplyr::mutate(cancer_type = factor(
+#     cancer_type,
+#     levels = c(
+#       "Trachea, bronchus and lung",
+#       "Pancreas",
+#       "Brain, nervous system",
+#       "Mesothelioma"
+#     )
+#   ))
+# 
+# figure_S5B <- my_ggplot(figure_S5B_data) +
+#   ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
+#   ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
+# 
+
+# Figure S5C
+figure_S5C_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Stomach", "Cervix uteri", "Oesophagus",
+      "Larynx", "Vagina", "Kaposi sarcoma"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Stomach", "Cervix uteri", "Oesophagus",
+      "Larynx", "Vagina", "Kaposi sarcoma"
+    )
+  ))
+
+figure_S5C <- my_ggplot(figure_S5C_data) +
+  ggplot2::labs(title = "Group C") +
+  ggplot2::theme(axis.title.y = element_blank(), axis.title.y = element_blank())
+
+# Figure S5D
+figure_S5D_data <- globocan_8 |>
+  dplyr::filter(
+    indicator != "MIR",
+    cancer_type %in% c(
+      "Ovary", "Penis", "Salivary glands", "Hypopharynx", "Gallbladder", 
+      "Liver and intrahepatic bile ducts", "Nasopharynx"
+    )
+  ) |>
+  dplyr::mutate(cancer_type = factor(
+    cancer_type,
+    levels = c(
+      "Ovary", "Penis", "Salivary glands", "Hypopharynx", "Gallbladder", 
+      "Liver and intrahepatic bile ducts", "Nasopharynx"
+    )
+  ))
+
+figure_S5D <- my_ggplot(figure_S5D_data) +
+  ggplot2::labs(x = "Education and Income index (EdI)", title = "Group D") +
+  ggplot2::theme(axis.title.y = element_blank())
+
+# All in one page
+figure_S5 <-
+  figure_S5A + (figure_S5B + figure_S5C + figure_S5D + plot_layout(ncol = 1)) +
+  plot_layout(ncol = 1,
+              guides = 'collect',
+              axis_titles = 'collect') &
+  theme(legend.position = 'none')
+
+ggsave(
+  plot = figure_S5,
+  filename = here("outputs", "FIG_S5.png"),
+  width = 13,
+  height = 30,
+  dpi = 500,
+  units = "in")
 ```
 
 
-## Model 1. Simple linear model grouped by cancer_type
+# Model 1. Simple linear model grouped by cancer_type
 
 https://stats.stackexchange.com/questions/551264/when-to-check-model-assumptions
 
@@ -2333,6 +3145,224 @@ ASR_SDI_miratio <- dplyr::bind_cols(m1_miratio_sdi, m2_miratio_sdi) |>
   )
 ```
 
+### Plotting
+
+```{r}
+globocan_8_incidence <- dplyr::filter(globocan_8, indicator == "Incidence")
+data_relevant <- globocan_8_incidence %>%
+  select(cancer_type, hdi, ed_i, sdi, asr_world)
+
+data_relevant_clean <- data_relevant %>% drop_na()
+
+correlations <- data_relevant_clean %>%
+  group_by(cancer_type) %>%
+  summarise(
+    hdi_cor = cor(asr_world, hdi),
+    edi_cor = cor(asr_world, ed_i),
+    sdi_cor = cor(asr_world, sdi)
+  )
+
+correlations_r2 <- correlations %>%
+  mutate(
+    HDI = round(hdi_cor^2, 2),
+    EDI = round(edi_cor^2, 2),
+    SDI = round(sdi_cor^2, 2)
+  )
+
+correlations_r2_long <- correlations_r2 %>%
+  select(cancer_type, HDI, EDI, SDI) %>%
+  gather(key = "indicator", value = "R2", -cancer_type)
+
+filtered_correlations <- correlations_r2_long %>%
+  filter(R2 > 0.0)
+
+data_ordered <- filtered_correlations %>%
+  group_by(cancer_type) %>%
+  summarise(max_R2 = max(R2, na.rm = TRUE)) %>%
+  arrange(max_R2) 
+
+data_order <- filtered_correlations %>%
+  mutate(cancer_type = factor(cancer_type, levels = data_ordered$cancer_type))
+
+# Crear el heatmap
+heatmap_incidence <- 
+  ggplot(data_order, 
+         aes(x = indicator, 
+             y = cancer_type, 
+             fill = R2)) +
+  geom_tile(color = "white") + # Crear celdas
+  geom_text(aes(label = sprintf("%.2f", R2)),
+            color = "black", size = 4.5) + # Mostrar solo los valores de R²
+  scale_fill_distiller(
+    palette = "RdBu",    # Paleta RdBu
+    direction = 1,      # Invierte los colores
+    limits = c(0, 0.63)) +  # Límite de valores 
+  labs(
+    title = "Incidence"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(hjust = 1, size = 14),
+    axis.text.y = element_text(size = 15),
+    title = element_text(size = 14),
+    panel.grid = element_blank(),
+    legend.position = "none")
+
+globocan_8_mortality <- dplyr::filter(globocan_8, indicator == "Mortality")
+
+data_relevant1 <- globocan_8_mortality %>%
+  select(cancer_type, hdi, ed_i, sdi, asr_world)
+
+data_relevant_clean1 <- data_relevant1 %>% drop_na()
+
+correlations1 <- data_relevant_clean1 %>%
+  group_by(cancer_type) %>%
+  summarise(
+    hdi_cor = cor(asr_world, hdi),
+    edi_cor = cor(asr_world, ed_i),
+    sdi_cor = cor(asr_world, sdi)
+  )
+
+correlations_r2_1 <- correlations1 %>%
+  mutate(
+    HDI = round(hdi_cor^2, 2),
+    EDI = round(edi_cor^2, 2),
+    SDI = round(sdi_cor^2, 2)
+  )
+
+correlations_r2_long1 <- correlations_r2_1 %>%
+  select(cancer_type, HDI, EDI, SDI) %>%
+  gather(key = "indicator", value = "R2", -cancer_type)
+
+filtered_correlations1 <- correlations_r2_long1 %>%
+  filter(R2 > 0.0)
+
+data_ordered1 <- filtered_correlations1 %>%
+  group_by(cancer_type) %>%
+  summarise(max_R2 = max(R2, na.rm = TRUE)) %>%
+  arrange(max_R2)  # Ordenar de menor a mayor
+
+data_order1 <- 
+  filtered_correlations1 %>%
+  mutate(cancer_type = factor(cancer_type, levels = data_ordered1$cancer_type))
+
+heatmap_mortality <- 
+  ggplot(data_order1, 
+         aes(x = indicator, y = cancer_type, fill = R2)) +
+  geom_tile(color = "white") + 
+  geom_text(aes(label = sprintf("%.2f", R2)),
+            color = "black", size = 4.5) + 
+  scale_fill_distiller(
+    palette = "RdBu",    
+    direction = 1,      
+    limits = c(0, 0.57)) +  
+  labs(
+    title = "Mortality",
+    x = "Socioeconomic indicator"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(hjust = 1, size = 14),
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 16, margin = margin(t = 10)), 
+    panel.grid = element_blank(),
+    title = element_text(size = 14),
+    legend.position = "none")
+
+###
+
+globocan_8_MIR <- dplyr::filter(globocan_8, indicator == "MIR")
+
+data_relevant2 <- globocan_8_MIR %>%
+  select(cancer_type, hdi, ed_i, sdi, asr_world)
+
+data_relevant_clean2 <- data_relevant2 %>% drop_na()
+
+correlations2 <- data_relevant_clean2 %>%
+  group_by(cancer_type) %>%
+  summarise(
+    hdi_cor = cor(asr_world, hdi),
+    edi_cor = cor(asr_world, ed_i),
+    sdi_cor = cor(asr_world, sdi)
+  )
+
+correlations_r2_2 <- correlations2 %>%
+  mutate(
+    HDI = round(hdi_cor^2, 2),
+    EDI = round(edi_cor^2, 2),
+    SDI = round(sdi_cor^2, 2)
+  )
+
+correlations_r2_long2 <- correlations_r2_2 %>%
+  select(cancer_type, HDI, EDI, SDI) %>%
+  gather(key = "indicator", value = "R2", -cancer_type)
+
+filtered_correlations2 <- correlations_r2_long2 %>%
+  filter(R2 > 0.0)
+
+data_ordered2 <- filtered_correlations2 %>%
+  group_by(cancer_type) %>%
+  summarise(max_R2 = max(R2, na.rm = TRUE)) %>%
+  arrange(max_R2)  # Ordenar de menor a mayor
+
+data_order2 <- filtered_correlations2 %>%
+  mutate(cancer_type = factor(cancer_type, levels = data_ordered2$cancer_type))
+
+heatmap_mir <- 
+  ggplot(data_order2, 
+         aes(x = indicator, y = cancer_type, fill = R2)) +
+  geom_tile(color = "white") + # Crear celdas
+  geom_text(aes(label = sprintf("%.2f", R2)),
+            color = "black", size = 4.5) + # Mostrar solo los valores de R²
+  scale_fill_distiller(
+    palette = "RdBu",    # Paleta RdBu
+    direction = 1,      # Invierte los colores
+    limits = c(0, 0.79)) +  # Límite de valores 
+  labs(
+    title = "MIR",
+    fill = expression(R^2)
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(hjust = 1, size = 14),
+    axis.title.y = element_blank(),    
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_text(size = 15),
+    title = element_text(size = 14),
+    panel.grid = element_blank(),
+    legend.text = element_text(size = 14), 
+    legend.title = element_text(size = 16, face = "bold"), 
+    legend.key.size = unit(1, "cm")) 
+  ##coord_fixed(ratio = 0.6)  # Asegurar proporciones iguales para celdas cuadradas
+  ##legend.position = "none"
+
+library(patchwork)
+
+# Combinar los gráficos con una leyenda común
+combined_plot <- (heatmap_incidence + heatmap_mortality + heatmap_mir) +
+  plot_layout(guides = "collect") +  # Recolecta todas las leyendas
+  plot_annotation(
+    title = element_blank(),
+    theme = theme(plot.title = element_text(hjust = 0.5))
+  )
+
+# Mostrar el gráfico combinado
+print(combined_plot)
+
+ggsave(
+  plot = combined_plot,
+  filename = here("outputs", "heatmap.jpeg"),
+  width = 20,
+  height = 10,
+  dpi = 500,
+  units = "in")
+```
+
 # Model 2. One-factor ANOVA on selected cancers
 
 Main Reference: https://bmjopen.bmj.com/content/bmjopen/9/10/e028461.full.pdf
@@ -2483,9 +3513,12 @@ p_edi_inc =
             x = "edi_categories", 
             y = "asr_world",
             facet.by = "cancer_type",
+            nrow= 1,
             scales = "free",
             xlab = "EdI category",
-            ylab = "Age-standarized incidence rate (per 100,000 women)") 
+            ylab = "Age-standarized incidence rate (per 100,000)",
+            width = 0.5) 
+
 
 p1_edi_inc = 
   p_edi_inc + stat_pvalue_manual(pw_gh_test_inc_edi, 
@@ -2501,16 +3534,18 @@ p1_edi_inc =
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
     panel.spacing = unit(1.5, "lines"),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,5,0,10))
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5) 
+
 
 ggsave(
   plot = p1_edi_inc,
   filename = here("outputs", "p1_edi_inc.jpeg"),
-  width = 16,
-  height = 12,
+  width = 24,
+  height = 8,
   dpi = 500,
   units = "in")
 ```
@@ -2631,9 +3666,12 @@ pw_gh_test_mort_edi <- pw_gh_test_mort_edi  |>
 p_edi_mort <- ggboxplot(data_mort_edi_globocan_8, 
                x = "edi_categories", 
                y = "asr_world",
+               facet.by = "cancer_type",
+               nrow = 1,
                scales = "free",
                xlab = "EdI category",
-               ylab = "Age-standarized mortality rate (per 100,000 women)"
+               ylab = "Age-standarized mortality rate (per 100,000)",
+               width = 0.5
                ) 
 
 p1_edi_mort = 
@@ -2648,17 +3686,20 @@ p1_edi_mort =
     strip.text = element_text(size = 24),      
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,5,0,10)),
     panel.spacing = unit(1.5, "lines")
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5) 
+  #geom_boxplot(lwd = 0.9)
+
 
 ggsave(
   plot = p1_edi_mort,
   filename = here("outputs", "p1_edi_mort.jpeg"),
-  width = 12,
-  height = 10,
+  width = 6,
+  height = 9,
   dpi = 500,
   units = "in")
 ```
@@ -2801,9 +3842,11 @@ p_edi_mir =
             x = "edi_categories", 
             y = "asr_world",
             facet.by = "cancer_type",
+            nrow = 1,
             scales = "free",
             xlab = "EdI category",
-            ylab = "Mortality to incidence ratio") 
+            ylab = "Mortality to incidence ratio",
+            width = 0.5) 
 
 p1_edi_mir = 
   p_edi_mir + stat_pvalue_manual(pw_gh_test_miratio_edi, 
@@ -2819,16 +3862,18 @@ p1_edi_mir =
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
     panel.spacing = unit(1.5, "lines"),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,5,0,10))
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5) 
+  #geom_boxplot(lwd = 0.9)
 
 ggsave(
   plot = p1_edi_mir,
   filename = here("outputs", "p1_edi_mir.jpeg"),
-  width = 16,
-  height = 12,
+  width = 25,
+  height = 8,
   dpi = 500,
   units = "in")
 ```
@@ -2966,9 +4011,11 @@ p_hdi_inc <- ggboxplot(data_inc_hdi_globocan_8,
                x = "hdi_category", 
                y = "asr_world",
                facet.by = "cancer_type",
+               nrow = 1,
                scales = "free",
                xlab = "HDI category",
-               ylab = "Age-standarized incidence rate (per 100,000 women)"
+               ylab = "Age-standarized incidence rate (per 100,000)",
+               width = 0.5
                ) 
 
 p1_hdi_inc = 
@@ -2985,16 +4032,18 @@ p1_hdi_inc =
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
     panel.spacing = unit(2, "lines"),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,0,0,0))
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
 
 ggsave(
   plot = p1_hdi_inc,
   filename = here("outputs", "p1_hdi_inc.jpeg"),
-  width = 14,
-  height = 13,
+  width = 20,
+  height = 8,
   dpi = 500,
   units = "in")
 ```
@@ -3131,7 +4180,8 @@ p_hdi_mort =
             facet.by = "cancer_type",
             scales = "free",
             xlab = "HDI category",
-            ylab = "Age-standarized mortality rate (per 100,000 women)") 
+            ylab = "Age-standarized mortality rate (per 100,000)",
+            width = 0.5) 
 
 p1_hdi_mort = 
   p_hdi_mort + stat_pvalue_manual(pw_gh_test_mort_hdi, 
@@ -3147,15 +4197,17 @@ p1_hdi_mort =
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
     panel.spacing = unit(1.5, "lines"),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,5,0,10))
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
 
 ggsave(
   plot = p1_hdi_mort,
   filename = here("outputs", "p1_hdi_mort.jpeg"),
-  width = 17,
+  width = 14,
   height = 8,
   dpi = 500,
   units = "in")
@@ -3299,9 +4351,11 @@ p_hdi_mir =
             x = "hdi_category", 
             y = "asr_world",
             facet.by = "cancer_type",
+            nrow = 1,
             scales = "free",
             xlab = "HDI category",
-            ylab = "Mortality to incidence ratio") 
+            ylab = "Mortality to incidence ratio",
+            width = 0.5) 
 
 p1_hdi_mir = 
   p_hdi_mir + stat_pvalue_manual(pw_gh_test_miratio_hdi, 
@@ -3317,16 +4371,18 @@ p1_hdi_mir =
     legend.text = element_text(size = 23),     
     legend.title = element_text(size = 24),
     panel.spacing = unit(1.5, "lines"),
-    axis.text.x = element_text(margin = margin(5,0,10,0)),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
     axis.text.y = element_text(margin = margin(0,5,0,10))
   ) +
-  geom_boxplot(lwd = 0.9)
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
 
 ggsave(
   plot = p1_hdi_mir,
   filename = here("outputs", "p1_hdi_mir.jpeg"),
-  width = 16,
-  height = 12,
+  width = 24,
+  height = 8,
   dpi = 500,
   units = "in")
 ```
@@ -3345,7 +4401,8 @@ Perform ANOVA, extract residuals, test normality and homogeneity of variances by
 stat_incid_v_sdi <-
   globocan_8 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(indicator == "incidence") |>
+  filter(indicator == "Incidence") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
   group_by(cancer_type) |>
   do({
     # Perform one-factor ANOVA
@@ -3404,26 +4461,107 @@ Pairwise comparison for normally distributed data with equal variances
 
 ```{r}
 pw_gh_test_inc_sdi = 
-  globocan_5 |> 
+  globocan_8 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(indicator == "incidence" & 
+  filter(indicator == "Incidence" & 
            cancer_type %in% c("Hodgkin lymphoma", 
                               "Leukaemia",
-                              " Brain, central nervous system",
+                              "Brain, nervous system",
                               "Breast",
-                              "Prostate")) |> 
+                              "Prostate") & 
+           !is.na(sdi_categories) &
+           sdi_categories != "" &
+           !is.na(asr_world)) |> 
   group_by(cancer_type) |> 
-  mutate(sdi_categories = na_if(sdi_categories, "")) |> 
   rstatix::games_howell_test(asr_world ~ sdi_categories)
+```
+
+### Plotting results
+
+```{r}
+data_inc_sdi_globocan_8 = 
+  globocan_8 |>  
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "Incidence" & 
+           cancer_type %in% c("Hodgkin lymphoma", 
+                              "Leukaemia",
+                              "Brain, nervous system",
+                              "Breast",
+                              "Prostate") & 
+           !is.na(sdi_categories) &
+           sdi_categories != "")
+
+data_inc_sdi_globocan_8$sdi_categories <- 
+  factor(data_inc_sdi_globocan_8$sdi_categories,
+         levels = c("Low", "Low-middle", "Middle", "High-middle", "High"))
+
+pw_gh_test_inc_sdi <- pw_gh_test_inc_sdi  |> 
+  mutate(y.position = case_when(
+    cancer_type == "Brain, nervous system" ~ 9,
+    cancer_type == "Leukaemia" ~ 13,
+    cancer_type == "Breast" ~ 125,
+    cancer_type == "Hodgkin lymphoma" ~ 3.5,
+    TRUE ~ 110  # Default y.position for other cancer types
+  )) |> 
+  dplyr::filter(
+    (group1 == "Low" & group2 == "Low-middle") |
+    (group1 == "Low-middle" & group2 == "Middle") |
+    (group1 == "Middle" & group2 == "High-middle") |
+    (group1 == "High-middle" & group2 == "High") |
+    (group2 == "Low" & group1 == "Low-middle") |
+    (group2 == "Low-middle" & group1 == "Middle") |
+    (group2 == "Middle" & group1 == "High-middle") |
+    (group2 == "High-middle" & group1 == "High")
+    )
+
+p_sdi_inc <- ggboxplot(data_inc_sdi_globocan_8, 
+               x = "sdi_categories", 
+               y = "asr_world",
+               facet.by = "cancer_type",
+               nrow = 1,
+               scales = "free",
+               xlab = "SDI category",
+               ylab = "Age-standarized incidence rate (per 100,000)",
+               width = 0.5
+               ) 
+
+p1_sdi_inc = 
+  p_sdi_inc + stat_pvalue_manual(pw_gh_test_inc_sdi, 
+                       label = "p.adj.signif",
+                       step.group.by = "cancer_type",
+                       y.position = "y.position",
+                       step.increase = 0.06,
+                       size = 7.3) +
+  theme(
+    axis.title = element_text(size = 24),       
+    axis.text = element_text(size = 20),        
+    strip.text = element_text(size = 24),      
+    legend.text = element_text(size = 23),     
+    legend.title = element_text(size = 24),
+    panel.spacing = unit(2, "lines"),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
+    axis.text.y = element_text(margin = margin(0,5,0,10))
+  ) +
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
+
+ggsave(
+  plot = p1_sdi_inc,
+  filename = here("outputs", "p1_sdi_inc.jpeg"),
+  width = 24,
+  height = 8,
+  dpi = 500,
+  units = "in")
 ```
 
 ### Sociodemographic index (SDI) vs Mortality
 
 ```{r}
 stat_mort_v_sdi <- 
-  globocan_5 |>
+  globocan_8 |>
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(indicator == "mortality") |>
+  filter(indicator == "Mortality") |>
   group_by(cancer_type) |>
   do({
     # Perform one-factor ANOVA
@@ -3481,15 +4619,331 @@ Pairwise comparison for normally distributed data with equal variances
 
 ```{r}
 pw_gh_test_mort_sdi = 
-  globocan_5 |> 
+  globocan_8 |> 
   distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
-  filter(indicator == "mortality" & 
+  filter(indicator == "Mortality" & 
            cancer_type %in% c("Kidney", 
                               "Colorectum",
-                              " Brain, central nervous system",
-                              "Pancreas")) |> 
+                              "Brain, nervous system",
+                              "Pancreas") & 
+           !is.na(sdi_categories) &
+           sdi_categories != "" &
+           !is.na(asr_world)) |> 
   group_by(cancer_type) |> 
   rstatix::games_howell_test(asr_world ~ sdi_categories)
+```
+### Plotting results
+
+```{r}
+data_mort_sdi_globocan_8 = 
+  globocan_8 |>  
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "Mortality" & 
+           cancer_type %in% c("Kidney", 
+                              "Colorectum",
+                              "Brain, nervous system",
+                              "Pancreas") & 
+           !is.na(sdi_categories) &
+           sdi_categories != "")
+
+data_mort_sdi_globocan_8$sdi_categories <- 
+  factor(data_mort_sdi_globocan_8$sdi_categories,
+         levels = c("Low", "Low-middle", "Middle", "High-middle", "High"))
+
+pw_gh_test_mort_sdi <- pw_gh_test_mort_sdi  |> 
+  mutate(y.position = case_when(
+    cancer_type == "Kidney" ~ 5,
+    cancer_type == "Colorectum" ~ 22,
+    cancer_type == "Brain, nervous system" ~ 7,
+    cancer_type == "Pancreas" ~ 10
+  )) |> 
+  dplyr::filter(
+    (group1 == "Low" & group2 == "Low-middle") |
+    (group1 == "Low-middle" & group2 == "Middle") |
+    (group1 == "Middle" & group2 == "High-middle") |
+    (group1 == "High-middle" & group2 == "High") |
+    (group2 == "Low" & group1 == "Low-middle") |
+    (group2 == "Low-middle" & group1 == "Middle") |
+    (group2 == "Middle" & group1 == "High-middle") |
+    (group2 == "High-middle" & group1 == "High")
+    )
+
+p_sdi_mort <- ggboxplot(data_mort_sdi_globocan_8, 
+               x = "sdi_categories", 
+               y = "asr_world",
+               facet.by = "cancer_type",
+               nrow = 1,
+               scales = "free",
+               xlab = "SDI category",
+               ylab = "Age-standarized mortality rate (per 100,000)",
+               width = 0.5
+               ) 
+
+p1_sdi_mort = 
+  p_sdi_mort + stat_pvalue_manual(pw_gh_test_mort_sdi, 
+                       label = "p.adj.signif",
+                       step.group.by = "cancer_type",
+                       y.position = "y.position",
+                       step.increase = 0.06,
+                       size = 7.3) +
+  theme(
+    axis.title = element_text(size = 24),       
+    axis.text = element_text(size = 20),        
+    strip.text = element_text(size = 24),      
+    legend.text = element_text(size = 23),     
+    legend.title = element_text(size = 24),
+    panel.spacing = unit(2, "lines"),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
+    axis.text.y = element_text(margin = margin(0,5,0,10))
+  ) +
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
+
+ggsave(
+  plot = p1_sdi_mort,
+  filename = here("outputs", "p1_sdi_mort.jpeg"),
+  width = 19,
+  height = 8,
+  dpi = 500,
+  units = "in")
+```
+
+### Sociodemographic index (HDI) vs mortality to incidence ratio
+
+Visual inspection
+
+```{r}
+p_miratio_v_sdi
+
+globocan_8 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "MIR") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
+  ggplot(aes(sample = asr_world)) + 
+  stat_qq() + 
+  stat_qq_line() + 
+  facet_wrap(~cancer_type,
+             scales = "free") + 
+  labs(x = "Theoretical Quantiles", 
+       y = "Sample Quantiles") + 
+  theme_minimal()
+```
+
+Perform ANOVA, extract residuals, test normality and homogeneity of variances by cancer type
+
+```{r include=FALSE}
+stat_miratio_v_sdi <- 
+  globocan_8 |>
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "MIR") |>
+  filter(!is.na(asr_world) & !is.nan(asr_world) & !is.infinite(asr_world)) |>
+  group_by(cancer_type) |>
+  do({
+    # Perform one-factor ANOVA
+    anova_model <- aov(asr_world ~ sdi_categories, data = .)
+    
+    # Extract residuals
+    residuals_data <- residuals(anova_model)
+    
+    # Perform Levene's Test for homogeneity of variances
+    levene_test <- leveneTest(asr_world ~ sdi_categories, data = .)
+    
+    # Extract ANOVA p-value
+    anova_summary <- summary(anova_model)
+    anova_p_value <- anova_summary[[1]]$`Pr(>F)`[1]
+    
+    # Check if residuals are identical
+    if (length(unique(residuals_data)) == 1) {
+      # Return NA for groups with identical residuals
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = NA,
+        shapiro_statistic = NA,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    } else {
+      # Test normality of residuals
+      shapiro_test <- shapiro.test(residuals_data)
+      
+      # Return results
+      data.frame(
+        cancer_type = unique(.$cancer_type),
+        shapiro_p_value = shapiro_test$p.value,
+        shapiro_statistic = shapiro_test$statistic,
+        levene_p_value = levene_test$`Pr(>F)`[1],
+        anova_p_value = anova_p_value
+      )
+    }
+  }) |>
+  ungroup()
+
+View(stat_miratio_v_sdi)
+```
+
+**Table 2.** Selection of cancer types and statistics for mortality vs edi
+
+| N°  | Cancer type                   | R\^2 | Shapiro P value | Levene P value | ANOVA P values |     |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| 1   | Brain, central nervous system |      | 0.158           | 0.004          | \<0.001        |     |
+
+Pairwise comparison for normally distributed data with unequal variances
+
+```{r}
+pw_gh_test_miratio_sdi = 
+  globocan_8 |> 
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "MIR" & 
+           cancer_type %in% c("Multiple myeloma",
+                              "Leukaemia",
+                              "Non-Hodgkin lymphoma",
+                              #"Kaposi sarcoma",
+                              "Cervix uteri",
+                              "Rectum",
+                              "Prostate",
+                              "All cancers excl. non-melanoma skin cancer",
+                              "Breast",
+                              "Lip, oral cavity",
+                              "Colorectum"
+                              ) &
+           !is.na(sdi_categories) &
+           sdi_categories != "" &
+           !is.na(asr_world)) |> 
+  group_by(cancer_type) |> 
+  rstatix::games_howell_test(asr_world ~ sdi_categories)
+
+View(pw_gh_test_miratio_sdi)
+```
+
+### Plotting results
+
+https://rpkgs.datanovia.com/ggpubr/reference/stat_pvalue_manual.html
+
+```{r}
+data_mir_sdi_globocan_8 = 
+  globocan_8 |>  
+  distinct(cancer_type, country_name, indicator, .keep_all = TRUE) |> 
+  filter(indicator == "MIR" & 
+           cancer_type %in% c("Multiple myeloma",
+                              "Leukaemia",
+                              "Non-Hodgkin lymphoma",
+                              #"Kaposi sarcoma",
+                              "Cervix uteri",
+                              "Rectum",
+                              "Prostate",
+                              "All cancers excl. non-melanoma skin cancer",
+                              "Breast",
+                              "Lip, oral cavity",
+                              "Colorectum") &
+           !is.na(sdi_categories) &
+           sdi_categories != "" &
+           !is.na(asr_world))
+
+data_mir_sdi_globocan_8$sdi_categories <- 
+  factor(data_mir_sdi_globocan_8$sdi_categories,
+         levels = c("Low", "Low-middle", "Middle", "High-middle", "High"))
+
+pw_gh_test_miratio_sdi <- pw_gh_test_miratio_sdi  |> 
+  mutate(y.position = case_when(
+    cancer_type == "Prostate" ~ 0.70,
+    cancer_type == "All cancers excl. non-melanoma skin cancer" ~ 0.8,
+    cancer_type == "Rectum" ~ 0.92,
+    cancer_type == "Non-Hodgkin lymphoma" ~ 0.90,
+    cancer_type == "Multiple myeloma" ~ 0.95,
+    cancer_type == "Cervix uteri" ~ 0.9,
+    cancer_type == "Breast" ~ 0.9,
+    cancer_type == "Lip, oral cavity" ~ 0.95,
+    cancer_type == "Leukaemia" ~ 0.9,
+    cancer_type == "Colorectum" ~ 0.9
+  )) |> 
+  dplyr::filter(
+    (group1 == "Low" & group2 == "Low-middle") |
+    (group1 == "Low-middle" & group2 == "Middle") |
+    (group1 == "Middle" & group2 == "High-middle") |
+    (group1 == "High-middle" & group2 == "High") |
+    (group2 == "Low" & group1 == "Low-middle") |
+    (group2 == "Low-middle" & group1 == "Middle") |
+    (group2 == "Middle" & group1 == "High-middle") |
+    (group2 == "High-middle" & group1 == "High")
+    )
+
+p_sdi_mir = 
+  ggboxplot(data_mir_sdi_globocan_8, 
+            x = "sdi_categories", 
+            y = "asr_world",
+            facet.by = "cancer_type",
+            nrow = 2,
+            scales = "free",
+            xlab = "SDI category",
+            ylab = "Mortality to incidence ratio",
+            width = 0.5) 
+
+p1_sdi_mir = 
+  p_sdi_mir + stat_pvalue_manual(pw_gh_test_miratio_sdi, 
+                       label = "p.adj.signif",
+                       step.group.by = "cancer_type",
+                       y.position = "y.position",
+                       step.increase = 0.06,
+                       size = 7.3) +
+  theme(
+    axis.title = element_text(size = 24),       
+    axis.text = element_text(size = 20),        
+    strip.text = element_text(size = 24),      
+    legend.text = element_text(size = 23),     
+    legend.title = element_text(size = 24),
+    panel.spacing = unit(1.5, "lines"),
+    axis.text.x = element_text(margin = margin(5,0,10,0),
+                               angle = 35, hjust = 1),
+    axis.text.y = element_text(margin = margin(0,5,0,10))
+  ) +
+  geom_quasirandom(alpha = 0.5, size = 3.5)
+  #geom_boxplot(lwd = 0.9)
+
+ggsave(
+  plot = p1_sdi_mir,
+  filename = here("outputs", "p1_sdi_mir.jpeg"),
+  width = 26,
+  height = 16,
+  dpi = 500,
+  units = "in")
+
+
+figure_4 <- (
+    p1_edi_mort + p1_hdi_mort
+) +
+    plot_layout(ncol = 2, guides = 'collect', widths = c(1, 3)) &
+    theme(legend.position = element_blank())
+
+p1_edi_mort_inc <- (
+    (p1_edi_mort) + 
+    (p1_hdi_mort + theme(axis.title.y = element_blank()))) +
+    plot_layout(ncol = 2, guides = 'collect', widths = c(0.85, 3)) &
+    theme(legend.position = element_blank())
+
+ggsave(
+  plot = p1_edi_mort_inc,
+  filename = here("outputs", "p1_edi_mort_inc.jpeg"),
+  width = 19,
+  height = 8,
+  dpi = 500,
+  units = "in")
+
+p1_edi_hdi_sdi_mir <- (
+  p1_edi_mir + 
+  p1_hdi_mir +
+  p1_sdi_mir) +
+    plot_layout(ncol = 1, guides = 'collect', heights = c(1, 1, 2.7)) &
+    theme(legend.position = element_blank())
+
+ggsave(
+  plot = p1_edi_hdi_sdi_mir,
+  filename = here("outputs", "p1_edi_hdi_sdi_mir.jpeg"),
+  width = 26,
+  height = 25,
+  dpi = 500,
+  units = "in")
+
 ```
 
 # Model 2. Logarithmic models
