@@ -13,33 +13,40 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r message=FALSE, results='hide', warning=FALSE}
-# Load packages 
-library(tidyverse)
-library(skimr)
-library(janitor)
-library(rstatix)
-library(ggpubr)
-library(ggsci)
-library(ggrepel)
-library(broom)
-library(car)
-library(tidymodels)
-library(performance)
-library(rio) 
+# Load packages
 library(here)
-library(RColorBrewer)
+library(tidyverse)
+library(DT)
+library(plotly)
+library(shiny)
 library(mgcv)
 library(splines)
-library(DT)
-library(rfextras)
-library(shiny)
-library(plotly)
-library(extrafont)
-library(showtext)
-library(patchwork)
+library(ggpubr)
+library(ggsci)
+library(nortest)
+library(stats)
+library(moments)
+library(broom)
+
+# Fonts
+# library(extrafont)
+# library(showtext)
 
 # My function scripts
-rfextras::load_scripts()
+source(here("scripts", "Tidying data_Indicators cancers and countries.R"))
+source(here("scripts", "ggplot themes.R"))
+# library(rfextras)
+# rfextras::load_scripts()
+```
+
+```{r}
+# lintr::lint(here("scripts", "Tidying data_Indicators cancers and countries.R"), linters = unused_import_linter())
+# library(annotater)
+# library(grateful)
+# grateful::cite_packages(
+#   out.format = "docx",
+#   citation.style = "vancouver",
+#   out.dir = ".")
 ```
 
 # Exploratory data analysis {data-orientation="rows"}
@@ -85,9 +92,11 @@ filtered_data <- reactive({
 renderPlotly({
   plot_1 <- ggplot2::ggplot(
     data = filtered_data(),
-    aes(x = .data[[input$variable_input]],
-        color = Indicator,
-        fill = Indicator)
+    aes(
+      x = .data[[input$variable_input]],
+      color = Indicator,
+      fill = Indicator
+      )
     ) +
     ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 0.8, na.rm = TRUE) +
     ggplot2::labs(y = "Density", color = "Indicator", fill = "Indicator") +
@@ -103,7 +112,7 @@ renderPlotly({
       x = 0.5,
       y = -0.25
     ))
-})
+  })
 
 # globocan_5 |>
 #   dplyr::select(indicator, cancer_type, country_name, crude_rate, asr_world) |>
@@ -122,10 +131,12 @@ renderPlotly({
 renderPlotly({
   plot_2 <- ggplot2::ggplot(
     data = filtered_data(),
-    aes(y = .data[[input$variable_input]], 
-        x = Indicator, 
-        fill = Indicator, 
-        color = Indicator)
+    aes(
+      y = .data[[input$variable_input]], 
+      x = Indicator, 
+      fill = Indicator,
+      color = Indicator
+      )
     ) +
     ggplot2::geom_boxplot(alpha = 0.1, linewidth = 0.5) +
     ggplot2::geom_jitter(alpha = 0.5, size = 2, width = 0.25) +
@@ -144,8 +155,8 @@ renderPlotly({
 ```{r}
 table_1 <- reactive({
   filtered_data() |>
-    group_by(Indicator) |>
-    summarise(
+    dplyr::group_by(Indicator) |>
+    dplyr::summarise(
       Count = n(),
       Min = round(min(.data[[input$variable_input]], na.rm = TRUE), 2),
       Mean = round(mean(.data[[input$variable_input]], na.rm = TRUE), 2),
@@ -242,11 +253,13 @@ selectedData_plot_lm_mir <- reactive({
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_lm(),
-    aes(x = .data[[input$variable_x_input_lm]],
-        y = .data[[input$variable_y_input_lm]],
-        shape = Indicator,
-        color = Indicator,
-        fill = Indicator)
+    aes(
+      x = .data[[input$variable_x_input_lm]],
+      y = .data[[input$variable_y_input_lm]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
     ) +
     ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
@@ -294,9 +307,11 @@ renderPlotly({
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_lm_mir(),
-    aes(x = .data[[input$variable_x_input_lm_mir]],
-        y = `ASR (World)`,
-        color = `ASR (World)`)
+    aes(
+      x = .data[[input$variable_x_input_lm_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
     ) +
     ggplot2::geom_point(size = 2, shape = 21) +
     ggplot2::geom_smooth(
@@ -480,7 +495,7 @@ ASR_SDI_incidence <- dplyr::bind_cols(m1_incidence_sdi, m2_incidence_sdi) |>
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$incidence_model_input_lm,
     "ASR (World) ~ HDI" = ASR_HDI_incidence,
@@ -629,7 +644,7 @@ ASR_SDI_mortality <- dplyr::bind_cols(m1_mortality_sdi, m2_mortality_sdi) |>
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$mortality_model_input_lm,
     "ASR (World) ~ HDI" = ASR_HDI_mortality,
@@ -703,17 +718,19 @@ selectedData_plot_gam_mir <- reactive({
 
 ## Row {data-height="500"}
 
-### Generalized Cross Validation (GCV) criterion for cubic regression spline
+### Generalized Cross Validation (GCV) criterion for cubic regression splines
 
 ```{r}
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_gam(),
-    aes(x = .data[[input$variable_x_input_gam]],
-        y = .data[[input$variable_y_input_gam]],
-        shape = Indicator,
-        color = Indicator,
-        fill = Indicator)
+    aes(
+      x = .data[[input$variable_x_input_gam]],
+      y = .data[[input$variable_y_input_gam]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
     ) +
     ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
@@ -761,9 +778,11 @@ renderPlotly({
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_gam_mir(),
-    aes(x = .data[[input$variable_x_input_gam_mir]],
-        y = `ASR (World)`,
-        color = `ASR (World)`)
+    aes(
+      x = .data[[input$variable_x_input_gam_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
     ) +
     ggplot2::geom_point(size = 2, shape = 21) +
     ggplot2::geom_smooth(
@@ -816,12 +835,18 @@ models_incidence_gam_hdi <- globocan_8 |>
   dplyr::filter(indicator == "Incidence") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+## models_incidence_gam_hdi$model[[1]] |> names
 
 # Summarizes information about the models
 m0_incidence_gam_hdi <- models_incidence_gam_hdi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_incidence_gam_hdi <- models_incidence_gam_hdi |>
@@ -843,23 +868,30 @@ ASR_HDI_incidence_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
@@ -870,12 +902,16 @@ models_incidence_gam_edi <- globocan_8 |>
   dplyr::filter(indicator == "Incidence") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
 
 # Summarizes information about the models
 m0_incidence_gam_edi <- models_incidence_gam_edi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_incidence_gam_edi <- models_incidence_gam_edi |>
@@ -897,23 +933,30 @@ ASR_EDI_incidence_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
@@ -924,12 +967,16 @@ models_incidence_gam_sdi <- globocan_8 |>
   dplyr::filter(indicator == "Incidence") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
 
 # Summarizes information about the models
 m0_incidence_gam_sdi <- models_incidence_gam_sdi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_incidence_gam_sdi <- models_incidence_gam_sdi |>
@@ -951,29 +998,36 @@ ASR_SDI_incidence_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$incidence_model_input_gam,
     "ASR (World) ~ HDI" = ASR_HDI_incidence_gam,
@@ -992,12 +1046,16 @@ models_mortality_gam_hdi <- globocan_8 |>
   dplyr::filter(indicator == "Mortality") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
 
 # Summarizes information about the models
 m0_mortality_gam_hdi <- models_mortality_gam_hdi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_mortality_gam_hdi <- models_mortality_gam_hdi |>
@@ -1019,23 +1077,30 @@ ASR_HDI_mortality_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
@@ -1046,12 +1111,16 @@ models_mortality_gam_edi <- globocan_8 |>
   dplyr::filter(indicator == "Mortality") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
 
 # Summarizes information about the models
 m0_mortality_gam_edi <- models_mortality_gam_edi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_mortality_gam_edi <- models_mortality_gam_edi |>
@@ -1073,23 +1142,30 @@ ASR_EDI_mortality_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
@@ -1100,12 +1176,16 @@ models_mortality_gam_sdi <- globocan_8 |>
   dplyr::filter(indicator == "Mortality") |>
   dplyr::group_by(cancer_type) |>
   tidyr::nest()  |>
-  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), data = .)))
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
 
 # Summarizes information about the models
 m0_mortality_gam_sdi <- models_mortality_gam_sdi |>
-  dplyr::mutate(r_squared = map_dbl(model, ~ summary(.)$r.sq)) |>
-  tidyr::unnest(r_squared) |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 m1_mortality_gam_sdi <- models_mortality_gam_sdi |>
@@ -1127,29 +1207,36 @@ ASR_SDI_mortality_gam <- dplyr::bind_cols(
   dplyr::select(
     cancer_type...1,
     r_squared,
+    dev_expl,
+    gcv_cp,
     edf,
     ref.df,
+    df,
+    df.residual,
+    k,
     statistic,
     p.value,
-    df,
     AIC,
     BIC,
-    deviance
+    deviance,
+    
   ) |>
   dplyr::rename(
     `Cancer type` = cancer_type...1,
-    `Adjusted R-squared` = r_squared,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
     EDF = edf,
     Ref.df = ref.df,
+    `Total df` = df,
     `F-statistic` = statistic,
     `p-value` = p.value,
-    Df = df,
     Deviance = deviance
   )
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$mortality_model_input_gam,
     "ASR (World) ~ HDI" = ASR_HDI_mortality_gam,
@@ -1229,12 +1316,14 @@ selectedData_plot_ns_mir <- reactive({
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_ns(),
-    aes(x = .data[[input$variable_x_input_ns]],
-        y = .data[[input$variable_y_input_ns]],
-        shape = Indicator,
-        color = Indicator,
-        fill = Indicator)
-    ) +
+    aes(
+      x = .data[[input$variable_x_input_ns]],
+      y = .data[[input$variable_y_input_ns]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
+  ) +
     ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_smooth(
       method = "lm",
@@ -1281,10 +1370,12 @@ renderPlotly({
 renderPlotly({
   plot_3 <- ggplot2::ggplot(
     data = selectedData_plot_ns_mir(),
-    aes(x = .data[[input$variable_x_input_ns_mir]],
-        y = `ASR (World)`,
-        color = `ASR (World)`)
-    ) +
+    aes(
+      x = .data[[input$variable_x_input_ns_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
+  ) +
     ggplot2::geom_point(size = 2, shape = 21) +
     ggplot2::geom_smooth(
       method = "lm",
@@ -1339,20 +1430,32 @@ models_incidence_ns_hdi <- globocan_8 |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(hdi, df = 4), data = .)))
 
 # Summarizes information about the models
-m2_incidence_ns_hdi <- models_incidence_ns_hdi |>
+m1_incidence_ns_hdi <- models_incidence_ns_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_HDI_incidence_ns <- m2_incidence_ns_hdi |>
+ASR_HDI_incidence_ns <- m1_incidence_ns_hdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
@@ -1365,20 +1468,32 @@ models_incidence_ns_edi <- globocan_8 |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(ed_i, df = 4), data = .)))
 
 # Summarizes information about the models
-m2_incidence_ns_edi <- models_incidence_ns_edi |>
+m1_incidence_ns_edi <- models_incidence_ns_edi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_EDI_incidence_ns <- m2_incidence_ns_edi |>
+ASR_EDI_incidence_ns <- m1_incidence_ns_edi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
@@ -1391,25 +1506,37 @@ models_incidence_ns_sdi <- globocan_8 |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(sdi, df = 4), data = .)))
 
 # Summarizes information about the models
-m2_incidence_ns_sdi <- models_incidence_ns_sdi |>
+m1_incidence_ns_sdi <- models_incidence_ns_sdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_SDI_incidence_ns <- m2_incidence_ns_sdi |>
+ASR_SDI_incidence_ns <- m1_incidence_ns_sdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$incidence_model_input_ns,
     "ASR (World) ~ HDI" = ASR_HDI_incidence_ns,
@@ -1431,20 +1558,32 @@ models_mortality_ns_hdi <- globocan_8 |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(hdi, df = 4), data = .)))
 
 # Summarizes information about the models
-m2_mortality_ns_hdi <- models_mortality_ns_hdi |>
+m1_mortality_ns_hdi <- models_mortality_ns_hdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_HDI_mortality_ns <- m2_mortality_ns_hdi |>
+ASR_HDI_mortality_ns <- m1_mortality_ns_hdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
@@ -1456,20 +1595,32 @@ models_mortality_ns_edi <- globocan_8 |>
   tidyr::nest()  |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(ed_i, df = 4), data = .)))
 
-m2_mortality_ns_edi <- models_mortality_ns_edi |>
+m1_mortality_ns_edi <- models_mortality_ns_edi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_EDI_mortality_ns <- m2_mortality_ns_edi |>
+ASR_EDI_mortality_ns <- m1_mortality_ns_edi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
@@ -1482,25 +1633,37 @@ models_mortality_ns_sdi <- globocan_8 |>
   dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(sdi, df = 4), data = .)))
 
 # Summarizes information about the models
-m2_mortality_ns_sdi <- models_mortality_ns_sdi |>
+m1_mortality_ns_sdi <- models_mortality_ns_sdi |>
   dplyr::mutate(summary = map(model, broom::glance)) |>
   tidyr::unnest(summary) |>
   dplyr::select(-data, -model) |>
   dplyr::mutate(across(where(is.numeric), round, 2))
 
 # Renamed
-ASR_SDI_mortality_ns <- m2_mortality_ns_sdi |>
+ASR_SDI_mortality_ns <- m1_mortality_ns_sdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
   dplyr::rename(
     `Cancer type` = cancer_type,
-    `R-squared` = r.squared,
-    `Adjusted R-squared` = adj.r.squared,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
     `F-statistic` = statistic,
-    `p-value` = p.value
+    `p-value` = p.value,
+    Deviance = deviance
   )
 ```
 
 ```{r}
-renderDataTable({
+DT::renderDataTable({
   selected_table <- switch(
     input$mortality_model_input_ns,
     "ASR (World) ~ HDI" = ASR_HDI_mortality_ns,
@@ -1514,13 +1677,14 @@ renderDataTable({
 ```{r}
 # data_x <-
 #   globocan_8 |>
-#   dplyr::filter(indicator == "Incidence" & cancer_type == "Breast")
+#   dplyr::filter(indicator == "Incidence" & cancer_type == "All cancers excl. non-melanoma skin cancer")
 ```
 
 ```{r}
 # modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "cr"), data = data_x)
 # modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "bs"), data = data_x)
 # summary(modelo_gam)
+# gam.check(modelo_gam)
 ```
 
 ```{r}
@@ -1531,3 +1695,91 @@ renderDataTable({
 # attr(bs(data_x$hdi, df = 6, degree = 3), "knots")
 # attr(ns(data_x$hdi, df = 4), "knots") # k-2 df
 ```
+
+# One-Way ANOVA tests {data-orientation="rows"}
+
+## Inputs {.sidebar}
+
+```{r}
+selectInput(
+  inputId = "indicator",
+  label = "Indicator",
+  choices = c("Incidence", "Mortality", "MIR"),
+  selected = "Incidence"
+)
+```
+
+```{r}
+# Reactive data
+selectedData_heatmap <- reactive({
+  globocan_8 |> 
+    dplyr::filter(asr_world == input$indicator)
+})
+```
+
+## Row {data-height="600"}
+
+### R2 Heatmap
+
+```{r}
+# Render heatmap
+renderPlotly({
+  indicator_value <- input$indicator 
+  r2_data <- calculate_r2(globocan_8, indicator_value)
+  
+  my_heatmap <- ggplot2::ggplot(
+    data = r2_data,
+    aes(
+      x = indicator,
+      y = cancer_type,
+      fill = R2
+      )
+    ) +
+    ggplot2::geom_tile(color = "white") +
+    ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 2.7) +
+    ggplot2::scale_fill_distiller(palette = "RdBu", direction = -1, limits = c(0, 0.8), name = bquote(R^2)) +
+    ggplot2::labs(title = indicator_value, x = "Socioeconomic Development Indicators") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.x = element_text(size = 12, color = "black", family = "Syne"),
+      axis.text.y = element_text(size = 10, color = "black", family = "Syne"),
+      axis.ticks.y = element_blank(),
+      axis.title.x = element_text(size = 13, color = "black", family = "Syne", margin = margin(t = 10)),
+      axis.title.y = element_blank(),
+      panel.grid = element_blank(),
+      legend.text = element_text(size = 12, color = "black", family = "Syne"), 
+      legend.title = element_text(size = 13, color = "black", family = "Syne"),
+      legend.key.size = unit(0.7, "cm"),
+      plot.title = element_text(hjust = 0.5, size = 13, color = "black", family = "Syne")
+    )
+  
+  plotly::ggplotly(my_heatmap, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h"
+    ))
+})
+```
+
+### Incidence
+
+```{r}
+
+```
+
+## Row {data-height="400"}
+
+### Mortality
+
+```{r}
+
+```
+
+### Mortality-to-Incidence Ratio
+
+```{r}
+
+```
+
+
