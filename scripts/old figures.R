@@ -2,6 +2,7 @@
 library(ggrepel)
 library(RColorBrewer)
 library(here)
+library(patchwork)
 
 # Import data
 source(here::here("scripts", "tidying data_cancer and indicators.R"))
@@ -9,11 +10,56 @@ source(here::here("scripts", "tidying data_cancer and indicators.R"))
 # Figure 1: Global
 
 ## Figure 1A
-
+figure_1_a <- globocan_8 |>
+  dplyr::filter(indicator != "MIR" & cancer_type == "All cancers*") |>
+  ggplot2::ggplot(aes(
+    x = ed_i,
+    y = asr_world,
+    color = indicator,
+    shape = indicator
+  )) +
+  ggplot2::geom_point(aes(fill = indicator), size = 2.5) +
+  ggplot2::geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cr", k = -1),
+    se = FALSE,
+    linewidth = 1
+  ) +
+  ggplot2::geom_vline(
+    xintercept = quantile(
+      globocan_8$ed_i[globocan_8$indicator != "MIR" & globocan_8$cancer_type == "All cancers*"], 
+      probs = c(0.25, 0.5, 0.75), 
+      na.rm = TRUE),
+    linetype = "dashed",
+    color = "gray70",
+    linewidth = 1
+  ) +
+  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
+  ggplot2::scale_shape_manual(values = c(21, 24)) +
+  ggsci::scale_color_igv() +
+  ggsci::scale_fill_igv(alpha = 0.1) +
+  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  ggplot2::labs(
+    x = "Education and Income index (EdI)",
+    y = "Age-Standardized Rate (per 100,000)") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(
+    strip.text.x = element_text(hjust = 0),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(
+      size = 18,
+      color = "black",
+      family = "Syne"
+    ),
+    axis.line = element_line(colour = "black", linetype = "solid"),
+    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    panel.grid = element_blank()
+  )
 
 ## Figure 1B
 figure_1_b <- globocan_8 |>
-  dplyr::filter(indicator == "MIR", cancer_type == "All cancers excl. non-melanoma skin cancer") |>
+  dplyr::filter(indicator == "MIR" & cancer_type == "All cancers*") |>
   ggplot2::ggplot(aes(x = ed_i, y = asr_world)) +
   ggplot2::geom_point(size = 2, shape = 21) +
   ggplot2::geom_smooth(
@@ -24,8 +70,10 @@ figure_1_b <- globocan_8 |>
     color = "black"
   ) +
   ggplot2::geom_vline(
-    xintercept = quantile(globocan_8$ed_i[globocan_8$indicator == "MIR" & globocan_8$cancer_type == "All cancers excl. non-melanoma skin cancer"], 
-    probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
+    xintercept = quantile(
+      globocan_8$ed_i[globocan_8$indicator == "MIR" & globocan_8$cancer_type == "All cancers*"],
+      probs = c(0.25, 0.5, 0.75),
+      na.rm = TRUE), 
     linetype = "dashed",
     color = "gray70",
     linewidth = 1
