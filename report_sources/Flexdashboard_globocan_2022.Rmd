@@ -32,10 +32,11 @@ library(broom)
 # library(extrafont)
 # library(showtext)
 
-# My function scripts
+# Required scripts
 source(here::here("scripts", "tidying data_cancer and indicators.R"))
 source(here::here("scripts", "ggplot themes.R"))
 
+# Run all scripts
 # library(rfextras)
 # rfextras::load_scripts()
 ```
