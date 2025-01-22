@@ -10,7 +10,7 @@ library(here)
 # library(showtext)
 
 # Import data
-source(here::here("scripts", "Tidying data_Indicators cancers and countries.R"))
+source(here::here("scripts", "tidying data_cancer and indicators.R"))
 
 # Figure 1: R2 heatmaps
 
@@ -540,8 +540,6 @@ calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) 
       axis.title = element_text(size = 24, color = "black", family = "Syne"),
       axis.text = element_text(size = 20, color = "black", family = "Syne"),
       strip.text = element_text(size = 24, color = "black", family = "Syne"),
-      legend.text = element_text(size = 23, color = "black", family = "Syne"),
-      legend.title = element_text(size = 24, color = "black", family = "Syne"),
       panel.spacing = unit(1.5, "lines"),
       axis.text.x = element_text(
         margin = margin(5, 0, 10, 0),
