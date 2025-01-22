@@ -8,7 +8,7 @@ library(patchwork)
 library(here)
 
 # Import data
-source(here::here("scripts", "Tidying data_Indicators cancers and countries.R"))
+source(here::here("scripts", "tidying data_cancer and indicators.R"))
 
 # Function for the ASR plot
 s_my_ggplot <- function(data, indicator, cancer, ...) {
