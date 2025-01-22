@@ -4,7 +4,7 @@ library(RColorBrewer)
 library(here)
 
 # Import data
-source(here::here("scripts", "Tidying data_Indicators cancers and countries.R"))
+source(here::here("scripts", "tidying data_cancer and indicators.R"))
 
 # Figure 1: Global
 
