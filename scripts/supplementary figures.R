@@ -168,7 +168,7 @@ ggplot2::ggsave(
 
 # Supplementary figure 2: Group B by EdI
 group_b <- c(
-  "Trachea, bronchus and lung",
+  "Lung",
   "Pancreas",
   "Brain, nervous system",
   "Mesothelioma"
@@ -432,7 +432,7 @@ ggplot2::ggsave(
 
 # Supplementary figure 6: Group B by HDI
 group_b <- c(
-  "Trachea, bronchus and lung",
+  "Lung",
   "Pancreas",
   "Brain, nervous system",
   "Mesothelioma"
@@ -696,7 +696,7 @@ ggplot2::ggsave(
 
 # Supplementary figure 10: Group B by SDI
 group_b <- c(
-  "Trachea, bronchus and lung",
+  "Lung",
   "Pancreas",
   "Brain, nervous system",
   "Mesothelioma"
