@@ -1,5 +1,5 @@
 ---
-title: "web_test"
+title: "Cancer incidence and mortality by socioeconomic development indicators"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: fill
@@ -33,8 +33,9 @@ library(broom)
 # library(showtext)
 
 # My function scripts
-source(here("scripts", "Tidying data_Indicators cancers and countries.R"))
-source(here("scripts", "ggplot themes.R"))
+source(here::here("scripts", "tidying data_cancer and indicators.R"))
+source(here::here("scripts", "ggplot themes.R"))
+
 # library(rfextras)
 # rfextras::load_scripts()
 ```
@@ -184,7 +185,7 @@ DT::renderDataTable({
 })
 ```
 
-# Simple linear regression {data-orientation="rows"}
+# Linear Regression Models {data-orientation="rows"}
 
 ## Inputs {.sidebar}
 
@@ -244,6 +245,11 @@ selectedData_plot_lm_mir <- reactive({
     dplyr::filter(cancer_type == input$cancer_input_lm, Indicator == "MIR")
 })
 ```
+
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio 
+
+- Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
+
 
 ## Row {data-height="500"}
 
@@ -655,7 +661,7 @@ DT::renderDataTable({
 })
 ```
 
-# Generalized Additive Model (GAM) {data-orientation="rows"}
+# Generalized Additive Models {data-orientation="rows"}
 
 ## Inputs {.sidebar}
 
@@ -715,10 +721,15 @@ selectedData_plot_gam_mir <- reactive({
     dplyr::filter(cancer_type == input$cancer_input_gam, Indicator == "MIR")
 })
 ```
+::: {style="text-align: justify"}
+The smooth terms (`s`) were cubic regression splines (`bs="cr"`) with smoothing parameters selected by Generalized Cross Validation (GCV) criterion, and Mallows' Cp (`GCV.Cp`) estimation methods. The Effective Degrees of Freedom (EDF) for smoothing were controlled by the smoothing penalty on the term, and were selected during fitting by GCV. The basis dimension (`k-1` or `k`) choice for smooths sets the upper limit on the Degrees of Freedom (`df`). The `k-1` should be neither too small nor too large and computationally expensive. So, exact choice of `k` is not generally critical and 1 `df` is usually lost to the identifiability constraint on the smooth. The default `k-1` was 10.
+
+It's important to informally check the choice of `k`. If the EDF for a model term are much less than `k−1` , it may not be useful. However, if the EDF approaches `k−1` , checking can be important. A more costly alternative is to increase `k` and refit the model. If there are no significant changes, then `k` was sufficient. 
+:::
 
 ## Row {data-height="500"}
 
-### Generalized Cross Validation (GCV) criterion for cubic regression splines
+### ASR (World) per 100 000: Incidence and Mortality
 
 ```{r}
 renderPlotly({
@@ -1247,7 +1258,7 @@ DT::renderDataTable({
 })
 ```
 
-# Natural cubic splines {data-orientation="rows"}
+# Natural Cubic Splines {data-orientation="rows"}
 
 ## Inputs {.sidebar}
 
@@ -1307,6 +1318,12 @@ selectedData_plot_ns_mir <- reactive({
     dplyr::filter(cancer_type == input$cancer_input_ns, Indicator == "MIR")
 })
 ```
+
+::: {style="text-align: justify"}
+In polynomial splines, knots are estimated from degrees of freedom (`df`). For B-Splines (`bs`), the knots are estimated as `df - degree` (cubic term) at suitable quantiles of the predictor variable. By default, the number of inner knots equals `length(knots)`.
+
+For natural cubic splines (`ns`), you can specify `df` instead of knots. In this case, `df - 1 - intercept` knots are chosen at suitable quantiles of the predictor, resulting in a matrix with dimensions `length(x) * df`. If `df` is supplied, or if knots are supplied, then `df` is calculated as `length(knots) + 1 + intercept`.
+:::
 
 ## Row {data-height="500"}
 
@@ -1677,7 +1694,7 @@ DT::renderDataTable({
 ```{r}
 # data_x <-
 #   globocan_8 |>
-#   dplyr::filter(indicator == "Incidence" & cancer_type == "All cancers excl. non-melanoma skin cancer")
+#   dplyr::filter(indicator == "Incidence" & cancer_type == "All cancers*")
 ```
 
 ```{r}
@@ -1693,10 +1710,10 @@ DT::renderDataTable({
 # modelo_nsplines <- lm(asr_world ~ ns(hdi, df = 4), data = data_x) # 3 knots
 # summary(modelo_nsplines)
 # attr(bs(data_x$hdi, df = 6, degree = 3), "knots")
-# attr(ns(data_x$hdi, df = 4), "knots") # k-2 df
+# attr(ns(data_x$hdi, df = 4), "knots") # knots=df-degree+2 external knots
 ```
 
-# One-Way ANOVA tests {data-orientation="rows"}
+# One-Way ANOVA tests {data-orientation="cols"}
 
 ## Inputs {.sidebar}
 
@@ -1706,6 +1723,36 @@ selectInput(
   label = "Indicator",
   choices = c("Incidence", "Mortality", "MIR"),
   selected = "Incidence"
+)
+
+selectInput(
+  inputId = "plot_choice_a",
+  label = "Choose a plot for panel A:",
+  choices = list(
+    "Incidence by EdI category" = "figure_4a", 
+    "Incidence by HDI category" = "figure_4b",
+    "Incidence by SDI category" = "figure_4c", 
+    "Mortality by EdI category" = "figure_5a", 
+    "Mortality by HDI category" = "figure_5b",
+    "Mortality by SDI category" = "figure_5c", 
+    "MIR by EdI category" = "figure_6a", 
+    "MIR by HDI category" = "figure_6b",
+    "MIR by SDI category" = "figure_6c")
+)
+
+selectInput(
+  inputId = "plot_choice_b",
+  label = "Choose a plot for panel B:",
+  choices = list(
+    "Incidence by EdI category" = "figure_4a", 
+    "Incidence by HDI category" = "figure_4b",
+    "Incidence by SDI category" = "figure_4c", 
+    "Mortality by EdI category" = "figure_5a", 
+    "Mortality by HDI category" = "figure_5b",
+    "Mortality by SDI category" = "figure_5c", 
+    "MIR by EdI category" = "figure_6a", 
+    "MIR by HDI category" = "figure_6b",
+    "MIR by SDI category" = "figure_6c")
 )
 ```
 
@@ -1717,9 +1764,14 @@ selectedData_heatmap <- reactive({
 })
 ```
 
-## Row {data-height="600"}
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio 
 
-### R2 Heatmap
+- Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
+
+
+## Column {data-width=400}
+ 
+### R^2^ Heatmaps
 
 ```{r}
 # Render heatmap
@@ -1736,13 +1788,13 @@ renderPlotly({
       )
     ) +
     ggplot2::geom_tile(color = "white") +
-    ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 2.7) +
+    ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 3.5) +
     ggplot2::scale_fill_distiller(palette = "RdBu", direction = -1, limits = c(0, 0.8), name = bquote(R^2)) +
     ggplot2::labs(title = indicator_value, x = "Socioeconomic Development Indicators") +
     ggplot2::theme_minimal() +
     ggplot2::theme(
       axis.text.x = element_text(size = 12, color = "black", family = "Syne"),
-      axis.text.y = element_text(size = 10, color = "black", family = "Syne"),
+      axis.text.y = element_text(size = 12, color = "black", family = "Syne"),
       axis.ticks.y = element_blank(),
       axis.title.x = element_text(size = 13, color = "black", family = "Syne", margin = margin(t = 10)),
       axis.title.y = element_blank(),
@@ -1762,24 +1814,186 @@ renderPlotly({
 })
 ```
 
-### Incidence
+## Column {data-width=600}
 
 ```{r}
-
+## Define a function to create the ANOVA tests
+calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = asr,
+    facet.by = "cancer_type",
+    nrow = 2,
+    ncol = 5,
+    scales = "free",
+    xlab = label_x,
+    ylab = label_y,
+    width = 0.5
+  ) +
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 6
+    ) +
+    ggplot2::theme(
+      axis.title = element_text(size = 18, color = "black", family = "Syne"),
+      axis.text = element_text(size = 14, color = "black", family = "Syne"),
+      strip.text = element_text(size = 14, color = "black", family = "Syne"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 0, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 5))
+    ) +
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5)
+}
 ```
 
-## Row {data-height="400"}
-
-### Mortality
-
 ```{r}
+## One-Way ANOVA test of incidence by EdI category
+figure_4a <- calculate_anova(
+  data = data_incidence_edi_globocan_8,
+  anova_data = pw_gh_test_incidence_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "ASR (per 100,000)"
+)
 
+## One-Way ANOVA test of incidence by HDI category
+figure_4b <- calculate_anova(
+  data = data_incidence_hdi_globocan_8, 
+  anova_data = pw_gh_test_incidence_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_4c <- calculate_anova(
+  data = data_incidence_sdi_globocan_8, 
+  anova_data = pw_gh_test_incidence_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "SDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of mortality by EdI category
+figure_5a <- calculate_anova(
+  data = data_mortality_edi_globocan_8,
+  anova_data = pw_gh_test_mortality_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "ASR (per 100,000)"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+figure_5b <- calculate_anova(
+  data = data_mortality_hdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_5c <- calculate_anova(
+  data = data_mortality_sdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "SDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of mortality by EdI category
+figure_6a <- calculate_anova(
+  data = data_mir_edi_globocan_8,
+  anova_data = pw_gh_test_mir_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "MIR"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+figure_6b <- calculate_anova(
+  data = data_mir_hdi_globocan_8, 
+  anova_data = pw_gh_test_mir_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "MIR")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_6c <- calculate_anova(
+  data = data_mir_sdi_globocan_8, 
+  anova_data = pw_gh_test_mir_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "Sociodemographic Index (SDI)", 
+  label_y = "MIR")
 ```
 
-### Mortality-to-Incidence Ratio
+### Panel A
 
 ```{r}
+output$selected_plot_a <- renderPlot({
+  if (input$plot_choice_a == "figure_4a") {
+    print(figure_4a)
+  } else if (input$plot_choice_a == "figure_4b") {
+    print(figure_4b)
+  } else if (input$plot_choice_a == "figure_4c") {
+    print(figure_4c)
+  } else if (input$plot_choice_a == "figure_5a") {
+    print(figure_5a)
+  } else if (input$plot_choice_a == "figure_5b") {
+    print(figure_5b)
+  } else if (input$plot_choice_a == "figure_5c") {
+    print(figure_5c)
+  } else if (input$plot_choice_a == "figure_6a") {
+    print(figure_6a)
+  } else if (input$plot_choice_a == "figure_6b") {
+    print(figure_6b)
+  } else if (input$plot_choice_a == "figure_6c") {
+    print(figure_6c)
+  }
+})
 
+plotOutput("selected_plot_a")
+```
+
+### Panel B
+
+```{r}
+output$selected_plot_b <- renderPlot({
+  if (input$plot_choice_b == "figure_4a") {
+    print(figure_4a)
+  } else if (input$plot_choice_b == "figure_4b") {
+    print(figure_4b)
+  } else if (input$plot_choice_b == "figure_4c") {
+    print(figure_4c)
+  } else if (input$plot_choice_b == "figure_5a") {
+    print(figure_5a)
+  } else if (input$plot_choice_b == "figure_5b") {
+    print(figure_5b)
+  } else if (input$plot_choice_b == "figure_5c") {
+    print(figure_5c)
+  } else if (input$plot_choice_b == "figure_6a") {
+    print(figure_6a)
+  } else if (input$plot_choice_b == "figure_6b") {
+    print(figure_6b)
+  } else if (input$plot_choice_b == "figure_6c") {
+    print(figure_6c)
+  }
+})
+
+plotOutput("selected_plot_b")
 ```
 
 
