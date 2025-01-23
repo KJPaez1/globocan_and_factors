@@ -41,6 +41,7 @@ s_my_ggplot <- function(data, indicator, cancer, ...) {
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
     ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
