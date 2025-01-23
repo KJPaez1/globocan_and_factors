@@ -1,5 +1,5 @@
 ---
-title: "Cancer incidence and mortality by socioeconomic development indicators"
+title: "GLOBOCAN 2022: Cancer incidence and mortality by socioeconomic development indicators"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: fill
@@ -247,14 +247,14 @@ selectedData_plot_lm_mir <- reactive({
 })
 ```
 
-- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio 
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio.
 
 - Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
 
 
 ## Row {data-height="500"}
 
-### Age-Standardized Rate (per 100,000)
+### ASR (World) per 100 000: Incidence and Mortality
 
 ```{r}
 renderPlotly({
@@ -308,7 +308,7 @@ renderPlotly({
 })
 ```
 
-### Mortality-to-Incidence Ratio
+### Mortality-to-Incidence Ratio (MIR)
 
 ```{r}
 renderPlotly({
@@ -784,7 +784,7 @@ renderPlotly({
 })
 ```
 
-### Mortality-to-Incidence Ratio
+### Mortality-to-Incidence Ratio (MIR)
 
 ```{r}
 renderPlotly({
@@ -1328,7 +1328,7 @@ For natural cubic splines (`ns`), you can specify `df` instead of knots. In this
 
 ## Row {data-height="500"}
 
-### Natural Cubic Splines (3 equidistant knots)
+### Natural Cubic Splines (3 quantiles)
 
 ```{r}
 renderPlotly({
@@ -1382,7 +1382,7 @@ renderPlotly({
 })
 ```
 
-### Mortality-to-Incidence Ratio
+### Mortality-to-Incidence Ratio (MIR)
 
 ```{r}
 renderPlotly({
@@ -1765,7 +1765,7 @@ selectedData_heatmap <- reactive({
 })
 ```
 
-- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio 
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio.
 
 - Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
 
