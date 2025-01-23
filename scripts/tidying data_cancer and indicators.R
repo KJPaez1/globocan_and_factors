@@ -688,7 +688,7 @@ data_incidence_sdi_globocan_8 <- globocan_8 |>
       !is.na(sdi_categories) & sdi_categories != "" & !is.na(asr_world)
   ) |>
   dplyr::mutate(sdi_categories = factor(sdi_categories) |>
-                  fct_relevel("Low", "Medium", "High", "Very high"))
+                  fct_relevel("Low", "Low-middle", "Middle", "High-middle", "High"))
 
 ## Games-Howell test for cancer incidence and adjustment of 'y' positions
 pw_gh_test_incidence_sdi <- data_incidence_sdi_globocan_8 |>
@@ -726,7 +726,7 @@ data_mortality_sdi_globocan_8 <- globocan_8 |>
       !is.na(sdi_categories) & sdi_categories != "" & !is.na(asr_world)
   ) |>
   dplyr::mutate(sdi_categories = factor(sdi_categories) |>
-                  fct_relevel("Low", "Medium", "High", "Very high"))
+                  fct_relevel("Low", "Low-middle", "Middle", "High-middle", "High"))
 
 ## Games-Howell test for cancer mortality and adjustment of 'y' positions
 pw_gh_test_mortality_sdi <- data_mortality_sdi_globocan_8 |>
@@ -771,7 +771,7 @@ data_mir_sdi_globocan_8 <- globocan_8 |>
       !is.na(sdi_categories) & sdi_categories != "" & !is.na(asr_world)
   ) |>
   dplyr::mutate(sdi_categories = factor(sdi_categories) |>
-                  fct_relevel("Low", "Medium", "High", "Very high"))
+                  fct_relevel("Low", "Low-middle", "Middle", "High-middle", "High"))
 
 ## Games-Howell test for cancer MIR and adjustment of 'y' positions
 pw_gh_test_mir_sdi <- data_mir_sdi_globocan_8 |>
