@@ -102,7 +102,8 @@ my_ggplot <- function(data, indicator, cancer, ...) {
     ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
     ggplot2::labs(y = "Age-Standardized Rate (per 100,000)") +
     ggplot2::theme_minimal() +
     ggplot2::theme(
@@ -140,7 +141,7 @@ my_ggplot_mir <- function(data, indicator, cancer, ...) {
     ) +
     ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
     ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
     ggplot2::labs(y = "Mortality-to-Incidence Ratio (MIR)") +
     ggplot2::theme_minimal() +
     ggplot2::theme(
@@ -259,13 +260,15 @@ my_ggplot_1 <- function(data, indicator, cancer, ...) {
     ggplot2::scale_shape_manual(values = c(21, 24)) +
     ggsci::scale_color_igv() +
     ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
       legend.title = element_blank(),
       text = element_text(size = 18, color = "black", family = "Syne"),
       axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.title = element_text(size = 20),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       panel.grid = element_blank(),
       plot.title = element_text(size = 20)
@@ -295,12 +298,13 @@ my_ggplot_mir_1 <- function(data, indicator, cancer, ...) {
     ) +
     ggplot2::labs(y = "MIR") +
     ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks()) +
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 20, color = "black", family = "Syne"),
       axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.title = element_text(size = 20),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       panel.grid = element_blank(),
       plot.title = element_text(size = 20)
@@ -383,7 +387,7 @@ figure_3c <-
     caption = "Education and Income index (EdI)",
     theme = theme(
       plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.caption = element_text(size = 24, color = "black", family = "Syne", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -392,7 +396,7 @@ figure_3c <-
     legend.direction = "horizontal",
     legend.position = "bottom",
     legend.text = element_text(size = 20, color = "black", family = "Syne"),
-    legend.justification = c(0.475, 1),
+    legend.justification = c(0.45, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
 ## Part 2: Sociodemographic Index (SDI)
@@ -471,7 +475,7 @@ figure_3f <-
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
       plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.caption = element_text(size = 24, color = "black", family = "Syne", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -480,7 +484,7 @@ figure_3f <-
     legend.direction = "horizontal",
     legend.position = "bottom",
     legend.text = element_text(size = 20, color = "black", family = "Syne"),
-    legend.justification = c(0.475, 1),
+    legend.justification = c(0.45, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
 ## Combine all subplots into a single plot
@@ -492,15 +496,15 @@ figure_3 <-
     ncol = 2,
     nrow = 3,
     common.legend = TRUE,
-    heights = c(2, 1, 1)
+    heights = c(2, 1.1, 1.3)
   )
 
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = figure_3,
   filename = here("outputs", "FIG_3.png"),
-  width = 20,
-  height = 23,
+  width = 24,
+  height = 26,
   dpi = 300,
   units = "in")
 
@@ -508,8 +512,8 @@ ggplot2::ggsave(
 ggplot2::ggsave(
   plot = figure_3,
   filename = here("outputs", "FIG_3.eps"),
-  width = 20,
-  height = 23,
+  width = 24,
+  height = 26,
   units = "in")
 
 # Figure 4: One-Way ANOVA tests for incidence by socioeconomic development indicators
@@ -537,9 +541,9 @@ calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) 
       size = 7.3
     ) +
     ggplot2::theme(
-      axis.title = element_text(size = 24, color = "black", family = "Syne"),
-      axis.text = element_text(size = 20, color = "black", family = "Syne"),
-      strip.text = element_text(size = 24, color = "black", family = "Syne"),
+      axis.title = element_text(size = 26, color = "black", family = "Syne"),
+      axis.text = element_text(size = 26, color = "black", family = "Syne"),
+      strip.text = element_text(size = 26, color = "black", family = "Syne"),
       panel.spacing = unit(1.5, "lines"),
       axis.text.x = element_text(
         margin = margin(5, 0, 10, 0),
@@ -558,7 +562,7 @@ figure_4a <- calculate_anova(
   indicator = "edi_categories",
   asr = "asr_world",
   label_x = "Economic Development Index (EdI)",
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)"
+  label_y = "Age-Standardized Rate (per 100,000)"
 )
 
 ## One-Way ANOVA test of incidence by HDI category
@@ -568,7 +572,7 @@ figure_4b <- calculate_anova(
   indicator = "hdi_category", 
   asr = "asr_world", 
   label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)")
+  label_y = "Age-Standardized Rate (per 100,000)")
 
 ## One-Way ANOVA test of incidence by SDI category
 figure_4c <- calculate_anova(
@@ -577,7 +581,7 @@ figure_4c <- calculate_anova(
   indicator = "sdi_categories", 
   asr = "asr_world", 
   label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)")
+  label_y = "Age-Standardized Rate (per 100,000)")
 
 
 ## Combine all subplots into a single plot
@@ -590,7 +594,7 @@ ggplot2::ggsave(
   plot = figure_4,
   filename = here::here("outputs", "FIG_4.png"),
   width = 26,
-  height = 25,
+  height = 26,
   dpi = 300,
   units = "in")
 
@@ -599,7 +603,7 @@ ggplot2::ggsave(
   plot = figure_4,
   filename = here::here("outputs", "FIG_4.eps"),
   width = 26,
-  height = 25,
+  height = 26,
   units = "in")
 
 # Figure 5: One-Way ANOVA tests for mortality by socioeconomic development indicators
@@ -611,7 +615,7 @@ figure_5a <- calculate_anova(
   indicator = "edi_categories",
   asr = "asr_world",
   label_x = "Economic Development Index (EdI)",
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)"
+  label_y = "Age-Standardized Rate (per 100,000)"
 )
 
 ## One-Way ANOVA test of incidence by HDI category
@@ -621,7 +625,7 @@ figure_5b <- calculate_anova(
   indicator = "hdi_category", 
   asr = "asr_world", 
   label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)")
+  label_y = "Age-Standardized Rate (per 100,000)")
 
 ## One-Way ANOVA test of incidence by SDI category
 figure_5c <- calculate_anova(
@@ -630,7 +634,7 @@ figure_5c <- calculate_anova(
   indicator = "sdi_categories", 
   asr = "asr_world", 
   label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Age-Standardized Rate (ASR) (per 100,000)")
+  label_y = "Age-Standardized Rate (per 100,000)")
 
 
 ## Combine all subplots into a single plot
@@ -690,23 +694,23 @@ figure_6c <- calculate_anova(
 ## Combine all subplots into a single plot
 figure_6 <- 
   figure_6a / figure_6b / figure_6c + 
-  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 2))
+  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 2.5))
 
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = figure_6,
   filename = here::here("outputs", "FIG_6.png"),
   width = 26,
-  height = 25,
+  height = 26,
   dpi = 300,
   units = "in")
 
 ## Save the combined plot as a EPS file
 ggplot2::ggsave(
-  plot = figure_5,
+  plot = figure_6,
   filename = here::here("outputs", "FIG_6.eps"),
   width = 26,
-  height = 25,
+  height = 26,
   units = "in")
 
 # Figure 5: One-Way ANOVA test of mortality by EdI category
