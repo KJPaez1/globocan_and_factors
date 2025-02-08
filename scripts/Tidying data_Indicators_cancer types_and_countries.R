@@ -7,14 +7,6 @@ globocan_mortality <-
 globocan_incidence <-
   import(here("data", "raw", "globocan_incidence.csv"))
 
-miratio <- globocan_mortality$`ASR (World)` / globocan_incidence$`ASR (World)`
-
-miratio_df <- globocan_incidence %>%
-  mutate(`ASR (World)` = miratio,
-         indicator = 'miratio') 
-
-globocan_incidence_and_miratio <- bind_rows(globocan_incidence, miratio_df)
-
 ## Socio-demographic indicators
 hdi_and_comp_2022 <-
   import(here("data", "raw", "hdi_and_composites_2022.csv"))
@@ -81,7 +73,7 @@ hdi_and_comp_2022_0 <-
 # Tidying data
 
 ## Epidemiological data
-globocan <- janitor::clean_names(rbind(globocan_incidence_and_miratio, globocan_mortality))
+globocan <- janitor::clean_names(rbind(globocan_incidence, globocan_mortality))
 cancer_code <- janitor::clean_names(cancer_code)
 
 globocan_0 <- merge(globocan, cancer_code, by = "cancer_code", all.x = TRUE)
@@ -119,9 +111,11 @@ hdi_and_comp_2022_0 <- hdi_and_comp_2022_0 |>
   dplyr::rename(Country_name = "Country")
 
 # Countries without indicator data
+
 dplyr::setdiff(countries_with_epid_data, gdb_sdi_2021_and_quintiles$Location.Name)
 
 # Matching epidemiological data and indicators
+
 sdi_2018_to_2021_0 <- sdi_2018_to_2021_0 |>
   dplyr::rename(Country_name = "Country")
 
@@ -138,67 +132,130 @@ colnames(globocan_3) = gsub("\\_y$", "", colnames(globocan_3))
 globocan_3 = janitor::clean_names(globocan_3)
 
 # Classifying cancers
+
 globocan_4 <- globocan_3 |>
   dplyr::mutate(
     neoplasia_sex = case_when(
-      cancer_type %in% c(
-        "Lip, oral cavity", "Salivary glands", "Oropharynx", "Nasopharynx",
-        "Hypopharynx", "Oesophagus", "Stomach", "Colon", "Rectum", "Anus",
-        "Liver and intrahepatic bile ducts", "Gallbladder", "Pancreas",
-        "Larynx", "Trachea, bronchus and lung", "Melanoma of skin",
-        "Non-melanoma skin cancer", "Mesothelioma", "Kaposi sarcoma",
-        "Breast", "Kidney", "Bladder", "Thyroid", "Hodgkin lymphoma",
-        "Non-Hodgkin lymphoma", "Multiple myeloma", "Leukaemia",
-        "All cancers excl. non-melanoma skin cancer", "Colorectum",
-        " Brain, central nervous system") ~ "Both",
-      cancer_type %in% c(
-        "Vulva", "Vagina", "Cervix uteri", "Ovary", "Corpus uteri") ~ "Female",
-      cancer_type %in% c(
-        "Penis", "Prostate", "Testis") ~ "Male"
+      cancer_type == "Lip, oral cavity" ~ "Both",
+      cancer_type == "Salivary glands" ~ "Both",
+      cancer_type == "Oropharynx" ~ "Both",
+      cancer_type == "Nasopharynx" ~ "Both",
+      cancer_type == "Hypopharynx" ~ "Both",
+      cancer_type == "Oesophagus" ~ "Both",
+      cancer_type == "Stomach" ~ "Both",
+      cancer_type == "Colon" ~ "Both",
+      cancer_type == "Rectum" ~ "Both",
+      cancer_type == "Anus" ~ "Both",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ "Both",
+      cancer_type == "Gallbladder" ~ "Both",
+      cancer_type == "Pancreas" ~ "Both",
+      cancer_type == "Larynx" ~ "Both",
+      cancer_type == "Trachea, bronchus and lung" ~ "Both",
+      cancer_type == "Melanoma of skin" ~ "Both",
+      cancer_type == "Non-melanoma skin cancer" ~ "Both",
+      cancer_type == "Mesothelioma" ~ "Both",
+      cancer_type == "Kaposi sarcoma" ~ "Both",
+      cancer_type == "Breast" ~ "Both",
+      cancer_type == "Vulva" ~ "Female",
+      cancer_type == "Vagina" ~ "Female",
+      cancer_type == "Cervix uteri" ~ "Female",
+      cancer_type == "Ovary" ~ "Female",
+      cancer_type == "Corpus uteri" ~ "Female",
+      cancer_type == "Penis" ~ "Male",
+      cancer_type == "Prostate" ~ "Male",
+      cancer_type == "Testis" ~ "Male",
+      cancer_type == "Kidney" ~ "Both",
+      cancer_type == "Bladder" ~ "Both",
+      cancer_type == "Thyroid" ~ "Both",
+      cancer_type == "Hodgkin lymphoma" ~ "Both",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Both",
+      cancer_type == "Multiple myeloma" ~ "Both",
+      cancer_type == "Leukaemia" ~ "Both",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Both",
+      cancer_type == "Colorectum" ~ "Both",
+      cancer_type == " Brain, central nervous system" ~ "Both"
     ),
     tumor_types = case_when(
-      cancer_type %in% c(
-        "Lip, oral cavity", "Oropharynx", "Nasopharynx", "Hypopharynx", "Larynx",
-        "Vulva", "Vagina", "Penis") ~ "Squamous cell carcinoma",
-      cancer_type %in% c(
-        "Salivary glands", "Stomach", "Colon", "Colorectum", "Rectum", "Pancreas",
-        "Breast", "Ovary", "Corpus uteri", "Prostate", "Testis", "Kidney",
-        "Thyroid") ~ "Adenocarcinoma",
-      cancer_type %in% c(
-        "Gallbladder", "Oesophagus", "Anus", "Trachea, bronchus and lung",
-        "Cervix uteri") ~ "Squamous cell/Adenocarcinoma",
-      cancer_type %in% c("Hodgkin lymphoma", "Non-Hodgkin lymphoma") ~ "Lymphoma",
-      cancer_type %in% c("Melanoma of skin", "Non-melanoma skin cancer") ~ "Skin",
-      TRUE ~ "Others"
-    ), 
+      cancer_type == "Lip, oral cavity" ~ "Squamous cell carcinoma",
+      cancer_type == "Salivary glands" ~ "Adenocarcinoma",
+      cancer_type == "Oropharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Nasopharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Hypopharynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Oesophagus" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Stomach" ~ "Adenocarcinoma",
+      cancer_type == "Colon" ~ "Adenocarcinoma",
+      cancer_type == "Colorectum" ~ "Adenocarcinoma",
+      cancer_type == "Rectum" ~ "Adenocarcinoma",
+      cancer_type == "Anus" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Liver and intrahepatic bile ducts" ~
+        "Hepatocellular/Adenocarcinoma",
+      cancer_type == "Gallbladder" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Pancreas" ~ "Adenocarcinoma",
+      cancer_type == "Larynx" ~ "Squamous cell carcinoma",
+      cancer_type == "Trachea, bronchus and lung" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Melanoma of skin" ~ "Melanoma",
+      cancer_type == "Non-melanoma skin cancer" ~ "Squamous/basal cell carcinoma",
+      cancer_type == "Mesothelioma" ~ "Mesothelioma",
+      cancer_type == "Kaposi sarcoma" ~ "Sarcoma",
+      cancer_type == "Breast" ~ "Adenocarcinoma",
+      cancer_type == "Vulva" ~ "Squamous cell carcinoma",
+      cancer_type == "Vagina" ~ "Squamous cell carcinoma",
+      cancer_type == "Cervix uteri" ~ "Squamous cell/Adenocarcinoma",
+      cancer_type == "Ovary" ~ "Adenocarcinoma",
+      cancer_type == "Corpus uteri" ~ "Adenocarcinoma",
+      cancer_type == "Penis" ~ "Squamous cell carcinoma",
+      cancer_type == "Prostate" ~ "Adenocarcinoma",
+      cancer_type == "Testis" ~ "Adenocarcinoma",
+      cancer_type == "Kidney" ~ "Adenocarcinoma",
+      cancer_type == "Bladder" ~ "Urothelial carcinoma",
+      cancer_type == "Thyroid" ~ "Adenocarcinoma",
+      cancer_type == "Hodgkin lymphoma" ~ "Lymphoma",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Lymphoma",
+      cancer_type == "Multiple myeloma" ~ "Myeloma",
+      cancer_type == "Leukaemia" ~ "Leukaemia",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Others",
+      cancer_type == " Brain, central nervous system" ~ "Brain and spinal cord cancers"
+    ),
     malignant_neoplasms_types = case_when(
-      cancer_type %in% c(
-        "Lip, oral cavity", "Salivary glands", "Oropharynx", "Nasopharynx", 
-        "Hypopharynx") ~ "Lip, oral cavity and pharynx",
-      cancer_type %in% c(
-        "Oesophagus", "Stomach", "Colon", "Colorectum", "Rectum", "Anus",
-        "Liver and intrahepatic bile ducts", "Gallbladder", 
-        "Pancreas") ~ "Digestive organs",
-      cancer_type %in% c(
-        "Larynx", "Trachea, bronchus and lung") ~ "Respiratory and intrathoracic organs",
-      cancer_type %in% c(
-        "Melanoma of skin",
-        "Non-melanoma skin cancer") ~ "Melanoma and other malignant neoplasms of skin",
-      cancer_type %in% c(
-        "Mesothelioma", "Kaposi sarcoma") ~ "Mesothelial and soft tissue",
+      cancer_type == "Lip, oral cavity" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Salivary glands" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Oropharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Nasopharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Hypopharynx" ~ "Lip, oral cavity and pharynx",
+      cancer_type == "Oesophagus" ~ "Digestive organs",
+      cancer_type == "Stomach" ~ "Digestive organs",
+      cancer_type == "Colon" ~ "Digestive organs",
+      cancer_type == "Colorectum" ~ "Digestive organs",
+      cancer_type == "Rectum" ~ "Digestive organs",
+      cancer_type == "Anus" ~ "Digestive organs",
+      cancer_type == "Liver and intrahepatic bile ducts" ~ "Digestive organs",
+      cancer_type == "Gallbladder" ~ "Digestive organs",
+      cancer_type == "Pancreas" ~ "Digestive organs",
+      cancer_type == "Larynx" ~ "Respiratory and intrathoracic organs",
+      cancer_type == "Trachea, bronchus and lung" ~ "Respiratory and intrathoracic organs",
+      cancer_type == "Melanoma of skin" ~ "Melanoma and other malignant neoplasms of skin",
+      cancer_type == "Non-melanoma skin cancer" ~ "Melanoma and other malignant neoplasms of skin",
+      cancer_type == "Mesothelioma" ~ "Mesothelial and soft tissue",
+      cancer_type == "Kaposi sarcoma" ~ "Mesothelial and soft tissue",
       cancer_type == "Breast" ~ "Breast",
-      cancer_type %in% c(
-        "Vulva", "Vagina", "Cervix uteri", "Ovary", 
-        "Corpus uteri") ~ "Female genital organs",
-      cancer_type %in% c("Penis", "Prostate", "Testis") ~ "Male genital organs",
-      cancer_type %in% c("Kidney", "Bladder") ~ "Urinary tract",
-      cancer_type %in% c(
-        "Hodgkin lymphoma", "Non-Hodgkin lymphoma", "Multiple myeloma",
-        "Leukaemia") ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Vulva" ~ "Female genital organs",
+      cancer_type == "Vagina" ~ "Female genital organs",
+      cancer_type == "Cervix uteri" ~ "Female genital organs",
+      cancer_type == "Ovary" ~ "Female genital organs",
+      cancer_type == "Corpus uteri" ~ "Female genital organs",
+      cancer_type == "Penis" ~ "Male genital organs",
+      cancer_type == "Prostate" ~ "Male genital organs",
+      cancer_type == "Testis" ~ "Male genital organs",
+      cancer_type == "Kidney" ~ "Urinary tract",
+      cancer_type == "Bladder" ~ "Urinary tract",
       cancer_type == "Thyroid" ~ "Thyroid and other endocrine glands",
-      cancer_type == " Brain, central nervous system" ~ "Eye, brain and other parts of central nervous system",
-      TRUE ~ "Others"
-    ), 
+      cancer_type == "Hodgkin lymphoma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Non-Hodgkin lymphoma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Multiple myeloma" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "Leukaemia" ~ "Lymphoid, haematopoietic and related tissue",
+      cancer_type == "All cancers excl. non-melanoma skin cancer" ~ "Other of skin and independent multiple sites",
+      cancer_type == " Brain, central nervous system" ~ "Eye, brain and other parts of central nervous system"
+    ),
     number_quartiles = case_when(
       indicator == "incidence" & number <= 31.00 ~ "incidence_Q1",
       indicator == "incidence" &
@@ -251,471 +308,6 @@ globocan_4 <- globocan_3 |>
   )
 
 # Adding world regions
+
 globocan_5 <- globocan_4 |> 
   dplyr::left_join(regiones_mundo, by = "country_name")
-
-globocan_6 <- globocan_5 |>
-  dplyr::select(
-    indicator,
-    cancer_type,
-    country_name,
-    asr_world,
-    crude_rate,
-    human_development_index,
-    education_and_income,
-    sdi_gdb_2021,
-    hdi_category,
-    edi_categories,
-    sdi_categories,
-    neoplasia_sex
-  ) |>
-  dplyr::rename(
-    `ASR (World)` = asr_world,
-    `Crude rate` = crude_rate,
-    Indicator = indicator,
-    HDI = human_development_index,
-    EdI = education_and_income,
-    SDI = sdi_gdb_2021
-  ) |>
-  dplyr::mutate(
-    Indicator = factor(Indicator) |>
-      forcats::fct_recode(
-        "Incidence" = "incidence", 
-        "Mortality" = "mortality") |>
-      forcats::fct_relevel("Incidence", "Mortality"),
-    country_label = case_when(
-      country_name %in% c(
-        "United States of America", "Bolivia", "Spain", "Ethiopia", "China",
-        "Japan", "India", "Peru", "Egypt", "Saudi Arabia", 
-        "France (metropolitan)", "Uganda") ~ as.character(country_name),
-      TRUE ~ NA_character_
-    ) |>
-      forcats::fct_recode(
-        "USA" = "United States of America", "France" = "France (metropolitan)")
-  )
-
-# globocan_6 |>
-#   dplyr::select(country_name, SDI) |>
-#   dplyr::filter(SDI > 0.9 & SDI <=9.27) |>
-#   dplyr::arrange(SDI) |>
-#   dplyr::distinct(country_name)
-# globocan_6 |> dplyr::distinct(country_sdi)
-
-# Complex names data
-globocan_7 <- globocan_6 |>
-  dplyr::distinct(cancer_type, country_name, Indicator, .keep_all = TRUE)
-
-# Clean names data
-globocan_8 <- globocan_7 |>
-  janitor::clean_names() |>
-  dplyr::mutate(
-    cancer_type = case_when(
-      cancer_type == " Brain, central nervous system" ~ "Brain, nervous system",
-      cancer_type == "Liver and intrahepatic bile ducts" ~ "Liver",
-      .default = as.character(cancer_type))
-  )
-
-globocan_9 <- globocan_8 |>
-  dplyr::filter(cancer_type == "All cancers excl. non-melanoma skin cancer" & indicator %in% c("Incidence", "Mortality")) 
-
-globocan_9miratio <- globocan_8 |>
-  dplyr::filter(cancer_type == "All cancers excl. non-melanoma skin cancer" & indicator == "miratio") 
-
-
-# Figure 1
-figure_1 <- ggplot2::ggplot(
-  data = globocan_9, aes(
-    x = ed_i,
-    y = asr_world,
-    color = indicator
-    )
-  ) +
-  ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
-  ggplot2::geom_smooth(method = "gam",
-                       formula = y ~ s(x, bs = "cr", k = -1),
-                       se = FALSE) +
-  ggplot2::geom_vline(
-    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    linetype = "dashed",
-    color = "gray70",
-    linewidth = 1
-  ) +
-  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
-  ggsci::scale_color_igv() +
-  ggsci::scale_fill_igv(alpha = 0.1) +
-  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-  ggplot2::guides(fill = "none") +
-  ggplot2::labs(x = "Education and Income index (EdI)", y = "Age-Standardized Rate (per 100,000)") +
-  ggplot2::theme_minimal() +
-  ggplot2::facet_wrap(
-    vars(cancer_type),
-    labeller = labeller(cancer_type = label_wrap_gen(50)),
-    ncol = 3,
-    scales = "free"
-  ) +
-  ggplot2::theme(
-    strip.text.x = element_text(hjust = 0),
-    legend.position = "bottom",
-    legend.title = element_blank(),
-    text = element_text(size = 18, color = "black", family = "Syne"),
-    axis.line = element_line(colour = "black", linetype = "solid"),
-    axis.ticks = element_line(colour = "black", linetype = "solid"),
-    panel.grid = element_blank()
-  )
-
-# Save figure 1 (JPEG)
-ggsave(
-  plot = figure_1,
-  filename = here("outputs", "FIG_1.jpeg"),
-  width = 12,
-  height = 8,
-  dpi = 500,
-  units = "in")
-
-figure_1miratio <- ggplot2::ggplot(
-  data = globocan_9miratio, aes(
-    x = ed_i,
-    y = asr_world,
-    #color = indicator
-  )
-) +
-  ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
-  ggplot2::geom_smooth(method = "gam",
-                       formula = y ~ s(x, bs = "cr", k = -1),
-                       se = FALSE) +
-  ggplot2::geom_vline(
-    xintercept = quantile(globocan_9$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-    linetype = "dashed",
-    color = "gray70",
-    linewidth = 1
-  ) +
-  ggrepel::geom_label_repel(aes(label = country_label), show.legend = FALSE) +
-  ggsci::scale_color_igv() +
-  ggsci::scale_fill_igv(alpha = 0.1) +
-  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-  ggplot2::guides(fill = "none") +
-  ggplot2::labs(x = "Education and Income index (EdI)", y = "Mortality to incidence ratio") +
-  ggplot2::theme_minimal() +
-  ggplot2::facet_wrap(
-    vars(cancer_type),
-    labeller = labeller(cancer_type = label_wrap_gen(50)),
-    ncol = 3,
-    scales = "free"
-  ) +
-  ggplot2::theme(
-    strip.text.x = element_text(hjust = 0),
-    legend.position = "bottom",
-    legend.title = element_blank(),
-    text = element_text(size = 18, color = "black", family = "Syne"),
-    axis.line = element_line(colour = "black", linetype = "solid"),
-    axis.ticks = element_line(colour = "black", linetype = "solid"),
-    panel.grid = element_blank()
-  )
-
-
-# My ggplot function for figure 2
-my_ggplot <- function(data, ...) {
-  ggplot2::ggplot(
-    data = data,
-    aes(
-      x = ed_i,
-      y = asr_world,
-      color = indicator
-      )
-    ) +
-    ggplot2::geom_point(aes(fill = indicator), size = 2.5, shape = 21) +
-    ggplot2::geom_smooth(method = "gam",
-                         formula = y ~ s(x, bs = "cr", k = -1),
-                         se = FALSE) +
-    ggplot2::geom_vline(
-      xintercept = quantile(data$ed_i, probs = c(0.25, 0.5, 0.75), na.rm = TRUE),
-      linetype = "dashed",
-      color = "gray70",
-      linewidth = 1
-    ) +
-    ggsci::scale_color_igv(guide = guide_legend(override.aes = list(
-      linetype = c(0, 0),
-      shape = c(1, 1),
-      size = c(4, 4)
-    ))) +
-    ggsci::scale_fill_igv(alpha = 0.1) +
-    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-    ggplot2::guides(fill = "none") +
-    ggplot2::theme_minimal() +
-    ggplot2::facet_wrap(
-      vars(cancer_type),
-      labeller = labeller(cancer_type = label_wrap_gen(50)),
-      ncol = 3,
-      scales = "free"
-    ) +
-    ggplot2::theme(
-      strip.text.x = element_text(hjust = 0),
-      legend.position = "bottom",
-      legend.title = element_blank(),
-      text = element_text(size = 22, color = "black", family = "Syne"),
-      axis.line = element_line(colour = "black", linetype = "solid"),
-      axis.ticks = element_line(colour = "black", linetype = "solid"),
-      panel.grid = element_blank(),
-      plot.title = element_text(size = 24)
-    )
-}
-
-# Figure 2A
-figure_2A_data <- globocan_8 |>
-  dplyr::filter(
-    cancer_type %in% c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
-    ) & indicator %in% c("Incidence", "Mortality")
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder"
-    )
-  ))
-
-figure_2A <- my_ggplot(figure_2A_data) +
-  ggplot2::labs(title = "Group A") + 
-  ggplot2::theme(axis.title = element_blank())
-
-# Figure 2B
-figure_2B_data <- globocan_8 |>
-  dplyr::filter(
-    cancer_type %in% c(
-      "Trachea, bronchus and lung", 
-      "Pancreas",
-      "Brain, nervous system"
-    ) & indicator %in% c("Incidence", "Mortality")
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Trachea, bronchus and lung", 
-      "Pancreas",
-      "Brain, nervous system"
-    )
-  ))
-
-figure_2B <- my_ggplot(figure_2B_data) +
-  ggplot2::labs(y = "Age-Standardized Rate (per 100,000)", title = "Group B") +
-  ggplot2::theme(axis.title.y = element_text(hjust = 0), axis.title.x = element_blank())
-
-# Figure 2C
-figure_2C_data <- globocan_8 |>
-  dplyr::filter(
-    cancer_type %in% c(
-      "Cervix uteri",
-      "Liver",
-      "Stomach"
-    )
-  ) |>
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Cervix uteri",
-      "Liver",
-      "Stomach"
-    )
-  ))
-
-figure_2C <- my_ggplot(figure_2C_data) +
-  ggplot2::labs(x = "Education and Income index (EdI)", title = "Group C") + 
-  ggplot2::theme(axis.title.y = element_blank())
-
-# Arrange on one page
-figure_2 <-
-  figure_2A + (figure_2B + figure_2C + plot_layout(ncol = 1)) +
-  plot_layout(ncol = 1,
-              guides = 'collect',
-              axis_titles = 'collect') &
-  theme(legend.position = 'bottom')
-
-# Save figure 2 (PNG)
-ggsave(
-  plot = figure_2,
-  filename = here("outputs", "FIG_2.png"),
-  width = 20,
-  height = 15,
-  dpi = 500,
-  units = "in")
-
-# 
-globocan_10 <- globocan_8 |>
-  dplyr::filter(
-    !cancer_type %in% c(
-      "All cancers excl. non-melanoma skin cancer",
-      "Colon",
-      "Rectum",
-      "Non-melanoma skin cancer")
-  ) |>
-  dplyr::mutate(
-    cancer_type = case_when(
-      cancer_type %in% c(
-        "Mesothelioma",
-        "Anus",
-        "Gallbladder",
-        "Salivary glands",
-        "Vulva",
-        "Mesothelioma",
-        "Penis") ~ "Others/Unspec",
-      cancer_type %in% c(
-        "Hypopharynx",
-        "Nasopharynx",
-        "Oropharynx") ~ "Other pharynx", 
-      .default = as.character(cancer_type)
-    )
-  ) |> 
-  dplyr::mutate(cancer_type = factor(
-    cancer_type,
-    levels = c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder",
-      "Non-Hodgkin lymphoma",
-      "Kidney",
-      "Thyroid",
-      "Leukaemia",
-      "Testis",
-      "Multiple myeloma",
-      "Hodgkin lymphoma",
-      "Trachea, bronchus and lung", 
-      "Pancreas",
-      "Brain, nervous system",
-      "Cervix uteri",
-      "Liver",
-      "Stomach",
-      "Larynx",
-      "Vagina",
-      "Kaposi sarcoma",
-      "Ovary",
-      "Lip, oral cavity",
-      "Oesophagus",
-      "Other pharynx",
-      "Anus",
-      "Gallbladder",
-      "Salivary glands",
-      "Others/Unspec"
-    )
-  ),
-  group = case_when(
-    cancer_type %in% c(
-      "Breast",
-      "Prostate",
-      "Colorectum",
-      "Melanoma of skin",
-      "Corpus uteri",
-      "Bladder",
-      "Non-Hodgkin lymphoma",
-      "Kidney",
-      "Thyroid",
-      "Leukaemia",
-      "Testis",
-      "Multiple myeloma",
-      "Hodgkin lymphoma") ~ "Group A",
-    cancer_type %in% c(
-      "Trachea, bronchus and lung", 
-      "Pancreas",
-      "Brain, nervous system") ~ "Group B",
-    cancer_type %in% c(
-      "Cervix uteri",
-      "Liver",
-      "Stomach",
-      "Larynx",
-      "Vagina",
-      "Kaposi sarcoma") ~ "Group C",
-    cancer_type %in% c(
-      "Ovary",
-      "Lip, oral cavity",
-      "Oesophagus",
-      "Other pharynx",
-      "Anus",
-      "Gallbladder",
-      "Salivary glands") ~ "Group D",
-    .default = as.character(cancer_type)
-  ))
-
-# Define the number of unique cancer types
-colourCount <- length(unique(globocan_10$cancer_type))
-
-# Define the four palettes
-palette1 <- colorRampPalette(brewer.pal(4, "Reds"))(13)
-palette2 <- colorRampPalette(brewer.pal(3, "Purples"))(3)
-palette3 <- colorRampPalette(brewer.pal(6, "Greens"))(6)
-palette4 <- colorRampPalette(brewer.pal(3, "Blues"))(7)
-palette5 <- colorRampPalette(brewer.pal(3, "Greys"))(1)
-
-# Combine the palettes
-combinedPalette <- c(palette1, palette2, palette3, palette4, palette5)
-
-# Figure 3
-figure_3 <- ggplot2::ggplot(
-  data = globocan_10, aes(
-    x = ed_i,
-    y = asr_world,
-    fill = cancer_type
-    )
-  ) + 
-  ggplot2::geom_area(color = "gray80", size = 0.25) +
-  ggplot2::scale_fill_manual(values = combinedPalette) +
-  ggplot2::geom_vline(
-    xintercept = quantile(
-      globocan_10$ed_i,
-      probs = c(0.25, 0.5, 0.75),
-      na.rm = TRUE
-    ),
-    linetype = "dashed",
-    color = "gray80",
-    linewidth = 0.5
-  ) +
-  ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.15)) +
-  ggplot2::labs(
-    x = "Education and Income index (EdI)",
-    y = "Age-Standardized Rate (per 100,000)",
-    fill = "Cancer type") +
-  ggplot2::theme_minimal() +
-  ggplot2::theme(
-    plot.margin = unit(c(1, 1, 1, 1), "cm"), 
-    legend.position = "right",
-    text = element_text(size = 14, color = "black", family = "Syne"),
-    axis.ticks = element_line(colour = "black", linetype = "solid"),
-    panel.grid = element_blank()
-  ) +
-  ggplot2::guides(fill = guide_legend(ncol = 1)) +
-  ggplot2::facet_wrap(
-    vars(indicator),
-    ncol = 1,
-    scales = "free",
-    strip.position = "left"
-  ) +
-  ggplot2::theme(strip.placement = "outside")
-
-# Save figure 3 (JPEG)
-ggsave(
-  plot = figure_3,
-  filename = here("outputs", "FIG_3.jpeg"),
-  width = 14,
-  height = 8,
-  dpi = 500,
-  units = "in")
-
-# ggplot2::stat_smooth(
-#   geom = "area",
-#   method = 'gam',
-#   formula = y ~ s(x, bs = "cr", k = -1),
-#   se = FALSE,
-#   color = "gray80"
-# )
-
