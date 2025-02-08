@@ -1,0 +1,2000 @@
+---
+title: "GLOBOCAN 2022: Cancer incidence and mortality by socioeconomic development indicators"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    social: menu
+    theme: simplex
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r message=FALSE, results='hide', warning=FALSE}
+# Load packages
+library(here)
+library(tidyverse)
+library(DT)
+library(plotly)
+library(shiny)
+library(mgcv)
+library(splines)
+library(ggpubr)
+library(ggsci)
+library(nortest)
+library(stats)
+library(moments)
+library(broom)
+
+# Fonts
+# library(extrafont)
+# library(showtext)
+
+# Required scripts
+source(here::here("scripts", "tidying data_cancer and indicators.R"))
+source(here::here("scripts", "ggplot themes.R"))
+
+# Run all scripts
+# library(rfextras)
+# rfextras::load_scripts()
+```
+
+```{r}
+# lintr::lint(here("scripts", "Tidying data_Indicators cancers and countries.R"), linters = unused_import_linter())
+# library(annotater)
+# library(grateful)
+# grateful::cite_packages(
+#   out.format = "docx",
+#   citation.style = "vancouver",
+#   out.dir = ".")
+```
+
+# Exploratory data analysis {data-orientation="rows"}
+
+## Inputs {.sidebar}
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input",
+  label = "Cancer type",
+  choices = unique(globocan_6$cancer_type),
+  selected = "Breast"
+)
+
+# selectInput(
+#   inputId = "country_input",
+#   label = "Countries",
+#   choices = unique(globocan_6$country_name),
+#   selected = "Peru"
+# )
+
+selectInput(
+  inputId = "variable_input",
+  label = "Variable",
+  choices = c("ASR (World)", "Crude rate", "HDI", "EdI", "SDI"),
+  selected = "ASR (World)"
+)
+```
+
+```{r}
+filtered_data <- reactive({
+  globocan_6 |>
+    dplyr::filter(cancer_type == input$cancer_input, Indicator != "MIR")
+})
+```
+
+## Row {data-height="600"}
+
+### Density plot
+
+```{r}
+renderPlotly({
+  plot_1 <- ggplot2::ggplot(
+    data = filtered_data(),
+    aes(
+      x = .data[[input$variable_input]],
+      color = Indicator,
+      fill = Indicator
+      )
+    ) +
+    ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 0.8, na.rm = TRUE) +
+    ggplot2::labs(y = "Density", color = "Indicator", fill = "Indicator") +
+    ggsci::scale_color_igv(alpha = 0.8) +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    theme_1()
+  
+  plotly::ggplotly(plot_1, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+  })
+
+# globocan_5 |>
+#   dplyr::select(indicator, cancer_type, country_name, crude_rate, asr_world) |>
+#   dplyr::filter(cancer_type == "Breast") |>
+#   ggplot2::ggplot(aes(x =  asr_world, color = indicator, fill = indicator)) +
+#   ggplot2::geom_density(aes(y = after_stat(density)), linewidth = 1, na.rm = TRUE) +
+#   ggplot2::labs(y = "Density", color = "Indicator", fill = "Indicator") +
+#   ggsci::scale_color_igv(alpha = 0.8) +
+#   ggsci::scale_fill_igv(alpha = 0.2) +
+#   ggplot2::theme(legend.position = "bottom")
+```
+
+### Boxplot with jitter
+
+```{r}
+renderPlotly({
+  plot_2 <- ggplot2::ggplot(
+    data = filtered_data(),
+    aes(
+      y = .data[[input$variable_input]], 
+      x = Indicator, 
+      fill = Indicator,
+      color = Indicator
+      )
+    ) +
+    ggplot2::geom_boxplot(alpha = 0.1, linewidth = 0.5) +
+    ggplot2::geom_jitter(alpha = 0.5, size = 2, width = 0.25) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv() +
+    theme_1(legend.position = "none")
+  
+  plotly::ggplotly(plot_2, tooltip = c("x", "y", "colour"))
+})
+```
+
+## Row {data-height="200"}
+
+### Summary statistics and normality tests
+
+```{r}
+table_1 <- reactive({
+  filtered_data() |>
+    dplyr::group_by(Indicator) |>
+    dplyr::summarise(
+      Count = n(),
+      Min = round(min(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Mean = round(mean(.data[[input$variable_input]], na.rm = TRUE), 2),
+      SD = round(sd(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Median = round(median(.data[[input$variable_input]], na.rm = TRUE), 2),
+      IQR = paste(round(
+        quantile(.data[[input$variable_input]], probs = c(0.25, 0.75), na.rm = TRUE), 2), collapse = "-"),
+      Max = round(max(.data[[input$variable_input]], na.rm = TRUE), 2),
+      `Shapiro Wilk` = round(stats::shapiro.test(.data[[input$variable_input]])$p.value, 3),
+      `Lilliefors test` = round(nortest::lillie.test(.data[[input$variable_input]])$p.value, 3),
+      `Anderson Darling` = round(nortest::ad.test(.data[[input$variable_input]])$p.value, 3),
+      Kurtosis = round(moments::kurtosis(.data[[input$variable_input]], na.rm = TRUE), 2),
+      Skewness = round(moments::skewness(.data[[input$variable_input]], na.rm = TRUE), 2)
+    )
+})
+
+DT::renderDataTable({
+  datatable(
+    table_1(),
+    options = list(lengthChange = FALSE, bPaginate = FALSE, searching = FALSE),
+    editable = FALSE) |>
+    formatStyle("Indicator",
+                target = "row",
+                backgroundColor = styleEqual(c("Mortality", "Incidence"), c("#ffd5d5", "#efeaff")))
+})
+```
+
+# Linear Regression Models {data-orientation="rows"}
+
+## Inputs {.sidebar}
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input_lm",
+  label = "Cancer type",
+  choices = unique(globocan_7$cancer_type),
+  selected = "All cancers excl. non-melanoma skin cancer"
+)
+
+selectInput(
+  inputId = "variable_x_input_lm",
+  label = "Variable x",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "variable_y_input_lm",
+  label = "Variable y",
+  choices = c("ASR (World)", "Crude rate"),
+  selected = "ASR (World)"
+)
+
+selectInput(
+  inputId = "variable_x_input_lm_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "incidence_model_input_lm",
+  label = "Incidence models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+
+selectInput(
+  inputId = "mortality_model_input_lm",
+  label = "Mortality models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+```
+
+```{r}
+selectedData_plot_lm <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_lm, Indicator != "MIR")
+})
+
+selectedData_plot_lm_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_lm, Indicator == "MIR")
+})
+```
+
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio.
+
+- Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
+
+
+## Row {data-height="500"}
+
+### ASR (World) per 100 000: Incidence and Mortality
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_lm(),
+    aes(
+      x = .data[[input$variable_x_input_lm]],
+      y = .data[[input$variable_y_input_lm]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
+    ) +
+    ggplot2::geom_point(size = 2.5) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ x,
+      se = FALSE,
+      linewidth = 0.8
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_lm()[[input$variable_x_input_lm]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio (MIR)
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_lm_mir(),
+    aes(
+      x = .data[[input$variable_x_input_lm_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
+    ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ x,
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_lm()[[input$variable_x_input_lm_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+## Row {data-height="400"}
+
+### Incidence
+
+```{r}
+# mutate(models = map(data, ~ lm(formula = as.formula(paste("asr_world ~ hdi")), data = .)))
+models_incidence_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ hdi, data = .)))
+
+# Summarizes information about the models
+m1_incidence_hdi <- models_incidence_hdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_hdi <- models_incidence_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_incidence <- dplyr::bind_cols(m1_incidence_hdi, m2_incidence_hdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_incidence_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ed_i, data = .)))
+
+# Summarizes information about the models
+m1_incidence_edi <- models_incidence_edi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_edi <- models_incidence_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EdI_incidence <- dplyr::bind_cols(m1_incidence_edi, m2_incidence_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_incidence_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ sdi, data = .)))
+
+# Summarizes information about the models
+m1_incidence_sdi <- models_incidence_sdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_sdi <- models_incidence_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_incidence <- dplyr::bind_cols(m1_incidence_sdi, m2_incidence_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$incidence_model_input_lm,
+    "ASR (World) ~ HDI" = ASR_HDI_incidence,
+    "ASR (World) ~ EdI" = ASR_EdI_incidence,
+    "ASR (World) ~ SDI" = ASR_SDI_incidence
+  )
+  selected_table
+})
+```
+
+### Mortality
+
+```{r}
+models_mortality_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ hdi, data = .)))
+
+# Summarizes information about the models
+m1_mortality_hdi <- models_mortality_hdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_hdi <- models_mortality_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_mortality <- dplyr::bind_cols(m1_mortality_hdi, m2_mortality_hdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_mortality_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ed_i, data = .)))
+
+# Summarizes information about the models
+m1_mortality_edi <- models_mortality_edi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_edi <- models_mortality_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EdI_mortality <- dplyr::bind_cols(m1_mortality_edi, m2_mortality_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+models_mortality_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest() |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ sdi, data = .)))
+
+# Summarizes information about the models
+m1_mortality_sdi <- models_mortality_sdi |>
+  dplyr::mutate(summary = map(model, broom::tidy)) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_sdi <- models_mortality_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_mortality <- dplyr::bind_cols(m1_mortality_sdi, m2_mortality_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    estimate,
+    r.squared,
+    adj.r.squared,
+    statistic...10,
+    p.value...11,
+    AIC,
+    BIC,
+    deviance
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    Estimate = estimate,
+    `R-squared` = r.squared,
+    `Adjusted R-squared` = adj.r.squared,
+    `F-statistic` = statistic...10,
+    `p-value` = p.value...11,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$mortality_model_input_lm,
+    "ASR (World) ~ HDI" = ASR_HDI_mortality,
+    "ASR (World) ~ EdI" = ASR_EdI_mortality,
+    "ASR (World) ~ SDI" = ASR_SDI_mortality
+  )
+  selected_table
+})
+```
+
+# Generalized Additive Models {data-orientation="rows"}
+
+## Inputs {.sidebar}
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input_gam",
+  label = "Cancer type",
+  choices = unique(globocan_7$cancer_type),
+  selected = "All cancers excl. non-melanoma skin cancer"
+)
+
+selectInput(
+  inputId = "variable_x_input_gam",
+  label = "Variable x",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "variable_y_input_gam",
+  label = "Variable y",
+  choices = c("ASR (World)", "Crude rate"),
+  selected = "ASR (World)"
+)
+
+selectInput(
+  inputId = "variable_x_input_gam_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "incidence_model_input_gam",
+  label = "Incidence models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+
+selectInput(
+  inputId = "mortality_model_input_gam",
+  label = "Mortality models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+```
+
+```{r}
+selectedData_plot_gam <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_gam, Indicator != "MIR")
+})
+
+selectedData_plot_gam_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_gam, Indicator == "MIR")
+})
+```
+::: {style="text-align: justify"}
+The smooth terms (`s`) were cubic regression splines (`bs="cr"`) with smoothing parameters selected by Generalized Cross Validation (GCV) criterion, and Mallows' Cp (`GCV.Cp`) estimation methods. The Effective Degrees of Freedom (EDF) for smoothing were controlled by the smoothing penalty on the term, and were selected during fitting by GCV. The basis dimension (`k-1` or `k`) choice for smooths sets the upper limit on the Degrees of Freedom (`df`). The `k-1` should be neither too small nor too large and computationally expensive. So, exact choice of `k` is not generally critical and 1 `df` is usually lost to the identifiability constraint on the smooth. The default `k-1` was 10.
+
+It's important to informally check the choice of `k`. If the EDF for a model term are much less than `k−1` , it may not be useful. However, if the EDF approaches `k−1` , checking can be important. A more costly alternative is to increase `k` and refit the model. If there are no significant changes, then `k` was sufficient. 
+:::
+
+## Row {data-height="500"}
+
+### ASR (World) per 100 000: Incidence and Mortality
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_gam(),
+    aes(
+      x = .data[[input$variable_x_input_gam]],
+      y = .data[[input$variable_y_input_gam]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
+    ) +
+    ggplot2::geom_point(size = 2.5) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 0.8
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam()[[input$variable_x_input_gam]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio (MIR)
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_gam_mir(),
+    aes(
+      x = .data[[input$variable_x_input_gam_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
+    ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "gam",
+      formula = y ~ s(x, bs = "cr", k = -1),
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam_mir()[[input$variable_x_input_gam_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+## Row {data-height="400"}
+
+### Incidence
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+## models_incidence_gam_hdi$model[[1]] |> names
+
+# Summarizes information about the models
+m0_incidence_gam_hdi <- models_incidence_gam_hdi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_hdi <- models_incidence_gam_hdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_gam_hdi <- models_incidence_gam_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_hdi, m1_incidence_gam_hdi, m2_incidence_gam_hdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+# Summarizes information about the models
+m0_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_gam_edi <- models_incidence_gam_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_edi, m1_incidence_gam_edi, m2_incidence_gam_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_incidence_gam_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+# Summarizes information about the models
+m0_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_incidence_gam_sdi <- models_incidence_gam_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_incidence_gam <- dplyr::bind_cols(
+  m0_incidence_gam_sdi, m1_incidence_gam_sdi, m2_incidence_gam_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$incidence_model_input_gam,
+    "ASR (World) ~ HDI" = ASR_HDI_incidence_gam,
+    "ASR (World) ~ EdI" = ASR_EDI_incidence_gam,
+    "ASR (World) ~ SDI" = ASR_SDI_incidence_gam
+  )
+  selected_table
+})
+```
+
+### Mortality
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(hdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+# Summarizes information about the models
+m0_mortality_gam_hdi <- models_mortality_gam_hdi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_hdi <- models_mortality_gam_hdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_gam_hdi <- models_mortality_gam_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_hdi, m1_mortality_gam_hdi, m2_mortality_gam_hdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(ed_i, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+# Summarizes information about the models
+m0_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_gam_edi <- models_mortality_gam_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_edi, m1_mortality_gam_edi, m2_mortality_gam_edi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_gam_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ mgcv::gam(asr_world ~ s(sdi, bs = "cr", k=-1), method = "GCV.Cp", data = .)))
+
+# Summarizes information about the models
+m0_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(
+    r_squared = purrr::map_dbl(model, ~ summary(.)$r.sq),
+    dev_expl = purrr::map_dbl(model, ~ summary(.)$dev.expl),
+    gcv_cp = purrr::map_dbl(model, ~ .$gcv.ubre),
+    k = purrr::map_dbl(model, ~ .$smooth[[1]]$bs.dim-1)) |>
+  tidyr::unnest(c(r_squared, gcv_cp, k, dev_expl)) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m1_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(summary = map(model, ~ broom::tidy(.))) |>
+  tidyr::unnest(summary) |>
+  dplyr::filter(term != "(Intercept)") |>
+  dplyr::select(-data, -model, -term) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+m2_mortality_gam_sdi <- models_mortality_gam_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_mortality_gam <- dplyr::bind_cols(
+  m0_mortality_gam_sdi, m1_mortality_gam_sdi, m2_mortality_gam_sdi) |>
+  dplyr::select(
+    cancer_type...1,
+    r_squared,
+    dev_expl,
+    gcv_cp,
+    edf,
+    ref.df,
+    df,
+    df.residual,
+    k,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance,
+    
+  ) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type...1,
+    `Adj. R-squared` = r_squared,
+    `Deviance explained` = dev_expl,
+    `GCV score` = gcv_cp,
+    EDF = edf,
+    Ref.df = ref.df,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$mortality_model_input_gam,
+    "ASR (World) ~ HDI" = ASR_HDI_mortality_gam,
+    "ASR (World) ~ EdI" = ASR_EDI_mortality_gam,
+    "ASR (World) ~ SDI" = ASR_SDI_mortality_gam
+  )
+  selected_table
+})
+```
+
+# Natural Cubic Splines {data-orientation="rows"}
+
+## Inputs {.sidebar}
+
+```{r}
+# Select list input control
+selectInput(
+  inputId = "cancer_input_ns",
+  label = "Cancer type",
+  choices = unique(globocan_7$cancer_type),
+  selected = "All cancers excl. non-melanoma skin cancer"
+)
+
+selectInput(
+  inputId = "variable_x_input_ns",
+  label = "Variable x",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "variable_y_input_ns",
+  label = "Variable y",
+  choices = c("ASR (World)", "Crude rate"),
+  selected = "ASR (World)"
+)
+
+selectInput(
+  inputId = "variable_x_input_ns_mir",
+  label = "Variable for MIR",
+  choices = c("HDI", "EdI", "SDI"),
+  selected = "EdI"
+)
+
+selectInput(
+  inputId = "incidence_model_input_ns",
+  label = "Incidence models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+
+selectInput(
+  inputId = "mortality_model_input_ns",
+  label = "Mortality models",
+  choices = c("ASR (World) ~ HDI", "ASR (World) ~ EdI", "ASR (World) ~ SDI"),
+  selected = "ASR (World) ~ EdI"
+)
+```
+
+```{r}
+selectedData_plot_ns <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_ns, Indicator != "MIR")
+})
+
+selectedData_plot_ns_mir <- reactive({
+  globocan_7 |>
+    dplyr::filter(cancer_type == input$cancer_input_ns, Indicator == "MIR")
+})
+```
+
+::: {style="text-align: justify"}
+In polynomial splines, knots are estimated from degrees of freedom (`df`). For B-Splines (`bs`), the knots are estimated as `df - degree` (cubic term) at suitable quantiles of the predictor variable. By default, the number of inner knots equals `length(knots)`.
+
+For natural cubic splines (`ns`), you can specify `df` instead of knots. In this case, `df - 1 - intercept` knots are chosen at suitable quantiles of the predictor, resulting in a matrix with dimensions `length(x) * df`. If `df` is supplied, or if knots are supplied, then `df` is calculated as `length(knots) + 1 + intercept`.
+:::
+
+## Row {data-height="500"}
+
+### Natural Cubic Splines (3 quantiles)
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_ns(),
+    aes(
+      x = .data[[input$variable_x_input_ns]],
+      y = .data[[input$variable_y_input_ns]],
+      shape = Indicator,
+      color = Indicator,
+      fill = Indicator
+      )
+  ) +
+    ggplot2::geom_point(size = 2.5) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ ns(x, df = 4),
+      se = FALSE,
+      linewidth = 0.8
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam()[[input$variable_x_input_ns]],
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_shape_manual(values = c(21, 24)) +
+    ggsci::scale_color_igv() +
+    ggsci::scale_fill_igv(alpha = 0.1) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+### Mortality-to-Incidence Ratio (MIR)
+
+```{r}
+renderPlotly({
+  plot_3 <- ggplot2::ggplot(
+    data = selectedData_plot_ns_mir(),
+    aes(
+      x = .data[[input$variable_x_input_ns_mir]],
+      y = `ASR (World)`,
+      color = `ASR (World)`
+      )
+  ) +
+    ggplot2::geom_point(size = 2, shape = 21) +
+    ggplot2::geom_smooth(
+      method = "lm",
+      formula = y ~ ns(x, df = 4),
+      se = FALSE,
+      linewidth = 1,
+      color = "salmon"
+    ) +
+    ggplot2::geom_vline(
+      xintercept = quantile(
+        selectedData_plot_gam_mir()[[input$variable_x_input_ns_mir]], 
+        probs = c(0.25, 0.5, 0.75), 
+        na.rm = TRUE),
+      linetype = "dashed",
+      color = "gray70"
+    ) +
+    ggplot2::labs(y = "MIR") +
+    ggplot2::scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+    ggplot2::scale_colour_gradient(low = "darkolivegreen1", high = "darkolivegreen") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.position = "none",
+      strip.text.x = element_text(hjust = 0),
+      text = element_text(size = 15, color = "black", family = "Syne"),
+      axis.line = element_line(colour = "black", linetype = "solid"),
+      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      panel.grid = element_blank(),
+      axis.title = element_text(color = "black")
+    )
+  
+  plotly::ggplotly(plot_3, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h",
+      x = 0.5,
+      y = -0.25
+    ))
+})
+```
+
+## Row {data-height="400"}
+
+### Incidence
+
+```{r}
+# Natural Cubic Splines (3 equidistant knots)
+models_incidence_ns_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(hdi, df = 4), data = .)))
+
+# Summarizes information about the models
+m1_incidence_ns_hdi <- models_incidence_ns_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_incidence_ns <- m1_incidence_ns_hdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Natural Cubic Splines (3 equidistant knots)
+models_incidence_ns_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(ed_i, df = 4), data = .)))
+
+# Summarizes information about the models
+m1_incidence_ns_edi <- models_incidence_ns_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_incidence_ns <- m1_incidence_ns_edi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Natural Cubic Splines (3 equidistant knots)
+models_incidence_ns_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Incidence") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(sdi, df = 4), data = .)))
+
+# Summarizes information about the models
+m1_incidence_ns_sdi <- models_incidence_ns_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_incidence_ns <- m1_incidence_ns_sdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$incidence_model_input_ns,
+    "ASR (World) ~ HDI" = ASR_HDI_incidence_ns,
+    "ASR (World) ~ EdI" = ASR_EDI_incidence_ns,
+    "ASR (World) ~ SDI" = ASR_SDI_incidence_ns
+  )
+  selected_table
+})
+```
+
+### Mortality
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_ns_hdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(hdi, df = 4), data = .)))
+
+# Summarizes information about the models
+m1_mortality_ns_hdi <- models_mortality_ns_hdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_HDI_mortality_ns <- m1_mortality_ns_hdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_ns_edi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(ed_i, df = 4), data = .)))
+
+m1_mortality_ns_edi <- models_mortality_ns_edi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_EDI_mortality_ns <- m1_mortality_ns_edi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+# Generalized Cross-Validation (GCV)
+models_mortality_ns_sdi <- globocan_8 |>
+  dplyr::filter(indicator == "Mortality") |>
+  dplyr::group_by(cancer_type) |>
+  tidyr::nest()  |>
+  dplyr::mutate(model = purrr::map(data, ~ lm(asr_world ~ ns(sdi, df = 4), data = .)))
+
+# Summarizes information about the models
+m1_mortality_ns_sdi <- models_mortality_ns_sdi |>
+  dplyr::mutate(summary = map(model, broom::glance)) |>
+  tidyr::unnest(summary) |>
+  dplyr::select(-data, -model) |>
+  dplyr::mutate(across(where(is.numeric), round, 2))
+
+# Renamed
+ASR_SDI_mortality_ns <- m1_mortality_ns_sdi |>
+  dplyr::select(
+    adj.r.squared,
+    df,
+    df.residual,
+    nobs,
+    sigma,
+    statistic,
+    p.value,
+    AIC,
+    BIC,
+    deviance) |>
+  dplyr::rename(
+    `Cancer type` = cancer_type,
+    `Adj. R-squared` = adj.r.squared,
+    `Total df` = df,
+    `F-statistic` = statistic,
+    `p-value` = p.value,
+    Deviance = deviance
+  )
+```
+
+```{r}
+DT::renderDataTable({
+  selected_table <- switch(
+    input$mortality_model_input_ns,
+    "ASR (World) ~ HDI" = ASR_HDI_mortality_ns,
+    "ASR (World) ~ EdI" = ASR_EDI_mortality_ns,
+    "ASR (World) ~ SDI" = ASR_SDI_mortality_ns
+  )
+  selected_table
+})
+```
+
+```{r}
+# data_x <-
+#   globocan_8 |>
+#   dplyr::filter(indicator == "Incidence" & cancer_type == "All cancers*")
+```
+
+```{r}
+# modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "cr"), data = data_x)
+# modelo_gam <- mgcv::gam(asr_world ~ s(hdi, bs = "bs"), data = data_x)
+# summary(modelo_gam)
+# gam.check(modelo_gam)
+```
+
+```{r}
+# modelo_bsplines <- lm(asr_world ~ bs(hdi, df = 6, degree = 3), data = data_x) # 3 knots
+# summary(modelo_bsplines)
+# modelo_nsplines <- lm(asr_world ~ ns(hdi, df = 4), data = data_x) # 3 knots
+# summary(modelo_nsplines)
+# attr(bs(data_x$hdi, df = 6, degree = 3), "knots")
+# attr(ns(data_x$hdi, df = 4), "knots") # knots=df-degree+2 external knots
+```
+
+# One-Way ANOVA tests {data-orientation="cols"}
+
+## Inputs {.sidebar}
+
+```{r}
+selectInput(
+  inputId = "indicator",
+  label = "Indicator",
+  choices = c("Incidence", "Mortality", "MIR"),
+  selected = "Incidence"
+)
+
+selectInput(
+  inputId = "plot_choice_a",
+  label = "Choose a plot for panel A:",
+  choices = list(
+    "Incidence by EdI category" = "figure_4a", 
+    "Incidence by HDI category" = "figure_4b",
+    "Incidence by SDI category" = "figure_4c", 
+    "Mortality by EdI category" = "figure_5a", 
+    "Mortality by HDI category" = "figure_5b",
+    "Mortality by SDI category" = "figure_5c", 
+    "MIR by EdI category" = "figure_6a", 
+    "MIR by HDI category" = "figure_6b",
+    "MIR by SDI category" = "figure_6c")
+)
+
+selectInput(
+  inputId = "plot_choice_b",
+  label = "Choose a plot for panel B:",
+  choices = list(
+    "Incidence by EdI category" = "figure_4a", 
+    "Incidence by HDI category" = "figure_4b",
+    "Incidence by SDI category" = "figure_4c", 
+    "Mortality by EdI category" = "figure_5a", 
+    "Mortality by HDI category" = "figure_5b",
+    "Mortality by SDI category" = "figure_5c", 
+    "MIR by EdI category" = "figure_6a", 
+    "MIR by HDI category" = "figure_6b",
+    "MIR by SDI category" = "figure_6c")
+)
+```
+
+```{r}
+# Reactive data
+selectedData_heatmap <- reactive({
+  globocan_8 |> 
+    dplyr::filter(asr_world == input$indicator)
+})
+```
+
+- Cancer incidence and mortality indicators: ASR (World), Age-Standardized Rate (World) per 100 000; MIR, Mortality-to-Incidence Ratio.
+
+- Socioeconomic Development Indicators: EdI, Education and Income index; HDI, Human Development Index; SDI, Sociodemographic Index.
+
+
+## Column {data-width=400}
+ 
+### R^2^ Heatmaps
+
+```{r}
+# Render heatmap
+renderPlotly({
+  indicator_value <- input$indicator 
+  r2_data <- calculate_r2(globocan_8, indicator_value)
+  
+  my_heatmap <- ggplot2::ggplot(
+    data = r2_data,
+    aes(
+      x = indicator,
+      y = cancer_type,
+      fill = R2
+      )
+    ) +
+    ggplot2::geom_tile(color = "white") +
+    ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 3.5) +
+    ggplot2::scale_fill_distiller(palette = "RdBu", direction = -1, limits = c(0, 0.8), name = bquote(R^2)) +
+    ggplot2::labs(title = indicator_value, x = "Socioeconomic Development Indicators") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.x = element_text(size = 12, color = "black", family = "Syne"),
+      axis.text.y = element_text(size = 12, color = "black", family = "Syne"),
+      axis.ticks.y = element_blank(),
+      axis.title.x = element_text(size = 13, color = "black", family = "Syne", margin = margin(t = 10)),
+      axis.title.y = element_blank(),
+      panel.grid = element_blank(),
+      legend.text = element_text(size = 12, color = "black", family = "Syne"), 
+      legend.title = element_text(size = 13, color = "black", family = "Syne"),
+      legend.key.size = unit(0.7, "cm"),
+      plot.title = element_text(hjust = 0.5, size = 13, color = "black", family = "Syne")
+    )
+  
+  plotly::ggplotly(my_heatmap, tooltip = c("x", "y", "colour")) |>
+    plotly::layout(legend = list(
+      xanchor = "center",
+      yanchor = "center",
+      orientation = "h"
+    ))
+})
+```
+
+## Column {data-width=600}
+
+```{r}
+## Define a function to create the ANOVA tests
+calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = asr,
+    facet.by = "cancer_type",
+    nrow = 2,
+    ncol = 5,
+    scales = "free",
+    xlab = label_x,
+    ylab = label_y,
+    width = 0.5
+  ) +
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 6
+    ) +
+    ggplot2::theme(
+      axis.title = element_text(size = 18, color = "black", family = "Syne"),
+      axis.text = element_text(size = 14, color = "black", family = "Syne"),
+      strip.text = element_text(size = 14, color = "black", family = "Syne"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 0, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 5))
+    ) +
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5)
+}
+```
+
+```{r}
+## One-Way ANOVA test of incidence by EdI category
+figure_4a <- calculate_anova(
+  data = data_incidence_edi_globocan_8,
+  anova_data = pw_gh_test_incidence_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "ASR (per 100,000)"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+figure_4b <- calculate_anova(
+  data = data_incidence_hdi_globocan_8, 
+  anova_data = pw_gh_test_incidence_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_4c <- calculate_anova(
+  data = data_incidence_sdi_globocan_8, 
+  anova_data = pw_gh_test_incidence_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "SDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of mortality by EdI category
+figure_5a <- calculate_anova(
+  data = data_mortality_edi_globocan_8,
+  anova_data = pw_gh_test_mortality_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "ASR (per 100,000)"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+figure_5b <- calculate_anova(
+  data = data_mortality_hdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_5c <- calculate_anova(
+  data = data_mortality_sdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "SDI", 
+  label_y = "ASR (per 100,000)")
+
+## One-Way ANOVA test of mortality by EdI category
+figure_6a <- calculate_anova(
+  data = data_mir_edi_globocan_8,
+  anova_data = pw_gh_test_mir_edi,
+  indicator = "edi_categories",
+  asr = "asr_world",
+  label_x = "EdI",
+  label_y = "MIR"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+figure_6b <- calculate_anova(
+  data = data_mir_hdi_globocan_8, 
+  anova_data = pw_gh_test_mir_hdi, 
+  indicator = "hdi_category", 
+  asr = "asr_world", 
+  label_x = "HDI", 
+  label_y = "MIR")
+
+## One-Way ANOVA test of incidence by SDI category
+figure_6c <- calculate_anova(
+  data = data_mir_sdi_globocan_8, 
+  anova_data = pw_gh_test_mir_sdi, 
+  indicator = "sdi_categories", 
+  asr = "asr_world", 
+  label_x = "Sociodemographic Index (SDI)", 
+  label_y = "MIR")
+```
+
+### Panel A
+
+```{r}
+output$selected_plot_a <- renderPlot({
+  if (input$plot_choice_a == "figure_4a") {
+    print(figure_4a)
+  } else if (input$plot_choice_a == "figure_4b") {
+    print(figure_4b)
+  } else if (input$plot_choice_a == "figure_4c") {
+    print(figure_4c)
+  } else if (input$plot_choice_a == "figure_5a") {
+    print(figure_5a)
+  } else if (input$plot_choice_a == "figure_5b") {
+    print(figure_5b)
+  } else if (input$plot_choice_a == "figure_5c") {
+    print(figure_5c)
+  } else if (input$plot_choice_a == "figure_6a") {
+    print(figure_6a)
+  } else if (input$plot_choice_a == "figure_6b") {
+    print(figure_6b)
+  } else if (input$plot_choice_a == "figure_6c") {
+    print(figure_6c)
+  }
+})
+
+plotOutput("selected_plot_a")
+```
+
+### Panel B
+
+```{r}
+output$selected_plot_b <- renderPlot({
+  if (input$plot_choice_b == "figure_4a") {
+    print(figure_4a)
+  } else if (input$plot_choice_b == "figure_4b") {
+    print(figure_4b)
+  } else if (input$plot_choice_b == "figure_4c") {
+    print(figure_4c)
+  } else if (input$plot_choice_b == "figure_5a") {
+    print(figure_5a)
+  } else if (input$plot_choice_b == "figure_5b") {
+    print(figure_5b)
+  } else if (input$plot_choice_b == "figure_5c") {
+    print(figure_5c)
+  } else if (input$plot_choice_b == "figure_6a") {
+    print(figure_6a)
+  } else if (input$plot_choice_b == "figure_6b") {
+    print(figure_6b)
+  } else if (input$plot_choice_b == "figure_6c") {
+    print(figure_6c)
+  }
+})
+
+plotOutput("selected_plot_b")
+```
+
+

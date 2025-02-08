@@ -1,0 +1,35 @@
+Cancer code,ICD Code,Country,Label,Sex,Number,ASR (World),Crude rate,Cumulative risk
+40,C00-97/C44,752,All cancers excl. non-melanoma skin cancer,0,61794,288.9,604.7,28.8
+1,C00-06,752,"Lip, oral cavity",0,816,3.6,8.0,0.43
+2,C07-08,752,Salivary glands,0,93,0.48,0.91,0.05
+3,C09-10,752,Oropharynx,0,239,1.4,2.3,0.17
+4,C11,752,Nasopharynx,0,28,0.19,0.27,0.02
+5,C12-13,752,Hypopharynx,0,72,0.31,0.70,0.04
+6,C15,752,Oesophagus,0,640,2.3,6.3,0.27
+7,C16,752,Stomach,0,871,3.6,8.5,0.43
+41,C18-C21,752,Colorectum,0,7699,31.2,75.3,3.6
+11,C22,752,Liver and intrahepatic bile ducts,0,1015,4.6,9.9,0.57
+12,C23,752,Gallbladder,0,249,0.96,2.4,0.12
+13,C25,752,Pancreas,0,2413,9.3,23.6,1.1
+14,C32,752,Larynx,0,160,0.69,1.6,0.09
+15,C33-34,752,"Trachea, bronchus and lung",0,4441,17.4,43.5,2.2
+16,C43,752,Melanoma of skin,0,5259,27.4,51.5,3.0
+18,C45,752,Mesothelioma,0,207,0.75,2.0,0.10
+19,C46,752,Kaposi sarcoma,0,19,0.08,0.19,0.01
+20,C50,752,Breast,0,7508,81.9,147.3,9.0
+21,C51,752,Vulva,0,222,1.7,4.4,0.18
+22,C52,752,Vagina,0,37,0.33,0.73,0.04
+23,C53,752,Cervix uteri,0,561,8.6,11.0,0.77
+24,C54,752,Corpus uteri,0,1510,13.1,29.6,1.6
+25,C56,752,Ovary,0,723,7.9,14.2,0.92
+26,C60,752,Penis,0,143,1.2,2.8,0.14
+27,C61,752,Prostate,0,11732,104.3,229.0,13.1
+28,C62,752,Testis,0,391,7.5,7.6,0.58
+29,C64,752,Kidney,0,1718,9.1,16.8,1.1
+30,C67,752,Bladder,0,3390,12.2,33.2,1.4
+31,C70-72,752," Brain, central nervous system",0,926,6.1,9.1,0.61
+32,C73,752,Thyroid,0,936,6.8,9.2,0.65
+33,C81,752,Hodgkin lymphoma,0,204,1.8,2.0,0.14
+34,C82-86+C88,752,Non-Hodgkin lymphoma,0,2375,10.7,23.2,1.2
+35,C90,752,Multiple myeloma,0,904,3.7,8.9,0.46
+36,C91-95,752,Leukaemia,0,1636,8.8,16.0,0.87

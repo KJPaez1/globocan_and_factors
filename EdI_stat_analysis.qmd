@@ -1,0 +1,16 @@
+---
+title: "EdI_stat_analysis"
+format: html
+editor: visual
+---
+
+## Define cancer groups by
+
+-   Incidence Quartile
+-   Incidence Quintile
+-   Hematological and solid
+-   Correlation with EdI
+-   Sex specific
+-   Stratified by sex
+
+## 

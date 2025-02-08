@@ -1,0 +1,35 @@
+Cancer code,ICD Code,Country,Label,Sex,Number,ASR (World),Crude rate,Cumulative risk
+40,C00-97/C44,740,All cancers excl. non-melanoma skin cancer,0,626,91.5,104.9,9.1
+1,C00-06,740,"Lip, oral cavity",0,8,1.2,1.3,0.14
+2,C07-08,740,Salivary glands,0,0,0.00,0.00,0.00
+3,C09-10,740,Oropharynx,0,1,0.14,0.17,0.00
+4,C11,740,Nasopharynx,0,5,0.68,0.84,0.08
+5,C12-13,740,Hypopharynx,0,0,0.00,0.00,0.00
+6,C15,740,Oesophagus,0,3,0.43,0.50,0.05
+7,C16,740,Stomach,0,25,3.5,4.2,0.34
+41,C18-C21,740,Colorectum,0,64,9.4,10.7,1.1
+11,C22,740,Liver and intrahepatic bile ducts,0,41,6.1,6.9,0.64
+12,C23,740,Gallbladder,0,0,0.00,0.00,0.00
+13,C25,740,Pancreas,0,24,3.5,4.0,0.41
+14,C32,740,Larynx,0,2,0.29,0.34,0.03
+15,C33-34,740,"Trachea, bronchus and lung",0,93,13.7,15.6,1.5
+16,C43,740,Melanoma of skin,0,1,0.16,0.17,0.02
+18,C45,740,Mesothelioma,0,0,0.00,0.00,0.00
+19,C46,740,Kaposi sarcoma,0,0,0.00,0.00,0.00
+20,C50,740,Breast,0,53,14.4,17.8,1.5
+21,C51,740,Vulva,0,0,0.00,0.00,0.00
+22,C52,740,Vagina,0,0,0.00,0.00,0.00
+23,C53,740,Cervix uteri,0,43,12.4,14.5,1.5
+24,C54,740,Corpus uteri,0,7,2.0,2.4,0.22
+25,C56,740,Ovary,0,15,3.9,5.1,0.46
+26,C60,740,Penis,0,2,0.79,0.67,0.16
+27,C61,740,Prostate,0,95,33.3,31.7,2.2
+28,C62,740,Testis,0,0,0.00,0.00,0.00
+29,C64,740,Kidney,0,2,0.28,0.34,0.04
+30,C67,740,Bladder,0,6,0.90,1.0,0.07
+31,C70-72,740," Brain, central nervous system",0,24,3.7,4.0,0.41
+32,C73,740,Thyroid,0,2,0.29,0.34,0.02
+33,C81,740,Hodgkin lymphoma,0,0,0.00,0.00,0.00
+34,C82-86+C88,740,Non-Hodgkin lymphoma,0,14,2.2,2.4,0.29
+35,C90,740,Multiple myeloma,0,7,1.0,1.2,0.09
+36,C91-95,740,Leukaemia,0,21,3.2,3.5,0.32

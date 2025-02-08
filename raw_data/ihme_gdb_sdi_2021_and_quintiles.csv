@@ -1,0 +1,1064 @@
+﻿Location ID,Location Name,2021 SDI Index Value,SDI Quintile
+7,"Korea, Democratic People Republic of",0.56945513,Low-middle
+8,Taiwan (Province of China),0.875139514,High
+10,Cambodia,0.473999694,Low-middle
+11,Indonesia,0.657934796,
+12,Lao People's Democratic Republic,0.489280726,Low-middle
+13,Malaysia,0.742552841,High-middle
+14,Maldives,0.657665453,Middle
+15,Myanmar,0.528492169,Low-middle
+16,Philippines,0.651920253,
+17,Sri Lanka,0.701371778,Middle
+18,Thailand,0.682657272,Middle
+19,Timor-Leste,0.450689053,Low
+20,Viet Nam,0.621620778,Middle
+22,Fiji,0.669068631,Middle
+23,Kiribati,0.525957502,Low-middle
+24,Marshall Islands,0.573524783,Low-middle
+25,Micronesia (Federated States of),0.588012508,Low-middle
+26,Papua New Guinea,0.418098053,Low
+27,Samoa,0.592340278,Low-middle
+28,Solomon Islands,0.429541799,Low
+29,Tonga,0.629100964,Middle
+30,Vanuatu,0.472796337,Low-middle
+33,Armenia,0.702496602,Middle
+34,Azerbaijan,0.695410598,Middle
+35,Georgia,0.733123642,High-middle
+36,Kazakhstan,0.718331647,High-middle
+37,Kyrgyzstan,0.609180728,Low-middle
+38,Mongolia,0.618744133,Low-middle
+39,Tajikistan,0.536613238,Low-middle
+40,Turkmenistan,0.683039569,Middle
+41,Uzbekistan,0.664964654,Middle
+43,Albania,0.706888685,Middle
+44,Bosnia Herzegovina,0.72296408,High-middle
+45,Bulgaria,0.764641037,High-middle
+46,Croatia,0.799069214,High-middle
+47,Czechia,0.828510085,High
+48,Hungary,0.791024669,High-middle
+49,North Macedonia,0.750954677,High-middle
+50,Montenegro,0.796532951,High-middle
+52,Romania,0.766321392,High-middle
+53,Serbia,0.79221264,High-middle
+54,Slovakia,0.808329132,High-middle
+55,Slovenia,0.842633141,High
+57,Belarus,0.784114127,High-middle
+58,Estonia,0.845787294,High
+59,Latvia,0.830715451,High
+60,Lithuania,0.857613278,High
+61,Moldova,0.732393345,High-middle
+62,Russian Federation,0.809111108,
+63,Ukraine,0.761045561,
+64,High-income,0.85286503,
+65,High-income Asia Pacific,0.877157409,
+66,Brunei Darussalam,0.810288851,High-middle
+67,Japan,0.871459701,
+68,"Korea, Republic of",0.887195638,High
+69,Singapore,0.856235308,High
+70,Australasia,0.845644432,
+71,Australia,0.844269408,High
+72,New Zealand,0.850145187,
+73,Western Europe,0.848728514,
+74,Andorra,0.869895393,High
+75,Austria,0.854558286,High
+76,Belgium,0.853674059,High
+77,Cyprus,0.835648571,High
+78,Denmark,0.897314038,High
+79,Finland,0.860244219,High
+80,France (metropolitan),0.837816091,High
+81,Germany,0.903515704,High
+82,Greece,0.791882294,High-middle
+83,Iceland,0.874628639,High
+84,Ireland,0.873989853,High
+85,Israel,0.809091066,High-middle
+86,Italy,0.805537426,
+87,Luxembourg,0.884636327,High
+88,Malta,0.801853922,High-middle
+89,The Netherlands,0.888375951,High
+90,Norway,0.916631633,
+91,Portugal,0.745394909,High-middle
+92,Spain,0.76948336,High-middle
+93,Sweden,0.887384361,
+94,Switzerland,0.933531726,High
+95,United Kingdom,0.858444983,
+96,Southern Latin America,0.743029817,
+97,Argentina,0.733528396,High-middle
+98,Chile,0.770149297,High-middle
+99,Uruguay,0.721713499,High-middle
+100,High-income North America,0.86421664,
+101,Canada,0.873181934,High
+102,United States of America,0.863243823,
+103,Latin America and Caribbean,0.646195591,
+104,Caribbean,0.6423146,
+105,Antigua and Barbuda,0.749849952,High-middle
+106,Bahamas,0.805143711,High-middle
+107,Barbados,0.74706542,High-middle
+108,Belize,0.61055234,Low-middle
+109,Cuba,0.669331767,Middle
+110,Dominica,0.747381853,High-middle
+111,Dominican Republic,0.619170694,Middle
+112,Grenada,0.6693506,Middle
+113,Guyana,0.650902479,Middle
+114,Haiti,0.448751017,Low
+115,Jamaica,0.68306364,Middle
+116,Saint Lucia,0.672601687,Middle
+117,Saint Vincent and the Grenadines,0.640886762,Middle
+118,Suriname,0.641162711,Middle
+119,Trinidad and Tobago,0.769401094,High-middle
+120,Andean Latin America,0.654007956,
+121,Bolivia,0.604496662,Low-middle
+122,Ecuador,0.665675436,Middle
+123,Peru,0.662036006,Middle
+124,Central Latin America,0.641931122,
+125,Colombia,0.65664043,Middle
+126,Costa Rica,0.704369665,Middle
+127,El Salvador,0.565569678,Low-middle
+128,Guatemala,0.540099007,Low-middle
+129,Honduras,0.513585699,Low-middle
+130,Mexico,0.66496867,
+131,Nicaragua,0.52364671,Low-middle
+132,Panama,0.706659844,Middle
+133,Venezuela,0.596599587,Low-middle
+134,Tropical Latin America,0.648941531,
+135,Brazil,0.648846512,
+136,Paraguay,0.650487525,Middle
+137,North Africa and Middle East,0.658716072,
+138,North Africa and Middle East,0.658716072,
+139,Algeria,0.659720087,Middle
+140,Bahrain,0.752218099,High-middle
+141,Egypt,0.603962121,Low-middle
+142,"Iran, Islamic Republic of",0.69729326,
+143,quintana Roo,0.662777495,Middle
+144,Jordan,0.725420238,High-middle
+145,Kuwait,0.846802486,High
+146,Lebanon,0.741226017,High-middle
+147,Libya,0.73508433,High-middle
+148,Morocco,0.561680434,Low-middle
+149,Palestine,0.629201641,Middle
+150,Oman,0.773801229,High-middle
+151,Qatar,0.846704498,High
+152,Saudi Arabia,0.814515567,High
+153,Syrian Arab Republic,0.622855859,Middle
+154,Tunisia,0.681701488,Middle
+155,Turkey,0.713246106,High-middle
+156,United Arab Emirates,0.849740335,High
+157,Yemen,0.453539967,Low
+158,South Asia,0.559642669,
+159,South Asia,0.559642669,
+160,Afghanistan,0.335068107,Low
+161,Bangladesh,0.493106236,Low-middle
+162,Bhutan,0.476724988,Low-middle
+163,India,0.5777383,
+164,Nepal,0.433952916,Low
+165,Pakistan,0.504275856,
+166,Sub-Saharan Africa,0.461224007,
+167,Central Sub-Saharan Africa,0.484517732,
+168,Angola,0.482946052,Low-middle
+169,Central African Republic,0.311026626,Low
+170,Congo,0.586908906,Low-middle
+171,"Congo, Democratic People Republic of",0.390178166,Low
+172,Equatorial Guinea,0.663978286,Middle
+173,Gabon,0.639080604,Middle
+174,Eastern Sub-Saharan Africa,0.412187942,
+175,Burundi,0.291288817,Low
+176,Comoros,0.476955685,Low-middle
+177,Djibouti,0.489200321,Low-middle
+178,Eritrea,0.404572056,Low
+179,Ethiopia,0.360727644,
+180,Kenya,0.524783146,
+181,Madagascar,0.401385119,Low
+182,Malawi,0.381985594,Low
+183,Mauritius,0.717977109,High-middle
+184,Mozambique,0.327475463,Low
+185,Rwanda,0.436140248,Low
+186,Seychelles,0.727579445,High-middle
+187,Somalia,0.077433678,Low
+189,"Tanzania, United Republic of",0.448565569,Low
+190,Uganda,0.426553554,Low
+191,Zambia,0.510230369,Low-middle
+192,Southern Sub-Saharan Africa,0.643347819,
+193,Botswana,0.643077969,Middle
+194,Lesotho,0.51157061,Low-middle
+195,Namibia,0.618073651,Low-middle
+196,South Africa,0.681292244,
+197,Eswatini,0.586216849,Low-middle
+198,Zimbabwe,0.475577138,Low-middle
+199,Western Sub-Saharan Africa,0.446420999,
+200,Benin,0.37452237,Low
+201,Burkina Faso,0.284470947,Low
+202,Cameroon,0.480364523,Low-middle
+203,Cape Verde,0.533600978,Low-middle
+204,Chad,0.243516859,Low
+205,Côte d'Ivoire,0.424540566,Low
+206,The Republic of the Gambia,0.410077462,Low
+207,Ghana,0.563348184,Low-middle
+208,Guinea,0.336555329,Low
+209,Guinea-Bissau,0.353448423,Low
+210,Liberia,0.353229409,Low
+211,Mali,0.271175692,Low
+212,Mauritania,0.495266784,Low-middle
+213,Niger,0.170310328,Low
+214,Nigeria,0.503698612,
+215,Sao Tome and Principe,0.503305577,Low-middle
+216,Senegal,0.409005254,Low
+217,Sierra Leone,0.35900867,Low
+218,Togo,0.410016394,Low
+298,American Samoa,0.726267628,High-middle
+305,Bermuda,0.821319794,High
+320,Cook Islands,0.778251758,High-middle
+349,Greenland,0.835640003,High
+351,Guam,0.80216771,High-middle
+354,Hong Kong Special Administrative Region of China,0.850450848,High
+361,Macao Special Administrative Region of China,0.874759481,High
+367,Monaco,0.909519124,High
+369,Nauru,0.627549782,Middle
+374,Niue,0.72621855,High-middle
+376,Northern Mariana Islands,0.777504838,High-middle
+380,Palau,0.754590186,High-middle
+385,Puerto Rico,0.824543903,High
+393,Saint Kitts and Nevis,0.756332641,High-middle
+396,San Marino,0.887883596,High
+413,Tokelau,0.68701842,Middle
+416,Tuvalu,0.578627145,Low-middle
+422,United States Virgin Islands,0.822988043,High
+433,Northern Ireland,0.841529955,High
+434,Scotland,0.853887319,High
+435,South Sudan,0.278377554,Low
+482,Eastern Cape,0.619101287,Middle
+483,Free State,0.678893967,Middle
+484,Gauteng,0.736905342,Middle
+485,KwaZulu-Natal,0.662386215,Middle
+486,Limpopo,0.613431617,Middle
+487,Mpumalanga,0.648324523,Middle
+488,North-West,0.654616033,Middle
+489,Northern Cape,0.665813245,Middle
+490,Western Cape,0.719732052,Middle
+491,Anhui,0.661241263,Middle
+492,Beijing,0.845876468,High
+493,Chongqing,0.713248108,High-middle
+494,Fujian,0.715426566,High-middle
+495,Gansu,0.629648423,Middle
+496,Guangdong,0.766590014,High-middle
+497,Guangxi,0.677747142,Middle
+498,Guizhou,0.622926981,Middle
+499,Hainan,0.70526301,Middle
+500,Hebei,0.703535825,Middle
+501,Heilongjiang,0.712062797,High-middle
+502,Henan,0.699479878,Middle
+503,Hubei,0.711832348,Middle
+504,Hunan,0.692120518,Middle
+505,Inner Mongolia,0.731684517,High-middle
+506,Jiangsu,0.755114988,High-middle
+507,Jiangxi,0.678215672,Middle
+508,Jilin,0.735628033,High-middle
+509,Liaoning,0.744555054,High-middle
+510,Ningxia,0.695319453,Middle
+511,Qinghai,0.648309483,Middle
+512,Shaanxi,0.724147628,High-middle
+513,Shandong,0.725623497,High-middle
+514,Shanghai,0.828661817,High
+515,Shanxi,0.711816196,Middle
+516,Sichuan,0.672696014,Middle
+517,Tianjin,0.833804693,High
+518,Tibet,0.483893412,Low-middle
+519,Xinjiang,0.70686651,Middle
+520,Yunnan,0.627205795,Middle
+521,Zhejiang,0.742041363,High-middle
+522,Sudan,0.542748299,Low-middle
+523,Alabama,0.826417909,High
+524,Alaska,0.857125567,High
+525,Arizona,0.847683473,High
+526,Arkansas,0.816754461,High
+527,California,0.871090459,High
+528,Colorado,0.875986347,High
+529,Connecticut,0.901972117,High
+530,Delaware,0.866079256,High
+531,District of Columbia,0.907426863,High
+532,Florida,0.861825164,High
+534,Hawaii,0.87084045,High
+535,Idaho,0.836495322,High
+536,Illinois,0.880611434,High
+537,Indiana,0.844050669,High
+538,Iowa,0.864342086,High
+539,Kansas,0.858890931,High
+540,Kentucky,0.821720983,High
+541,Louisiana,0.826669718,High
+542,Maine,0.866792716,High
+543,Maryland,0.891055635,High
+544,Massachusetts,0.90725037,High
+545,Michigan,0.864940748,High
+546,Minnesota,0.887884435,High
+547,Mississippi,0.811867151,High
+548,Missouri,0.849044295,High
+549,Montana,0.859517184,High
+550,Nebraska,0.865629234,High
+551,Nevada,0.847864111,High
+552,New Hampshire,0.898526447,High
+553,New Jersey,0.891850577,High
+554,New Mexico,0.832846305,High
+555,New York,0.88592619,High
+556,North Carolina,0.846173734,High
+557,North Dakota,0.876134627,High
+558,Ohio,0.851227042,High
+559,Oklahoma,0.82814491,High
+560,Oregon,0.870189511,High
+561,Pennsylvania,0.873950359,High
+562,Rhode Island,0.884283653,High
+563,South Carolina,0.838586487,High
+564,South Dakota,0.856263782,High
+565,Tennessee,0.831968835,High
+566,Texas,0.836777383,High
+567,Utah,0.854829295,High
+568,Vermont,0.89152237,High
+569,Virginia,0.881907315,High
+570,Washington,0.878013634,High
+571,West Virginia,0.82033351,High
+572,Wisconsin,0.873095963,High
+573,Wyoming,0.863142903,High
+4618,North East England,0.825842759,
+4619,North West England,0.843295382,
+4620,Yorkshire and the Humber,0.836407087,
+4621,East Midlands,0.835023214,
+4622,West Midlands,0.834648192,
+4623,East of England,0.85577408,
+4624,Greater London,0.9041535,
+4625,South East England,0.875365568,
+4626,South West England,0.860849638,
+4636,Wales,0.833274667,High
+4643,Aguascalientes,0.682557435,Middle
+4644,Baja California,0.704776585,Middle
+4645,Baja California Sur,0.710175355,Middle
+4646,Campeche,0.665087938,Middle
+4647,Coahuila,0.678075116,Middle
+4648,Colima,0.699338436,Middle
+4649,Chiapas,0.569756592,Middle
+4650,Chihuahua,0.674472052,Middle
+4651,Mexico City,0.759378377,Middle
+4652,Durango,0.640562517,Middle
+4653,Guanajuato,0.647044734,Middle
+4654,Guerrero,0.584126986,Middle
+4655,Hidalgo,0.633128071,Middle
+4656,Jalisco,0.677078025,Middle
+4657,México,0.681505383,Middle
+4658,Michoacán de Ocampo,0.613949206,Middle
+4659,Morelos,0.670104932,Middle
+4660,Nayarit,0.657928691,Middle
+4661,Nuevo León,0.712152517,Middle
+4662,Oaxaca,0.588389144,Middle
+4663,Puebla,0.622884968,Middle
+4664,Querétaro,0.684048164,Middle
+4665,Quintana Roo,0.682591131,Middle
+4666,San Luis Potosí,0.647579585,Middle
+4667,Sinaloa,0.678348037,Middle
+4668,Sonora,0.709903997,Middle
+4669,Tabasco,0.649850519,Middle
+4670,Tamaulipas,0.682912198,Middle
+4671,Tlaxcala,0.64898896,Middle
+4672,Veracruz de Ignacio de la Llave,0.627366789,Middle
+4673,Yucatán,0.654459012,Middle
+4674,Zacatecas,0.636670528,Middle
+4709,Aceh,0.671759479,Middle
+4710,North Sumatra,0.669499052,Middle
+4711,West Sumatra,0.66784543,Middle
+4712,Riau,0.724215125,High-middle
+4713,Jambi,0.640779478,Middle
+4714,South Sumatra,0.646421244,Middle
+4715,Bengkulu,0.613885329,Low-middle
+4716,Lampung,0.60891275,Low-middle
+4717,Bangka-Belitung Islands,0.644388463,Middle
+4718,Riau Islands,0.749803315,High-middle
+4719,North Kalimantan,0.754016402,High-middle
+4720,Jakarta,0.801237549,High-middle
+4721,West Java,0.644279321,Middle
+4722,Central Java,0.613780247,Low-middle
+4723,Yogyakarta,0.676829859,Middle
+4724,East Java,0.646540022,Middle
+4725,Banten,0.641544087,Middle
+4726,Bali,0.652382779,Middle
+4727,West Nusa Tenggara,0.587663369,Low-middle
+4728,East Nusa Tenggara,0.550545868,Low-middle
+4729,West Kalimantan,0.587438981,Low-middle
+4730,Central Kalimantan,0.639931265,Middle
+4731,South Kalimantan,0.622221912,Middle
+4732,East Kalimantan,0.761652368,High-middle
+4733,North Sulawesi,0.652614588,Middle
+4734,Central Sulawesi,0.617544908,Low-middle
+4735,South Sulawesi,0.622994177,Middle
+4736,Southeast Sulawesi,0.618324728,Low-middle
+4737,Gorontalo,0.571050074,Low-middle
+4738,West Sulawesi,0.576458969,Low-middle
+4739,Maluku,0.581624279,Low-middle
+4740,North Maluku,0.563444978,Low-middle
+4741,West Papua,0.676555222,Middle
+4742,Papua,0.646553603,Middle
+4749,England,0.860552694,
+4750,Acre,0.562074727,Low-middle
+4751,Alagoas,0.529742892,Low-middle
+4752,Amazonas,0.603585976,Low-middle
+4753,Amapá,0.629807813,Middle
+4754,Bahia,0.574142222,Low-middle
+4755,Ceará,0.563912693,Low-middle
+4756,Distrito Federal,0.776152007,High-middle
+4757,Espírito Santo,0.667428625,Middle
+4758,Goiás,0.639347711,Middle
+4759,Maranhão,0.49216193,Low-middle
+4760,Minas Gerais,0.648904701,Middle
+4761,Mato Grosso do Sul,0.642693307,Middle
+4762,Mato Grosso,0.647043759,Middle
+4763,Pará,0.577314362,Low-middle
+4764,Paraíba,0.557922296,Low-middle
+4765,Paraná,0.669860641,Middle
+4766,Pernambuco,0.583214758,Low-middle
+4767,Piaui,0.520291625,Low-middle
+4768,Rio de Janeiro,0.710470527,Middle
+4769,Rio Grande do Norte,0.585328241,Low-middle
+4770,Rondônia,0.618510473,Low-middle
+4771,Roraima,0.609883228,Low-middle
+4772,Rio Grande do Sul,0.689722837,Middle
+4773,Santa Catarina,0.694839624,Middle
+4774,Sergipe,0.590589987,Low-middle
+4775,São Paulo,0.711182598,Middle
+4776,Tocantins,0.601403,Low-middle
+4841,Andhra Pradesh,0.552472881,
+4842,Arunachal Pradesh,0.585180701,
+4843,Assam,0.573442541,
+4844,Bihar,0.45805086,
+4846,Chhattisgarh,0.540359862,
+4849,Delhi,0.728650031,
+4850,Goa,0.724320503,
+4851,Gujarat,0.622975241,
+4852,Haryana,0.629602575,
+4853,Himachal Pradesh,0.643033305,
+4854,Jammu & Kashmir and Ladakh,0.609583681,
+4855,Jharkhand,0.5242297,
+4856,Karnataka,0.585910724,
+4857,Kerala,0.666417241,
+4859,Madhya Pradesh,0.531115567,
+4860,Maharashtra,0.639494993,
+4861,Manipur,0.584558179,
+4862,Meghalaya,0.560405068,
+4863,Mizoram,0.62843683,
+4864,Nagaland,0.637648412,
+4865,Odisha,0.551364782,
+4867,Punjab,0.632901572,
+4868,Rajasthan,0.536745684,
+4869,Sikkim,0.635190296,
+4870,Tamil Nadu,0.629914474,
+4871,Telangana,0.567480596,
+4872,Tripura,0.555782348,
+4873,Uttar Pradesh,0.527579329,
+4874,Uttarakhand,0.661804198,
+4875,West Bengal,0.556791581,
+4910,Oslo,0.947286104,High
+4920,Rogaland,0.916764681,High
+4923,Møre og Romsdal,0.908149197,High
+4926,Nordland,0.898213885,High
+4940,Sweden except Stockholm,0.875759008,High
+4944,Stockholm,0.916765403,High
+25318,Abia,0.629261465,Middle
+25319,Adamawa,0.474621913,Low-middle
+25320,Akwa Ibom,0.589407255,Low-middle
+25321,Anambra,0.62862687,Middle
+25322,Bauchi,0.294070246,Low
+25323,Bayelsa,0.558802657,Low-middle
+25324,Benue,0.49859261,Low-middle
+25325,Borno,0.398589587,Low
+25326,Cross River,0.562249026,Low-middle
+25327,Delta,0.614789164,Low-middle
+25328,Ebonyi,0.540874531,Low-middle
+25329,Edo,0.6270757,Middle
+25330,Ekiti,0.609689218,Low-middle
+25331,Enugu,0.60872942,Low-middle
+25332,FCT (Abuja),0.621406693,Middle
+25333,Gombe,0.379904259,Low
+25334,Imo,0.629384576,Middle
+25335,Jigawa,0.287216991,Low
+25336,Kaduna,0.442437011,Low
+25337,Kano,0.408256207,Low
+25338,Katsina,0.297115378,Low
+25339,Kebbi,0.284501095,Low
+25340,Kogi,0.560608509,Low-middle
+25341,Kwara,0.536539828,Low-middle
+25342,Lagos,0.679573249,Middle
+25343,Nasarawa,0.518505244,Low-middle
+25345,Ogun,0.569648186,Low-middle
+25346,Ondo,0.592384037,Low-middle
+25347,Osun,0.627939478,Middle
+25348,Oyo,0.584428907,Low-middle
+25349,Plateau,0.530865998,Low-middle
+25350,Rivers,0.638605802,Middle
+25351,Sokoto,0.254081326,Low
+25352,Taraba,0.438659637,Low
+25353,Yobe,0.312002634,Low
+25354,Zamfara,0.267800369,Low
+35424,Hokkaidō,0.844008657,High
+35425,Aomori,0.828693902,High
+35426,Iwate,0.835652812,High
+35427,Miyagi,0.860058983,High
+35428,Akita,0.832380775,High
+35429,Yamagata,0.838535343,High
+35430,Fukushima,0.841218485,High
+35431,Ibaraki,0.860523394,High
+35432,Tochigi,0.861256293,High
+35433,Gunma,0.861770439,High
+35434,Saitama,0.85655373,High
+35435,Chiba,0.861645419,High
+35436,Tōkyō,0.929043198,High
+35437,Kanagawa,0.882743596,High
+35438,Niigata,0.845233683,High
+35439,Toyama,0.865453766,High
+35440,Ishikawa,0.860214615,High
+35441,Fukui,0.856579697,High
+35442,Yamanashi,0.858173518,High
+35443,Nagano,0.858966672,High
+35444,Gifu,0.853447894,High
+35445,Shizuoka,0.865720709,High
+35446,Aichi,0.883329296,High
+35447,Mie,0.860795402,High
+35448,Shiga,0.874377981,High
+35449,Kyōto,0.876288854,High
+35450,Ōsaka,0.876433199,High
+35451,Hyōgo,0.868490782,High
+35452,Nara,0.851417382,High
+35453,Wakayama,0.847330156,High
+35454,Tottori,0.836091465,High
+35455,Shimane,0.838873648,High
+35456,Okayama,0.862350161,High
+35457,Hiroshima,0.870170469,High
+35458,Yamaguchi,0.856635725,High
+35459,Tokushima,0.85729815,High
+35460,Kagawa,0.857948449,High
+35461,Ehime,0.843779842,High
+35462,Kōchi,0.835890247,High
+35463,Fukuoka,0.858415047,High
+35464,Saga,0.835872528,High
+35465,Nagasaki,0.829106338,High
+35466,Kumamoto,0.834728198,High
+35467,Ōita,0.848715974,High
+35468,Miyazaki,0.826768586,High
+35469,Kagoshima,0.832472168,High
+35470,Okinawa,0.821640127,High
+35494,Piemonte,0.806813454,High-middle
+35495,Valle d'Aosta,0.812706016,High-middle
+35496,Liguria,0.821521126,High-middle
+35497,Lombardia,0.829091495,High-middle
+35498,Provincia autonoma di Bolzano,0.838907386,High-middle
+35499,Provincia autonoma di Trento,0.829531919,High-middle
+35500,Veneto,0.808196606,High-middle
+35501,Friuli-Venezia Giulia,0.819858092,High-middle
+35502,Emilia-Romagna,0.829695157,High-middle
+35503,Toscana,0.811485035,High-middle
+35504,Umbria,0.799092255,High-middle
+35505,Marche,0.803749028,High-middle
+35506,Lazio,0.827195546,High-middle
+35507,Abruzzo,0.816496827,High-middle
+35508,Molise,0.787791453,High-middle
+35509,Campania,0.766832076,High-middle
+35510,Puglia,0.763946911,High-middle
+35511,Basilicata,0.783798467,High-middle
+35512,Calabria,0.775304844,High-middle
+35513,Sicilia,0.76255912,High-middle
+35514,Sardegna,0.772644153,High-middle
+35617,Baringo,0.514621991,Low-middle
+35618,Bomet,0.530035509,Low-middle
+35619,Bungoma,0.488274636,Low-middle
+35620,Busia,0.478169739,Low-middle
+35621,Elgeyo-Marakwet,0.525285148,Low-middle
+35622,Embu,0.548377806,Low-middle
+35623,Garissa,0.32165019,Low-middle
+35624,Homa Bay,0.507694781,Low-middle
+35625,Isiolo,0.435133975,Low-middle
+35626,Kajiado,0.501634865,Low-middle
+35627,Kakamega,0.508518514,Low-middle
+35628,Kericho,0.520411743,Low-middle
+35629,Kiambu,0.593046232,Low-middle
+35630,Kilifi,0.486686815,Low-middle
+35631,Kirinyaga,0.546740689,Low-middle
+35632,Kisii,0.549398782,Low-middle
+35633,Kisumu,0.548720604,Low-middle
+35634,Kitui,0.474177297,Low-middle
+35635,Kwale,0.47965716,Low-middle
+35636,Laikipia,0.576686523,Low-middle
+35637,Lamu,0.505575183,Low-middle
+35638,Machakos,0.55015778,Low-middle
+35639,Makueni,0.514230695,Low-middle
+35640,Mandera,0.239926734,Low-middle
+35641,Marsabit,0.399976958,Low-middle
+35642,Meru,0.509152437,Low-middle
+35643,Migori,0.482207014,Low-middle
+35644,Mombasa,0.598166665,Low-middle
+35645,Murang'a,0.55292203,Low-middle
+35646,Nairobi,0.684188978,Low-middle
+35647,Nakuru,0.5721094,Low-middle
+35648,Nandi,0.516039708,Low-middle
+35649,Narok,0.458227005,Low-middle
+35650,Nyamira,0.593029203,Low-middle
+35651,Nyandarua,0.577540201,Low-middle
+35652,Nyeri,0.579362636,Low-middle
+35653,Samburu,0.371475608,Low-middle
+35654,Siaya,0.484421932,Low-middle
+35655,Taita Taveta,0.542579215,Low-middle
+35656,Tana River,0.389358757,Low-middle
+35657,Tharaka Nithi,0.528624517,Low-middle
+35658,Trans Nzoia,0.549784994,Low-middle
+35659,Turkana,0.3683857,Low-middle
+35660,Uasin Gishu,0.567922916,Low-middle
+35661,Vihiga,0.527054687,Low-middle
+35662,Wajir,0.258713923,Low-middle
+35663,West Pokot,0.44769021,Low-middle
+43872,"Andhra Pradesh, Urban",0.647551072,Middle
+43873,"Arunachal Pradesh, Urban",0.68419449,Middle
+43874,"Assam, Urban",0.675446354,Middle
+43875,"Bihar, Urban",0.591183966,Low-middle
+43877,"Chhattisgarh, Urban",0.679763349,Middle
+43880,"Delhi, Urban",0.730151189,High-middle
+43881,"Goa, Urban",0.741223296,High-middle
+43882,"Gujarat, Urban",0.703282867,Middle
+43883,"Haryana, Urban",0.703932889,Middle
+43884,"Himachal Pradesh, Urban",0.748161993,High-middle
+43885,"Jammu & Kashmir and Ladakh, Urban",0.684343769,Middle
+43886,"Jharkhand, Urban",0.670458961,Middle
+43887,"Karnataka, Urban",0.658831954,Middle
+43888,"Kerala, Urban",0.672698917,Middle
+43890,"Madhya Pradesh, Urban",0.675329604,Middle
+43891,"Maharashtra, Urban",0.705231591,Middle
+43892,"Manipur, Urban",0.632756357,Middle
+43893,"Meghalaya, Urban",0.685725867,Middle
+43894,"Mizoram, Urban",0.670528706,Middle
+43895,"Nagaland, Urban",0.691617405,Middle
+43896,"Odisha, Urban",0.657514066,Middle
+43898,"Punjab, Urban",0.698430939,Middle
+43899,"Rajasthan, Urban",0.671757713,Middle
+43900,"Sikkim, Urban",0.695740102,Middle
+43901,"Tamil Nadu, Urban",0.676173806,Middle
+43902,"Telangana, Urban",0.667241582,Middle
+43903,"Tripura, Urban",0.633348097,Middle
+43904,"Uttar Pradesh, Urban",0.63211101,Middle
+43905,"Uttarakhand, Urban",0.746776963,High-middle
+43906,"West Bengal, Urban",0.6493937,Middle
+43908,"Andhra Pradesh, Rural",0.495920251,Low-middle
+43909,"Arunachal Pradesh, Rural",0.549469207,Low-middle
+43910,"Assam, Rural",0.551639812,Low-middle
+43911,"Bihar, Rural",0.434277772,Low
+43913,"Chhattisgarh, Rural",0.486779046,Low-middle
+43916,"Delhi, Rural",0.655467765,Middle
+43917,"Goa, Rural",0.687517157,Middle
+43918,"Gujarat, Rural",0.549296846,Low-middle
+43919,"Haryana, Rural",0.579178153,Low-middle
+43920,"Himachal Pradesh, Rural",0.629512224,Middle
+43921,"Jammu & Kashmir and Ladakh, Rural",0.572664356,Low-middle
+43922,"Jharkhand, Rural",0.463971644,Low
+43923,"Karnataka, Rural",0.526848679,Low-middle
+43924,"Kerala, Rural",0.659487084,Middle
+43926,"Madhya Pradesh, Rural",0.464482329,Low
+43927,"Maharashtra, Rural",0.574895865,Low-middle
+43928,"Manipur, Rural",0.560840633,Low-middle
+43929,"Meghalaya, Rural",0.519625901,Low-middle
+43930,"Mizoram, Rural",0.57456484,Low-middle
+43931,"Nagaland, Rural",0.600219084,Low-middle
+43932,"Odisha, Rural",0.520670909,Low-middle
+43934,"Punjab, Rural",0.585512634,Low-middle
+43935,"Rajasthan, Rural",0.478194737,Low-middle
+43936,"Sikkim, Rural",0.593976905,Low-middle
+43937,"Tamil Nadu, Rural",0.580536414,Low-middle
+43938,"Telangana, Rural",0.483176983,Low-middle
+43939,"Tripura, Rural",0.515999282,Low-middle
+43940,"Uttar Pradesh, Rural",0.490024946,Low-middle
+43941,"Uttarakhand, Rural",0.61464175,Low-middle
+43942,"West Bengal, Rural",0.502428983,Low-middle
+44533,China,0.717406624,
+44538,Other Union Territories,0.676062684,
+44539,"Other Union Territories, Rural",0.601933292,Low-middle
+44540,"Other Union Territories, Urban",0.708204745,Middle
+44643,Darlington,0.835427723,High
+44644,Northumberland,0.822333819,High
+44645,Stockton-on-Tees,0.829517602,High
+44646,Newcastle upon Tyne,0.871588115,High
+44647,North Tyneside,0.835247504,High
+44648,Redcar and Cleveland,0.796360243,High
+44649,County Durham,0.810754624,High
+44650,Gateshead,0.828579746,High
+44651,Middlesbrough,0.798976656,High
+44652,South Tyneside,0.799489743,High
+44653,Sunderland,0.817933435,High
+44654,Hartlepool,0.797297174,High
+44655,Cheshire East,0.884278805,High
+44656,Stockport,0.861014705,High
+44657,Trafford,0.896679044,High
+44658,Cheshire West and Chester,0.870242062,High
+44659,Sefton,0.825438177,High
+44660,Lancashire,0.839626361,High
+44661,Cumbria,0.842325739,High
+44662,Bolton,0.812595954,High
+44663,Wirral,0.818111684,High
+44664,Bury,0.828816843,High
+44665,St Helens,0.810914124,High
+44666,Warrington,0.878129342,High
+44667,Oldham,0.796704511,High
+44668,Rochdale,0.800322186,High
+44669,Wigan,0.80548334,High
+44670,Halton,0.835687566,High
+44671,Liverpool,0.847483043,High
+44672,Tameside,0.798557943,High
+44673,Salford,0.837393179,High
+44674,Blackburn with Darwen,0.810134059,High
+44675,Knowsley,0.811985259,High
+44676,Blackpool,0.788904606,High
+44677,Manchester,0.88057256,High
+44678,North Yorkshire,0.855520996,High
+44679,East Riding of Yorkshire,0.835193656,High
+44680,York,0.888110353,High
+44681,North East Lincolnshire,0.803563778,High
+44682,Calderdale,0.836996359,High
+44683,North Lincolnshire,0.824582845,High
+44684,Bradford,0.814923693,High
+44685,Kirklees,0.823525465,High
+44686,Leeds,0.86787974,High
+44687,Sheffield,0.854247178,High
+44688,Wakefield,0.804506533,High
+44689,Rotherham,0.803331209,High
+44690,Doncaster,0.793628472,High
+44691,"Kingston upon Hull, City of",0.797611011,High
+44692,Barnsley,0.788111758,High
+44693,Northamptonshire,0.839033237,High
+44694,Leicestershire,0.851100665,High
+44695,Lincolnshire,0.820522815,High
+44696,Rutland,0.852195785,High
+44697,Derby,0.844076935,High
+44698,Derbyshire,0.823174583,High
+44699,Nottinghamshire,0.822432787,High
+44700,Nottingham,0.858455251,High
+44701,Leicester,0.828051202,High
+44702,Warwickshire,0.865693767,High
+44703,"Herefordshire, County of",0.846194561,High
+44704,Solihull,0.871566638,High
+44705,Shropshire,0.842380445,High
+44706,Worcestershire,0.842681308,High
+44707,Staffordshire,0.828181727,High
+44708,Dudley,0.802585915,High
+44709,Coventry,0.847335743,High
+44710,Telford and Wrekin,0.826093832,High
+44711,Stoke-on-Trent,0.796441727,High
+44712,Walsall,0.790654736,High
+44713,Wolverhampton,0.810887602,High
+44714,Birmingham,0.836949232,High
+44715,Sandwell,0.793668776,High
+44716,Bedford,0.856962284,High
+44717,Central Bedfordshire,0.851318833,High
+44718,Suffolk,0.840388992,High
+44719,Hertfordshire,0.886963263,High
+44720,Essex,0.844953071,High
+44721,Cambridgeshire,0.887630336,High
+44722,Thurrock,0.818629818,High
+44723,Norfolk,0.836988602,High
+44724,Southend-on-Sea,0.825018651,High
+44725,Peterborough,0.837008458,High
+44726,Luton,0.838003231,High
+44727,Richmond upon Thames,0.932021729,High
+44728,Kensington and Chelsea,0.946366051,High
+44729,Barnet,0.885110546,High
+44730,Westminster,0.93701032,High
+44731,Bromley,0.869193749,High
+44732,Bexley,0.844097911,High
+44733,Redbridge,0.849278219,High
+44734,Merton,0.887252238,High
+44735,Brent,0.858683624,High
+44736,Hillingdon,0.892536477,High
+44737,Havering,0.834176853,High
+44738,Kingston upon Thames,0.908394132,High
+44739,Sutton,0.857530229,High
+44740,Harrow,0.858244679,High
+44741,Enfield,0.845516817,High
+44742,Croydon,0.851439949,High
+44743,Hammersmith and Fulham,0.934892187,High
+44744,Ealing,0.882007048,High
+44745,Greenwich,0.845443655,High
+44746,Wandsworth,0.924121015,High
+44747,Waltham Forest,0.840038834,High
+44748,Camden,0.936076172,High
+44749,Lambeth,0.916015975,High
+44750,Lewisham,0.85672931,High
+44751,Hounslow,0.896360928,High
+44752,Southwark,0.919165412,High
+44753,Newham,0.840477768,High
+44754,Barking and Dagenham,0.80642649,High
+44755,Haringey,0.8714663,High
+44756,Hackney,0.891329222,High
+44757,Islington,0.924302624,High
+44758,Tower Hamlets,0.903700654,High
+44759,Wokingham,0.910821902,High
+44760,Buckinghamshire,0.888192339,High
+44761,Surrey,0.904483995,High
+44762,Windsor and Maidenhead,0.915543426,High
+44763,West Berkshire,0.897124589,High
+44764,Hampshire,0.87199888,High
+44765,Bracknell Forest,0.890716234,High
+44766,West Sussex,0.863885895,High
+44767,Oxfordshire,0.899135231,High
+44768,Reading,0.90527187,High
+44769,Kent,0.844500542,High
+44770,Brighton and Hove,0.897901251,High
+44771,Medway,0.819461594,High
+44772,East Sussex,0.83898657,High
+44773,Portsmouth,0.864778156,High
+44774,Isle of Wight,0.826023587,High
+44775,Milton Keynes,0.886756129,High
+44776,Southampton,0.860211008,High
+44777,Slough,0.877374496,High
+44778,South Gloucestershire,0.88411864,High
+44779,Dorset,0.8514167,High
+44780,Wiltshire,0.859020608,High
+44781,North Somerset,0.85864883,High
+44782,Devon,0.854622345,High
+44783,Poole,0.862990852,High
+44784,Bath and North East Somerset,0.895075988,High
+44785,Gloucestershire,0.870918382,High
+44786,Somerset,0.842820976,High
+44787,Swindon,0.86670182,High
+44788,Torbay,0.812459589,High
+44789,"Bristol, City of",0.896565514,High
+44790,Bournemouth,0.870149525,High
+44791,Cornwall,0.839219489,High
+44792,Plymouth,0.84217698,High
+44850,New Zealand Maori population,0.770791784,High
+44851,New Zealand non-Maori population,0.870812225,High
+44852,Tigray,0.38400255,Low
+44853,Afar,0.286502778,Low
+44854,Amhara,0.322156172,Low
+44855,Oromia,0.337961203,Low
+44856,Somali,0.27014767,Low
+44857,Benishangul-Gumuz,0.323654895,Low
+44858,"Southern Nations, Nationalities, and Peoples",0.357248469,Low
+44859,Harari,0.539739601,Low
+44860,Gambella,0.460576186,Low
+44861,Addis Ababa,0.695287927,Low
+44862,Dire Dawa,0.542617703,Low
+44864,Alborz,0.748208954,Middle
+44865,Ardebil,0.658777858,Middle
+44866,East Azarbayejan,0.667933993,Middle
+44867,West Azarbayejan,0.626918833,Middle
+44868,Bushehr,0.708677286,Middle
+44869,Chahar Mahaal and Bakhtiari,0.678339055,Middle
+44870,Fars,0.715109154,Middle
+44871,Gilan,0.712361968,Middle
+44872,Golestan,0.656422158,Middle
+44873,Hamadan,0.666968762,Middle
+44874,Hormozgan,0.670775004,Middle
+44875,Ilam,0.705185457,Middle
+44876,Isfahan,0.709893952,Middle
+44877,Kerman,0.66878396,Middle
+44878,Kermanshah,0.674511267,Middle
+44879,North Khorasan,0.651483141,Middle
+44880,Khorasan-e-Razavi,0.67053956,Middle
+44881,South Khorasan,0.653364832,Middle
+44882,Khuzestan,0.669816556,Middle
+44883,Kohgiluyeh and Boyer-Ahmad,0.694488035,Middle
+44884,Kurdistan,0.642334326,Middle
+44885,Lorestan,0.669421197,Middle
+44886,Markazi,0.682789151,Middle
+44887,Mazandaran,0.729935836,Middle
+44888,Qazvin,0.687516004,Middle
+44889,Qom,0.694133773,Middle
+44890,Semnan,0.724001841,Middle
+44891,Sistan and Baluchistan,0.549869409,Middle
+44892,Tehran,0.776102826,Middle
+44893,Yazd,0.713637577,Middle
+44894,Zanjan,0.661463751,Middle
+44903,Belgorod oblast,0.803695074,High-middle
+44904,Bryansk oblast,0.792329315,High-middle
+44905,Vladimir oblast,0.788797618,High-middle
+44906,Voronezh oblast,0.810406591,High-middle
+44907,Ivanovo oblast,0.789631875,High-middle
+44908,Kaluga oblast,0.800527701,High-middle
+44909,Kostroma oblast,0.787756437,High-middle
+44910,Kursk oblast,0.793649987,High-middle
+44911,Lipetzk oblast,0.802916176,High-middle
+44912,Moscow oblast,0.828120859,High-middle
+44913,Oryol oblast,0.79451294,High-middle
+44914,Ryazan oblast,0.793693116,High-middle
+44915,Smolensk oblast,0.800950484,High-middle
+44916,Tambov oblast,0.790982828,High-middle
+44917,Tver oblast,0.799102213,High-middle
+44918,Tula oblast,0.797660828,High-middle
+44919,Yaroslavl oblast,0.805364359,High-middle
+44920,Moscow City,0.887772609,High-middle
+44921,Republic of Karelia,0.81238914,High-middle
+44922,Komi Republic,0.790079817,High-middle
+44923,Nenets autonomous district,0.800997369,High-middle
+44924,Arkhangelsk oblast without Nenets autonomous district,0.812017693,High-middle
+44925,Vologda oblast,0.786532281,High-middle
+44926,Kaliningrad oblast,0.803693646,High-middle
+44927,Leningrad oblast,0.814446452,High-middle
+44928,Murmansk oblast,0.829529044,High-middle
+44929,Novgorod oblast,0.779643289,High-middle
+44930,Pskov oblast,0.787746847,High-middle
+44931,Saint Petersburg,0.859435837,High-middle
+44932,Republic of Adygeya,0.783355473,High-middle
+44933,Republic of Kalmykia,0.754503495,High-middle
+44934,Republic of Crimea,0.713851386,High-middle
+44935,Krasnodar kray,0.799215014,High-middle
+44936,Astrakhan oblast,0.777754786,High-middle
+44937,Volgograd oblast,0.792090776,High-middle
+44938,Rostov oblast,0.804560133,High-middle
+44939,Sevastopol,0.778562755,High-middle
+44940,Republic of Dagestan,0.75489971,High-middle
+44941,Republic of Ingushetia,0.723181052,High-middle
+44942,Kabardino-Balkar Republic,0.773368211,High-middle
+44943,Karachay-Cherkess Republic,0.756823567,High-middle
+44944,Republic of North Ossetia-Alania,0.792451998,High-middle
+44945,Chechen Republic,0.697000298,High-middle
+44946,Stavropol kray,0.785308224,High-middle
+44947,Republic of Bashkortostan,0.807048582,High-middle
+44948,Republic of Mari El,0.777484633,High-middle
+44949,Republic of Mordovia,0.77934414,High-middle
+44950,Republic of Tatarstan,0.815624973,High-middle
+44951,Udmurt Republic,0.786843627,High-middle
+44952,Chuvash Republic,0.779169152,High-middle
+44953,Perm kray,0.796955473,High-middle
+44954,Kirov oblast,0.785897475,High-middle
+44955,Nizhny Novgorod oblast,0.81057854,High-middle
+44956,Orenburg oblast,0.78313786,High-middle
+44957,Penza oblast,0.790346819,High-middle
+44958,Samara oblast,0.814000588,High-middle
+44959,Saratov oblast,0.785980203,High-middle
+44960,Ulyanovsk oblast,0.782641776,High-middle
+44961,Kurgan oblast,0.76552614,High-middle
+44962,Sverdlovsk oblast,0.816064746,High-middle
+44963,Khanty-Mansi autonomous area,0.826709092,High-middle
+44964,Yamalo-Nenets autonomous area,0.837700215,High-middle
+44965,Tyumen oblast without autonomous areas,0.813017728,High-middle
+44966,Chelyabinsk oblast,0.793022546,High-middle
+44967,Republic of Altai,0.749802645,High-middle
+44968,Republic of Buryatia,0.778616162,High-middle
+44969,Republic of Tuva,0.692513465,High-middle
+44970,Republic of Khakassia,0.777318539,High-middle
+44971,Altai kray,0.777099855,High-middle
+44972,Zabaikalsk kray,0.740925147,High-middle
+44973,Krasnoyarsk kray,0.796852774,High-middle
+44974,Irkutsk oblast,0.77351672,High-middle
+44975,Kemerovo oblast,0.782797668,High-middle
+44976,Novosibirsk oblast,0.796528925,High-middle
+44977,Omsk oblast,0.791260764,High-middle
+44978,Tomsk oblast,0.802325795,High-middle
+44979,Republic of Sakha (Yakutia),0.814649347,High-middle
+44980,Kamchatka kray,0.798113769,High-middle
+44981,Primorsky kray,0.802659761,High-middle
+44982,Khabarovsk kray,0.818047393,High-middle
+44983,Amur oblast,0.793881993,High-middle
+44984,Magadan oblast,0.830546268,High-middle
+44985,Sakhalin oblast,0.822655388,High-middle
+44986,Jewish autonomous oblast,0.765463494,High-middle
+44987,Chukotka Autonomous Area,0.800770455,High-middle
+50559,Ukraine (without Crimea & Sevastopol),0.761743094,High-middle
+53432,Trøndelag,0.916773946,High
+53533,Mountain Province,0.51921863,Middle
+53534,Ifugao,0.597325624,Middle
+53535,Benguet,0.716293119,Middle
+53536,Abra,0.654173651,Middle
+53537,Apayao,0.60770129,Middle
+53538,Kalinga,0.575239213,Middle
+53539,La Union,0.661006064,Middle
+53540,Ilocos Norte,0.687657015,Middle
+53541,Ilocos Sur,0.671836522,Middle
+53542,Pangasinan,0.666135554,Middle
+53543,Nueva Vizcaya,0.616609509,Middle
+53544,Cagayan,0.63433253,Middle
+53545,Isabela,0.636783935,Middle
+53546,Quirino,0.575885131,Middle
+53547,Batanes,0.682565947,Middle
+53548,Bataan,0.660374268,Middle
+53549,Zambales,0.65425423,Middle
+53550,Tarlac,0.650760386,Middle
+53551,Pampanga,0.697271285,Middle
+53552,Bulacan,0.708002625,Middle
+53553,Nueva Ecija,0.650591609,Middle
+53554,Aurora,0.614063114,Middle
+53555,Rizal,0.710524418,Middle
+53556,Cavite,0.72917856,Middle
+53557,Laguna,0.701620417,Middle
+53558,Batangas,0.686055208,Middle
+53559,Quezon,0.630168626,Middle
+53560,Occidental Mindoro,0.46028876,Middle
+53561,Oriental Mindoro,0.60555167,Middle
+53562,Romblon,0.527572654,Middle
+53563,Palawan,0.527211201,Middle
+53564,Marinduque,0.549650294,Middle
+53565,Catanduanes,0.60942324,Middle
+53566,Camarines Norte,0.594459098,Middle
+53567,Sorsogon,0.600776304,Middle
+53568,Albay,0.640151269,Middle
+53569,Masbate,0.458060424,Middle
+53570,Camarines Sur,0.633743794,Middle
+53571,Capiz,0.5714003,Middle
+53572,Aklan,0.64042058,Middle
+53573,Antique,0.569823295,Middle
+53574,Negros Occidental,0.604235111,Middle
+53575,Iloilo,0.673508341,Middle
+53576,Guimaras,0.609860186,Middle
+53577,Negros Oriental,0.578181475,Middle
+53578,Cebu,0.658154663,Middle
+53579,Bohol,0.604933545,Middle
+53580,Siquijor,0.600945243,Middle
+53581,Southern Leyte,0.60149118,Middle
+53582,Eastern Samar,0.499800385,Middle
+53583,Northern Samar,0.52396754,Middle
+53584,Samar (Western Samar),0.527590959,Middle
+53585,Leyte,0.611701754,Middle
+53586,Biliran,0.643027685,Middle
+53587,Zamboanga Sibugay,0.549420679,Middle
+53588,Zamboanga Del Norte,0.53803222,Middle
+53589,Zamboanga Del Sur,0.630995266,Middle
+53590,Misamis Occidental,0.588184738,Middle
+53591,Bukidnon,0.551058807,Middle
+53592,Lanao Del Norte,0.587617211,Middle
+53593,Misamis Oriental,0.662873429,Middle
+53594,Camiguin,0.632089767,Middle
+53595,Davao Oriental,0.547236917,Middle
+53596,Davao de Oro,0.533098715,Middle
+53597,Davao Del Sur,0.659917629,Middle
+53598,Davao Occidental,0.578314908,Middle
+53599,Davao Del Norte,0.636970822,Middle
+53600,South Cotabato,0.632536869,Middle
+53601,Sultan Kudarat,0.519757294,Middle
+53602,Cotabato (North Cotabato),0.55211245,Middle
+53603,Sarangani,0.582418699,Middle
+53604,Agusan Del Norte,0.615707618,Middle
+53605,Agusan Del Sur,0.541666497,Middle
+53606,Surigao Del Sur,0.587486668,Middle
+53607,Surigao Del Norte,0.627545678,Middle
+53608,Dinagat Islands,0.622041414,Middle
+53609,Tawi-Tawi,0.535621341,Middle
+53610,Basilan,0.546108643,Middle
+53611,Sulu,0.48399862,Middle
+53612,Maguindanao,0.51070243,Middle
+53613,Lanao Del Sur,0.532909532,Middle
+53614,National Capital Region,0.751536473,Middle
+53615,Azad Jammu & Kashmir,0.541342775,Low-middle
+53616,Balochistan,0.417109886,Low
+53617,Gilgit-Baltistan,0.399312068,Low
+53618,Islamabad Capital Territory,0.695559154,Middle
+53619,Khyber Pakhtunkhwa,0.451366327,Low
+53620,Punjab,0.520053339,Low-middle
+53621,Sindh,0.513737094,Low-middle
+53660,Dolnośląskie,0.817783922,High
+53661,Kujawsko-Pomorskie,0.790185071,High
+53662,Łódzkie,0.805693677,High
+53663,Lubelskie,0.789673817,High
+53664,Lubuskie,0.791264292,High
+53665,Małopolskie,0.812434112,High
+53666,Mazowieckie,0.849859302,High
+53667,Opolskie,0.794191353,High
+53668,Podkarpackie,0.792282338,High
+53669,Podlaskie,0.786166754,High
+53670,Pomorskie,0.804282452,High
+53671,Śląskie,0.81907325,High
+53672,Świętokrzyskie,0.796464119,High
+53673,Warmińsko-Mazurskie,0.777449817,High
+53674,Wielkopolskie,0.813257407,High
+53675,Zachodniopomorskie,0.792789122,High
+60132,Vestland,0.917642172,High
+60133,Agder,0.907093137,High
+60134,Vestfold og Telemark,0.907351769,High
+60135,Innlandet,0.899977235,High
+60136,Viken,0.914602128,High
+60137,Troms og Finnmark,0.904453583,High

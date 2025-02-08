@@ -1,0 +1,186 @@
+regions	country_name
+Asia	Afghanistan
+Southern Europe	Albania
+Africa	Algeria
+Africa	Angola
+Latin America and the Caribbean	Argentina
+Asia	Armenia
+Oceania	Australia
+Western Europe	Austria
+Asia	Azerbaijan
+Latin America and the Caribbean	Bahamas
+Asia	Bahrain
+Asia	Bangladesh
+Latin America and the Caribbean	Barbados
+Eastern Europe	Belarus
+Western Europe	Belgium
+Latin America and the Caribbean	Belize
+Africa	Benin
+Asia	Bhutan
+Latin America and the Caribbean	Bolivia
+Southern Europe	Bosnia Herzegovina
+Africa	Botswana
+Latin America and the Caribbean	Brazil
+Asia	Brunei Darussalam
+Southern Europe	Bulgaria
+Africa	Burkina Faso
+Africa	Burundi
+Africa	Côte d'Ivoire
+Asia	Cambodia
+Africa	Cameroon
+Northern America	Canada
+Africa	Cape Verde
+Africa	Central African Republic
+Africa	Chad
+Latin America and the Caribbean	Chile
+Asia	China
+Latin America and the Caribbean	Colombia
+Africa	Comoros
+Africa	"Congo, Democratic People Republic of"
+Africa	"Congo, Republic of"
+Latin America and the Caribbean	Costa Rica
+Southern Europe	Croatia
+Latin America and the Caribbean	Cuba
+Southern Europe	Cyprus
+Eastern Europe	Czechia
+Northern Europe	Denmark
+Africa	Djibouti
+Latin America and the Caribbean	Dominican Republic
+Latin America and the Caribbean	Ecuador
+Africa	Egypt
+Latin America and the Caribbean	El Salvador
+Africa	Equatorial Guinea
+Africa	Eritrea
+Northern Europe	Estonia
+Africa	Eswatini
+Africa	Ethiopia
+Oceania	Fiji
+Northern Europe	Finland
+Western Europe	France (metropolitan)
+Latin America and the Caribbean	"France, Guadeloupe"
+Africa	"France, La Reunion"
+Latin America and the Caribbean	"France, Martinique"
+Latin America and the Caribbean	French Guyana
+Oceania	French Polynesia
+Africa	Gabon
+Asia	Gaza Strip and West Bank
+Eastern Europe	Georgia
+Western Europe	Germany
+Africa	Ghana
+Southern Europe	Greece
+Oceania	Guam
+Latin America and the Caribbean	Guatemala
+Africa	Guinea
+Africa	Guinea-Bissau
+Latin America and the Caribbean	Guyana
+Latin America and the Caribbean	Haiti
+Latin America and the Caribbean	Honduras
+Eastern Europe	Hungary
+Northern Europe	Iceland
+Asia	India
+Asia	Indonesia
+Asia	"Iran, Islamic Republic of"
+Asia	Iraq
+Northern Europe	Ireland
+Asia	Israel
+Southern Europe	Italy
+Latin America and the Caribbean	Jamaica
+Asia	Japan
+Asia	Jordan
+Asia	Kazakhstan
+Africa	Kenya
+Asia	"Korea, Democratic People Republic of"
+Asia	"Korea, Republic of"
+Asia	Kuwait
+Asia	Kyrgyzstan
+Asia	Lao People's Democratic Republic
+Northern Europe	Latvia
+Asia	Lebanon
+Africa	Lesotho
+Africa	Liberia
+Asia	Libya
+Northern Europe	Lithuania
+Western Europe	Luxembourg
+Africa	Madagascar
+Africa	Malawi
+Asia	Malaysia
+Asia	Maldives
+Africa	Mali
+Southern Europe	Malta
+Africa	Mauritania
+Africa	Mauritius
+Latin America and the Caribbean	Mexico
+Eastern Europe	Moldova
+Asia	Mongolia
+Southern Europe	Montenegro
+Africa	Morocco
+Africa	Mozambique
+Asia	Myanmar
+Asia	Namibia
+Asia	Nepal
+Oceania	New Caledonia
+Oceania	New Zealand
+Latin America and the Caribbean	Nicaragua
+Africa	Niger
+Africa	Nigeria
+Southern Europe	North Macedonia
+Northern Europe	Norway
+Asia	Oman
+Asia	Pakistan
+Latin America and the Caribbean	Panama
+Oceania	Papua New Guinea
+Latin America and the Caribbean	Paraguay
+Latin America and the Caribbean	Peru
+Asia	Philippines
+Eastern Europe	Poland
+Southern Europe	Portugal
+Latin America and the Caribbean	Puerto Rico
+Asia	Qatar
+Southern Europe	Romania
+Eastern Europe	Russian Federation
+Africa	Rwanda
+Latin America and the Caribbean	Saint Lucia
+Oceania	Samoa
+Africa	Sao Tome and Principe
+Asia	Saudi Arabia
+Africa	Senegal
+Southern Europe	Serbia
+Africa	Sierra Leone
+Asia	Singapore
+Eastern Europe	Slovakia
+Southern Europe	Slovenia
+Oceania	Solomon Islands
+Africa	Somalia
+Africa	South Africa
+Africa	South Sudan
+Southern Europe	Spain
+Asia	Sri Lanka
+Africa	Sudan
+Latin America and the Caribbean	Suriname
+Northern Europe	Sweden
+Western Europe	Switzerland
+Asia	Syrian Arab Republic
+Asia	Turkey
+Asia	Tajikistan
+Africa	"Tanzania, United Republic of"
+Asia	Thailand
+Western Europe	The Netherlands
+Africa	The Republic of the Gambia
+Asia	Timor-Leste
+Africa	Togo
+Latin America and the Caribbean	Trinidad and Tobago
+Africa	Tunisia
+Asia	Turkmenistan
+Africa	Uganda
+Eastern Europe	Ukraine
+Asia	United Arab Emirates
+Northern Europe	United Kingdom
+Northern America	United States of America
+Latin America and the Caribbean	Uruguay
+Asia	Uzbekistan
+Oceania	Vanuatu
+Latin America and the Caribbean	Venezuela
+Asia	Viet Nam
+Asia	Yemen
+Africa	Zambia
+Africa	Zimbabwe
