@@ -212,7 +212,7 @@ group_a <- c(
   "Prostate",
   "Colorectum",
   "Melanoma of skin",
-  "Colon",
+  "Corpus uteri",
   "Bladder"
 )
 
