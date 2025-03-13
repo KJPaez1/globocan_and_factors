@@ -725,7 +725,7 @@ selectedData_plot_gam_mir <- reactive({
 ::: {style="text-align: justify"}
 The smooth terms (`s`) were cubic regression splines (`bs="cr"`) with smoothing parameters selected by Generalized Cross Validation (GCV) criterion, and Mallows' Cp (`GCV.Cp`) estimation methods. The Effective Degrees of Freedom (EDF) for smoothing were controlled by the smoothing penalty on the term, and were selected during fitting by GCV. The basis dimension (`k-1` or `k`) choice for smooths sets the upper limit on the Degrees of Freedom (`df`). The `k-1` should be neither too small nor too large and computationally expensive. So, exact choice of `k` is not generally critical and 1 `df` is usually lost to the identifiability constraint on the smooth. The default `k-1` was 10.
 
-It's important to informally check the choice of `k`. If the EDF for a model term are much less than `k−1` , it may not be useful. However, if the EDF approaches `k−1` , checking can be important. A more costly alternative is to increase `k` and refit the model. If there are no significant changes, then `k` was sufficient. 
+It's important to informally check the choice of `k`. If the EDF for a model term are much less than `k−1`, it may not be useful. However, if the EDF approaches `k−1` , checking can be important. A more costly alternative is to increase `k` and refit the model. If there are no significant changes, then `k` was sufficient. 
 :::
 
 ## Row {data-height="500"}
