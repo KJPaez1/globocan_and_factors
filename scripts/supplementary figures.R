@@ -6,6 +6,7 @@ library(showtext)
 library(mgcv)
 library(patchwork)
 library(here)
+library(ggdist)
 
 # Import data
 source(here::here("scripts", "tidying data_cancer and indicators.R"))
