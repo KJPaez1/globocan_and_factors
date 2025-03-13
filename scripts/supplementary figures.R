@@ -148,13 +148,23 @@ supplementary_figure_1 <-
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_1,
+  filename = here("outputs", "FIG_S1.jpeg"),
+  width = 18,
+  height = 25,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_1,
   filename = here("outputs", "FIG_S1.png"),
   width = 18,
   height = 25,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -215,7 +225,7 @@ ggplot2::ggsave(
   filename = here("outputs", "FIG_S2.png"),
   width = 12,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -272,13 +282,23 @@ supplementary_figure_3 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_3,
+  filename = here("outputs", "FIG_S3.jpeg"),
+  width = 16,
+  height = 14,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_3,
   filename = here("outputs", "FIG_S3.png"),
   width = 16,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -336,13 +356,23 @@ supplementary_figure_4 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_4,
+  filename = here("outputs", "FIG_S4.jpeg"),
+  width = 16,
+  height = 18,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_4,
   filename = here("outputs", "FIG_S4.png"),
   width = 16,
   height = 18,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -412,13 +442,23 @@ supplementary_figure_5 <-
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_5,
+  filename = here("outputs", "FIG_S5.jpeg"),
+  width = 18,
+  height = 25,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_5,
   filename = here("outputs", "FIG_S5.png"),
   width = 18,
   height = 25,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -473,13 +513,23 @@ supplementary_figure_6 <-
     legend.justification = c(0.46, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_6,
+  filename = here("outputs", "FIG_S6.jpeg"),
+  width = 12,
+  height = 14,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_6,
   filename = here("outputs", "FIG_S6.png"),
   width = 12,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -536,13 +586,23 @@ supplementary_figure_7 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_7,
+  filename = here("outputs", "FIG_S7.jpeg"),
+  width = 16,
+  height = 14,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_7,
   filename = here("outputs", "FIG_S7.png"),
   width = 16,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -600,13 +660,23 @@ supplementary_figure_8 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_8,
+  filename = here("outputs", "FIG_S8.jpeg"),
+  width = 16,
+  height = 18,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_8,
   filename = here("outputs", "FIG_S8.png"),
   width = 16,
   height = 18,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -676,13 +746,23 @@ supplementary_figure_9 <-
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_9,
+  filename = here("outputs", "FIG_S9.jpeg"),
+  width = 18,
+  height = 25,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_9,
   filename = here("outputs", "FIG_S9.png"),
   width = 18,
   height = 25,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -737,13 +817,23 @@ supplementary_figure_10 <-
     legend.justification = c(0.46, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_10,
+  filename = here("outputs", "FIG_S10.jpeg"),
+  width = 12,
+  height = 14,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_10,
   filename = here("outputs", "FIG_S10.png"),
   width = 12,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -800,13 +890,23 @@ supplementary_figure_11 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_11,
+  filename = here("outputs", "FIG_S11.jpeg"),
+  width = 16,
+  height = 18,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_11,
   filename = here("outputs", "FIG_S11.png"),
   width = 16,
   height = 14,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -864,13 +964,23 @@ supplementary_figure_12 <-
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_12,
+  filename = here("outputs", "FIG_S12.jpeg"),
+  width = 16,
+  height = 18,
+  dpi = 500,
+  units = "in"
+)
+
 ## Save the combined plot as a PNG file
 ggplot2::ggsave(
   plot = supplementary_figure_12,
   filename = here("outputs", "FIG_S12.png"),
   width = 16,
   height = 18,
-  dpi = 300,
+  dpi = 500,
   units = "in"
 )
 
@@ -882,3 +992,4 @@ ggplot2::ggsave(
   height = 18,
   units = "in"
 )
+
