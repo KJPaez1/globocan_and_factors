@@ -521,20 +521,33 @@ ggplot2::ggsave(
 
 ## Define a function to create the ANOVA tests
 calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
-  ggplot2::ggplot(data, aes_string(x = indicator, y = "asr_world", fill = indicator)) +
-    # Add inverted density plot
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = "asr_world",
+    fill = indicator,
+    width = 0.5,
+    palette = "nejm",
+    alpha = 0.6,
+    xlab = label_x,
+    ylab = label_y,
+    facet.by = "cancer_type",
+    scales = "free",
+    nrow = 2,
+    ncol = 5
+  ) +
+    # Add density plots
     ggdist::stat_halfeye(
-      adjust = 0.6,
-      width = 0.5,
-      justification = -0.3, 
+      adjust = 1,
+      width = 0.6,
+      justification = -0.3,
       .width = 0,
-      alpha = 0.4
+      alpha = 0.4, 
+      fill = "#7876B1FF"  
     ) +
     # Add jittered points
-    ggbeeswarm::geom_quasirandom(alpha = 1, size = 3.5) +
-    # Cajas resumidas
-    ggplot2::geom_boxplot(width = 0.5, alpha = 0.7) +
-    # Add p-value annotations
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5) +
+    # Add p-value stars
     ggpubr::stat_pvalue_manual(
       anova_data,
       label = "p.adj.signif",
@@ -548,15 +561,31 @@ calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
     # Add labels for axes
     ggplot2::labs(x = label_x, y = label_y) +
     # Theme customization
-    ggpubr::theme_pubr() +
-    ggsci::
     ggplot2::theme(
-      axis.title = element_text(size = 26, color = "black", family = "Arial"),
-      axis.text = element_text(size = 26, color = "black", family = "Arial"),
-      axis.text.x = element_text(margin = margin(5, 0, 10, 0), angle = 35, hjust = 1), 
+      axis.title = element_text(
+        size = 26,
+        color = "black",
+        family = "Arial"
+      ),
+      axis.text = element_text(
+        size = 26,
+        color = "black",
+        family = "Arial"
+      ),
+      strip.text = element_text(
+        size = 26,
+        color = "black",
+        family = "Arial"
+      ),
+      panel.spacing = unit(1.5, "lines"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 10, 0),
+        angle = 35,
+        hjust = 1
+      ),
       axis.text.y = element_text(margin = margin(0, 5, 0, 10)),
-      strip.text = element_text(size = 26, color = "black", family = "Arial"),
-      panel.spacing = unit(1.5, "lines"))
+      legend.position = "none"
+    )
 }
 
 ## One-Way ANOVA test of incidence by EdI category
@@ -583,29 +612,6 @@ figure_4c <- calculate_anova(
   indicator = "sdi_categories", 
   label_x = "Sociodemographic Index (SDI)", 
   label_y = "Age-Standardized Rate (per 100,000)")
-
-
-## Combine all subplots into a single plot
-figure_4 <- (
-  figure_4a + figure_4b + figure_4c) +
-  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 1))
-
-## Save the combined plot as a JPEG file
-ggplot2::ggsave(
-  plot = figure_4,
-  filename = here::here("outputs", "FIG_4.jpeg"),
-  width = 26,
-  height = 26,
-  dpi = 500,
-  units = "in")
-
-## Save the combined plot as a EPS file
-ggplot2::ggsave(
-  plot = figure_4,
-  filename = here::here("outputs", "FIG_4.eps"),
-  width = 26,
-  height = 26,
-  units = "in")
 
 # Figure 5: One-Way ANOVA tests for mortality by socioEducation and Income indicators
 
@@ -634,8 +640,10 @@ figure_5c <- calculate_anova(
   label_x = "Sociodemographic Index (SDI)", 
   label_y = "Age-Standardized Rate (per 100,000)")
 
-
 ## Combine all subplots into a single plot
+figure_4 <- (
+  figure_4a + figure_4b + figure_4c) +
+  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 1))
 figure_5 <-
   ((figure_5a) + (figure_5b + theme(axis.title.y = element_blank())) + 
      patchwork::plot_layout(ncol = 2, widths = c(0.85, 3))) / figure_5c + 
