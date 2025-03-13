@@ -595,7 +595,11 @@ figure_4a <- calculate_anova(
   indicator = "edi_categories",
   label_x = "Education and Income Index (EdI)",
   label_y = "Age-Standardized Rate (per 100,000)"
-)
+  ) + 
+  ggplot2::labs(tag = "A)") +
+  ggplot2::theme(
+    plot.tag = ggplot2::element_text(size = 35, face = "bold"),
+    plot.tag.position = c(0.02, 0.95))
 
 ## One-Way ANOVA test of incidence by HDI category
 figure_4b <- calculate_anova(
@@ -622,7 +626,11 @@ figure_5a <- calculate_anova(
   indicator = "edi_categories",
   label_x = "Education and Income Index (EdI)",
   label_y = "Age-Standardized Rate (per 100,000)"
-)
+) + 
+  ggplot2::labs(tag = "B)") +
+  ggplot2::theme(
+    plot.tag = ggplot2::element_text(size = 35, face = "bold"),
+    plot.tag.position = c(0.09, 0.95))
 
 ## One-Way ANOVA test of incidence by HDI category
 figure_5b <- calculate_anova(
@@ -641,9 +649,14 @@ figure_5c <- calculate_anova(
   label_y = "Age-Standardized Rate (per 100,000)")
 
 ## Combine all subplots into a single plot
-figure_4 <- (
-  figure_4a + figure_4b + figure_4c) +
+figure_4 <- figure_4a + figure_4b + figure_4c + (figure_5a + figure_5b + plot_layout(ncol = 2, widths = c(0.85, 3))) + figure_5c + patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 1, 1, 1))
+
+
+/ (figure_5b + 
+  patchwork::plot_layout(ncol = 2, widths = c(0.85, 3))) / figure_5c +
   patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 1))
+
+
 figure_5 <-
   ((figure_5a) + (figure_5b + theme(axis.title.y = element_blank())) + 
      patchwork::plot_layout(ncol = 2, widths = c(0.85, 3))) / figure_5c + 
@@ -651,17 +664,17 @@ figure_5 <-
 
 ## Save the combined plot as a JPEG file
 ggplot2::ggsave(
-  plot = figure_5,
-  filename = here::here("outputs", "FIG_5.jpeg"),
-  width = 26,
-  height = 16,
-  dpi = 500,
+  plot = figure_4,
+  filename = here::here("outputs", "FIG_4.jpeg"),
+  width = 30,
+  height = 30,
+  dpi = 300,
   units = "in")
 
 ## Save the combined plot as a EPS file
 ggplot2::ggsave(
   plot = figure_5,
-  filename = here::here("outputs", "FIG_5.eps"),
+  filename = here::here("outputs", "FIG_4.eps"),
   width = 26,
   height = 16,
   units = "in")
