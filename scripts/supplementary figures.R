@@ -47,7 +47,7 @@ s_my_ggplot <- function(data, indicator, cancer, ...) {
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
       legend.title = element_blank(),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 18, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       axis.title.x = element_blank(),
@@ -83,7 +83,7 @@ s_my_ggplot_mir <- function(data, indicator, cancer, ...) {
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 18, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       axis.title.x = element_blank(),
@@ -136,8 +136,8 @@ supplementary_figure_1 <-
     title = "Group A",
     caption = "Education and Income index (EdI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -145,7 +145,7 @@ supplementary_figure_1 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -159,10 +159,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_1,
-  filename = here("outputs", "FIG_S1.png"),
+  filename = here("outputs", "FIG_S1.jpeg"),
   width = 18,
   height = 25,
   dpi = 500,
@@ -207,8 +207,8 @@ supplementary_figure_2 <-
     title = "Group B",
     caption = "Education and Income index (EdI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -216,14 +216,14 @@ supplementary_figure_2 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.46, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_2,
-  filename = here("outputs", "FIG_S2.png"),
+  filename = here("outputs", "FIG_S2.jpeg"),
   width = 12,
   height = 14,
   dpi = 500,
@@ -270,8 +270,8 @@ supplementary_figure_3 <-
     title = "Group C",
     caption = "Education and Income index (EdI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -279,7 +279,7 @@ supplementary_figure_3 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -293,10 +293,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_3,
-  filename = here("outputs", "FIG_S3.png"),
+  filename = here("outputs", "FIG_S3.jpeg"),
   width = 16,
   height = 14,
   dpi = 500,
@@ -344,8 +344,8 @@ supplementary_figure_4 <-
     title = "Group D",
     caption = "Education and Income index (EdI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -353,7 +353,7 @@ supplementary_figure_4 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -367,10 +367,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_4,
-  filename = here("outputs", "FIG_S4.png"),
+  filename = here("outputs", "FIG_S4.jpeg"),
   width = 16,
   height = 18,
   dpi = 500,
@@ -430,8 +430,8 @@ supplementary_figure_5 <-
     title = "Group A",
     caption = "Human Development Index (HDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -439,7 +439,7 @@ supplementary_figure_5 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -453,10 +453,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_5,
-  filename = here("outputs", "FIG_S5.png"),
+  filename = here("outputs", "FIG_S5.jpeg"),
   width = 18,
   height = 25,
   dpi = 500,
@@ -501,8 +501,8 @@ supplementary_figure_6 <-
     title = "Group B",
     caption = "Human Development Index (HDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -510,7 +510,7 @@ supplementary_figure_6 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.46, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -524,10 +524,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_6,
-  filename = here("outputs", "FIG_S6.png"),
+  filename = here("outputs", "FIG_S6.jpeg"),
   width = 12,
   height = 14,
   dpi = 500,
@@ -574,8 +574,8 @@ supplementary_figure_7 <-
     title = "Group C",
     caption = "Human Development Index (HDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -583,7 +583,7 @@ supplementary_figure_7 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -597,10 +597,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_7,
-  filename = here("outputs", "FIG_S7.png"),
+  filename = here("outputs", "FIG_S7.jpeg"),
   width = 16,
   height = 14,
   dpi = 500,
@@ -648,8 +648,8 @@ supplementary_figure_8 <-
     title = "Group D",
     caption = "Human Development Index (HDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -657,7 +657,7 @@ supplementary_figure_8 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -671,10 +671,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_8,
-  filename = here("outputs", "FIG_S8.png"),
+  filename = here("outputs", "FIG_S8.jpeg"),
   width = 16,
   height = 18,
   dpi = 500,
@@ -734,8 +734,8 @@ supplementary_figure_9 <-
     title = "Group A",
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -743,7 +743,7 @@ supplementary_figure_9 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.475, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -757,10 +757,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_9,
-  filename = here("outputs", "FIG_S9.png"),
+  filename = here("outputs", "FIG_S9.jpeg"),
   width = 18,
   height = 25,
   dpi = 500,
@@ -805,8 +805,8 @@ supplementary_figure_10 <-
     title = "Group B",
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -814,7 +814,7 @@ supplementary_figure_10 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.46, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -828,10 +828,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_10,
-  filename = here("outputs", "FIG_S10.png"),
+  filename = here("outputs", "FIG_S10.jpeg"),
   width = 12,
   height = 14,
   dpi = 500,
@@ -878,8 +878,8 @@ supplementary_figure_11 <-
     title = "Group C",
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -887,7 +887,7 @@ supplementary_figure_11 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -901,10 +901,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_11,
-  filename = here("outputs", "FIG_S11.png"),
+  filename = here("outputs", "FIG_S11.jpeg"),
   width = 16,
   height = 14,
   dpi = 500,
@@ -952,8 +952,8 @@ supplementary_figure_12 <-
     title = "Group D",
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 20, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 20, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -961,7 +961,7 @@ supplementary_figure_12 <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.47, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -975,10 +975,10 @@ ggplot2::ggsave(
   units = "in"
 )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = supplementary_figure_12,
-  filename = here("outputs", "FIG_S12.png"),
+  filename = here("outputs", "FIG_S12.jpeg"),
   width = 16,
   height = 18,
   dpi = 500,
@@ -994,3 +994,117 @@ ggplot2::ggsave(
   units = "in"
 )
 
+# Supplementary figure 13: One-Way ANOVA tests for MIR by socioeconomic development indicators
+
+## Define a function to create the ANOVA tests
+calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = "asr_world",
+    fill = indicator,
+    width = 0.5,
+    palette = "nejm",
+    alpha = 0.6,
+    xlab = label_x,
+    ylab = label_y,
+    facet.by = "cancer_type",
+    scales = "free",
+    nrow = 2,
+    ncol = 5
+  ) +
+    # Add density plots
+    ggdist::stat_halfeye(
+      adjust = 1,
+      width = 0.6,
+      justification = -0.3,
+      .width = 0,
+      alpha = 0.5
+    ) +
+    # Add jittered points
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5) +
+    # Add p-value stars
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 7.3
+    ) +
+    # Add facets by cancer type
+    ggplot2::facet_wrap(~ cancer_type, scales = "free", nrow = 2, ncol = 5) +
+    # Add labels for axes
+    ggplot2::labs(x = label_x, y = label_y) +
+    # Theme customization
+    ggplot2::theme(
+      axis.title = element_text(
+        size = 26,
+        color = "black"
+      ),
+      axis.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      strip.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      panel.spacing = unit(1.5, "lines"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 10, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 10)),
+      legend.position = "none"
+    )
+}
+
+## One-Way ANOVA test of mortality by EdI category
+supplementary_figure_13a <- calculate_anova(
+  data = data_mir_edi_globocan_8,
+  anova_data = pw_gh_test_mir_edi,
+  indicator = "edi_categories",
+  label_x = "Education and Income Index (EdI)",
+  label_y = "Mortality-to-Incidence Ratio (MIR)"
+)
+
+## One-Way ANOVA test of incidence by HDI category
+supplementary_figure_13b <- calculate_anova(
+  data = data_mir_hdi_globocan_8, 
+  anova_data = pw_gh_test_mir_hdi, 
+  indicator = "hdi_category", 
+  label_x = "Human Development Index (HDI)", 
+  label_y = "Mortality-to-Incidence Ratio (MIR)")
+
+## One-Way ANOVA test of incidence by SDI category
+supplementary_figure_13c <- calculate_anova(
+  data = data_mir_sdi_globocan_8, 
+  anova_data = pw_gh_test_mir_sdi, 
+  indicator = "sdi_categories", 
+  label_x = "Sociodemographic Index (SDI)", 
+  label_y = "Mortality-to-Incidence Ratio (MIR)")
+
+
+## Combine all subplots into a single plot
+supplementary_figure_13 <- 
+  supplementary_figure_13a / supplementary_figure_13b / supplementary_figure_13c + 
+  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 2.5))
+
+## Save the combined plot as a JPEG file
+ggplot2::ggsave(
+  plot = supplementary_figure_13,
+  filename = here::here("outputs", "FIG_S13.jpeg"),
+  width = 26,
+  height = 26,
+  dpi = 500,
+  units = "in")
+
+## Save the combined plot as a EPS file
+ggplot2::ggsave(
+  plot = supplementary_figure_13,
+  filename = here::here("outputs", "FIG_S13.eps"),
+  width = 26,
+  height = 26,
+  units = "in")
