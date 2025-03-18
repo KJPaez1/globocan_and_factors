@@ -28,7 +28,7 @@ heatmap <- function(data, title) {
     ggplot2::geom_tile(color = "white") +
     ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 4.5) +
     ggplot2::scale_fill_distiller(palette = "RdBu", direction = -1, limits = c(0, 0.8), name = bquote(R^2)) +
-    ggplot2::labs(title = title, x = "SocioEducation and Income Indicators") +
+    ggplot2::labs(title = title, x = "Socioeconomic Development Indicators ") +
     ggplot2::theme_minimal() +
     ggplot2::theme(
       axis.text.x = element_text(size = 15, color = "black"),
@@ -158,7 +158,7 @@ my_ggplot_mir <- function(data, indicator, cancer, ...) {
 ## Figures
 figure_a2 <- my_ggplot(
   data = globocan_8, indicator = "ed_i", cancer = "All cancers*") +
-  ggplot2::labs(x = "Education and Income index (EdI)")
+  ggplot2::labs(x = "Education and Income Index (EdI)")
 
 figure_b2 <- my_ggplot(
   data = globocan_8, indicator = "hdi", cancer = "All cancers*") +
@@ -170,7 +170,7 @@ figure_c2 <- my_ggplot(
 
 figure_d2 <- my_ggplot_mir(
   data = globocan_8, indicator = "ed_i", cancer = "All cancers*") +
-  ggplot2::labs(x = "Education and Income index (EdI)")
+  ggplot2::labs(x = "Education and Income Index (EdI)")
 
 figure_e2 <- my_ggplot_mir(
   data = globocan_8, indicator = "hdi", cancer = "All cancers*") +
@@ -312,7 +312,7 @@ my_ggplot_mir_1 <- function(data, indicator, cancer, ...) {
     )
 }
 
-## Part 1: Education and Income index (EdI)
+## Part 1: Education and Income Index (EdI)
 
 ## Create an empty list to store the plots
 plots_list <- list()
@@ -517,7 +517,7 @@ ggplot2::ggsave(
   height = 26,
   units = "in")
 
-# Figure 4: One-Way ANOVA tests for incidence by socioEducation and Income indicators
+# Figure 4: One-Way ANOVA tests for incidence by socioeconomic development indicators
 
 ## Define a function to create the ANOVA tests
 calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
@@ -616,7 +616,7 @@ figure_4c <- calculate_anova(
   label_x = "Sociodemographic Index (SDI)", 
   label_y = "Age-Standardized Rate (per 100,000)")
 
-# Figure 5: One-Way ANOVA tests for mortality by socioEducation and Income indicators
+# Figure 5: One-Way ANOVA tests for mortality by socioeconomic development indicators
 
 ## One-Way ANOVA test of mortality by EdI category
 figure_5a <- calculate_anova(
