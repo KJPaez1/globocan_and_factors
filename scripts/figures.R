@@ -561,8 +561,8 @@ figure_4a <- calculate_anova(
   anova_data = pw_gh_test_incidence_edi,
   indicator = "edi_categories",
   asr = "asr_world",
-  label_x = "Economic Development Index (EdI)",
-  label_y = "Age-Standardized Rate (per 100,000)"
+  label_x = "Education and Income Index (EdI)",
+  label_y = "Age-Standardized Incidence Rate (per 100,000)"
 )
 
 ## One-Way ANOVA test of incidence by HDI category
@@ -572,7 +572,7 @@ figure_4b <- calculate_anova(
   indicator = "hdi_category", 
   asr = "asr_world", 
   label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Rate (per 100,000)")
+  label_y = "Age-Standardized Incidence Rate (per 100,000)")
 
 ## One-Way ANOVA test of incidence by SDI category
 figure_4c <- calculate_anova(
@@ -581,7 +581,7 @@ figure_4c <- calculate_anova(
   indicator = "sdi_categories", 
   asr = "asr_world", 
   label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Age-Standardized Rate (per 100,000)")
+  label_y = "Age-Standardized Incidence Rate (per 100,000)")
 
 
 ## Combine all subplots into a single plot
@@ -614,8 +614,8 @@ figure_5a <- calculate_anova(
   anova_data = pw_gh_test_mortality_edi,
   indicator = "edi_categories",
   asr = "asr_world",
-  label_x = "Economic Development Index (EdI)",
-  label_y = "Age-Standardized Rate (per 100,000)"
+  label_x = "Education and Income Index (EdI)",
+  label_y = "Age-Standardized Mortality Rate (per 100,000)"
 )
 
 ## One-Way ANOVA test of incidence by HDI category
@@ -625,7 +625,7 @@ figure_5b <- calculate_anova(
   indicator = "hdi_category", 
   asr = "asr_world", 
   label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Rate (per 100,000)")
+  label_y = "Age-Standardized Mortality Rate (per 100,000)")
 
 ## One-Way ANOVA test of incidence by SDI category
 figure_5c <- calculate_anova(
@@ -634,7 +634,7 @@ figure_5c <- calculate_anova(
   indicator = "sdi_categories", 
   asr = "asr_world", 
   label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Age-Standardized Rate (per 100,000)")
+  label_y = "Age-Standardized Mortality Rate (per 100,000)")
 
 
 ## Combine all subplots into a single plot
@@ -668,7 +668,7 @@ figure_6a <- calculate_anova(
   anova_data = pw_gh_test_mir_edi,
   indicator = "edi_categories",
   asr = "asr_world",
-  label_x = "Economic Development Index (EdI)",
+  label_x = "Education and Income Index (EdI)",
   label_y = "Mortality-to-Incidence Ratio (MIR)"
 )
 
