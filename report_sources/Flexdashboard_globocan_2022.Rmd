@@ -27,6 +27,9 @@ library(nortest)
 library(stats)
 library(moments)
 library(broom)
+library(MetBrewer)
+library(colorspace)
+library(scales)
 
 # Fonts
 # library(extrafont)
@@ -1818,8 +1821,93 @@ renderPlotly({
 ## Column {data-width=600}
 
 ```{r}
-## Define a function to create the ANOVA tests
-calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) {
+## Extract the blue tones from the Benedictus palette
+blue_tones <- MetBrewer::met.brewer("Benedictus")[c(8, 9, 10, 11, 12)]
+
+## Define a function to create the ANOVA tests for incidence
+calculate_anova_incidence <- function(data, anova_data, indicator, asr, label_x, label_y, ...) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = asr,
+    fill = indicator,
+    palette = blue_tones,
+    facet.by = "cancer_type",
+    nrow = 2,
+    ncol = 5,
+    scales = "free",
+    xlab = label_x,
+    ylab = label_y,
+    width = 0.5
+  ) +
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 6
+    ) +
+    ggplot2::theme(
+      axis.title = element_text(size = 18, color = "black", family = "Syne"),
+      axis.text = element_text(size = 14, color = "black", family = "Syne"),
+      strip.text = element_text(size = 14, color = "black", family = "Syne"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 0, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 5))
+    ) +
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5)
+}
+
+## Extract the red tones from the Benedictus palette
+red_tones <- MetBrewer::met.brewer("Benedictus")[c(5, 4, 3, 2, 1)]
+
+## Define a function to create the ANOVA tests for mortality
+calculate_anova_mortality <- function(data, anova_data, indicator, asr, label_x, label_y, ...) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = asr,
+    fill = indicator,
+    facet.by = "cancer_type",
+    palette = red_tones,
+    nrow = 2,
+    ncol = 5,
+    scales = "free",
+    xlab = label_x,
+    ylab = label_y,
+    width = 0.5
+  ) +
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 6
+    ) +
+    ggplot2::theme(
+      axis.title = element_text(size = 18, color = "black", family = "Syne"),
+      axis.text = element_text(size = 14, color = "black", family = "Syne"),
+      strip.text = element_text(size = 14, color = "black", family = "Syne"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 0, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 5))
+    ) +
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5)
+}
+
+## Extract the red tones from the Benedictus palette
+red_tones <- MetBrewer::met.brewer("Benedictus")[c(6, 4, 3, 2, 1)]
+
+## Define a function to create the ANOVA tests for MIR
+calculate_anova_mir <- function(data, anova_data, indicator, asr, label_x, label_y, ...) {
   ggpubr::ggboxplot(
     data = data,
     x = indicator,
@@ -1857,7 +1945,7 @@ calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) 
 
 ```{r}
 ## One-Way ANOVA test of incidence by EdI category
-figure_4a <- calculate_anova(
+figure_4a <- calculate_anova_incidence(
   data = data_incidence_edi_globocan_8,
   anova_data = pw_gh_test_incidence_edi,
   indicator = "edi_categories",
@@ -1867,7 +1955,7 @@ figure_4a <- calculate_anova(
 )
 
 ## One-Way ANOVA test of incidence by HDI category
-figure_4b <- calculate_anova(
+figure_4b <- calculate_anova_incidence(
   data = data_incidence_hdi_globocan_8, 
   anova_data = pw_gh_test_incidence_hdi, 
   indicator = "hdi_category", 
@@ -1876,7 +1964,7 @@ figure_4b <- calculate_anova(
   label_y = "ASR (per 100,000)")
 
 ## One-Way ANOVA test of incidence by SDI category
-figure_4c <- calculate_anova(
+figure_4c <- calculate_anova_incidence(
   data = data_incidence_sdi_globocan_8, 
   anova_data = pw_gh_test_incidence_sdi, 
   indicator = "sdi_categories", 
@@ -1885,7 +1973,7 @@ figure_4c <- calculate_anova(
   label_y = "ASR (per 100,000)")
 
 ## One-Way ANOVA test of mortality by EdI category
-figure_5a <- calculate_anova(
+figure_5a <- calculate_anova_mortality(
   data = data_mortality_edi_globocan_8,
   anova_data = pw_gh_test_mortality_edi,
   indicator = "edi_categories",
@@ -1894,8 +1982,8 @@ figure_5a <- calculate_anova(
   label_y = "ASR (per 100,000)"
 )
 
-## One-Way ANOVA test of incidence by HDI category
-figure_5b <- calculate_anova(
+## One-Way ANOVA test of mortality by HDI category
+figure_5b <- calculate_anova_mortality(
   data = data_mortality_hdi_globocan_8, 
   anova_data = pw_gh_test_mortality_hdi, 
   indicator = "hdi_category", 
@@ -1903,8 +1991,8 @@ figure_5b <- calculate_anova(
   label_x = "HDI", 
   label_y = "ASR (per 100,000)")
 
-## One-Way ANOVA test of incidence by SDI category
-figure_5c <- calculate_anova(
+## One-Way ANOVA test of mortality by SDI category
+figure_5c <- calculate_anova_mortality(
   data = data_mortality_sdi_globocan_8, 
   anova_data = pw_gh_test_mortality_sdi, 
   indicator = "sdi_categories", 
@@ -1912,8 +2000,8 @@ figure_5c <- calculate_anova(
   label_x = "SDI", 
   label_y = "ASR (per 100,000)")
 
-## One-Way ANOVA test of mortality by EdI category
-figure_6a <- calculate_anova(
+## One-Way ANOVA test of MIR by EdI category
+figure_6a <- calculate_anova_mir(
   data = data_mir_edi_globocan_8,
   anova_data = pw_gh_test_mir_edi,
   indicator = "edi_categories",
@@ -1922,8 +2010,8 @@ figure_6a <- calculate_anova(
   label_y = "MIR"
 )
 
-## One-Way ANOVA test of incidence by HDI category
-figure_6b <- calculate_anova(
+## One-Way ANOVA test of MIR by HDI category
+figure_6b <- calculate_anova_mir(
   data = data_mir_hdi_globocan_8, 
   anova_data = pw_gh_test_mir_hdi, 
   indicator = "hdi_category", 
@@ -1931,8 +2019,8 @@ figure_6b <- calculate_anova(
   label_x = "HDI", 
   label_y = "MIR")
 
-## One-Way ANOVA test of incidence by SDI category
-figure_6c <- calculate_anova(
+## One-Way ANOVA test of MIR by SDI category
+figure_6c <- calculate_anova_mir(
   data = data_mir_sdi_globocan_8, 
   anova_data = pw_gh_test_mir_sdi, 
   indicator = "sdi_categories", 
