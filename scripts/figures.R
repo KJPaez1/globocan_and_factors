@@ -5,6 +5,10 @@ library(mgcv)
 library(patchwork)
 library(here)
 library(ggdist)
+library(MetBrewer)
+library(colorspace)
+library(scales)
+library(monochromeR)
 
 # Fonts
 # library(extrafont)
@@ -519,15 +523,107 @@ ggplot2::ggsave(
 
 # Figure 4: One-Way ANOVA tests for incidence by socioeconomic development indicators
 
-## Define a function to create the ANOVA tests
-calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
+## Identify the blue tones from the Benedictus palette
+
+## Show the Benedictus palette
+scales::show_col(MetBrewer::met.brewer("Benedictus"))
+
+## Extract the blue tones from the Benedictus palette
+blue_tones <- MetBrewer::met.brewer("Benedictus")[c(8, 10, 11, 12, 13)]
+
+## Darken the blue tones by 20% in HLS space to generate a new palette
+dark_blue_tones <- colorspace::darken(blue_tones, amount = 0.4, space = "HLS")
+
+## Show the dark blue tones from the new palette
+scales::show_col(dark_blue_tones)
+
+## Show colors from the IGV palette
+scales::show_col(ggsci::pal_igv("default")(51))
+
+## Generate a dark blue palette using monochromeR
+dark_blue_palette <- monochromeR::generate_palette(
+  "#1a318b", modification = "go_darker", n_colours = 5, view_palette = TRUE)
+
+## Lighten the monochromeR dark blue palette by 30%
+dark_blue_palette_lighten <- colorspace::lighten(dark_blue_palette, amount = 0.5, space = "HLS")
+
+## Define the function to create the ANOVA tests for incidences
+calculate_anova_incidence <- function(data, anova_data, indicator, label_x, label_y, ...) {
   ggpubr::ggboxplot(
     data = data,
     x = indicator,
     y = "asr_world",
     fill = indicator,
+    palette = blue_tones,
     width = 0.5,
-    palette = "nejm",
+    alpha = 0.6,
+    xlab = label_x,
+    ylab = label_y,
+    facet.by = "cancer_type",
+    scales = "free",
+    nrow = 2,
+    ncol = 5
+  ) +
+    # Add density plots
+    ggdist::stat_halfeye(
+      adjust = 1,
+      width = 0.6,
+      justification = -0.3,
+      .width = 0,
+      alpha = 0.5
+    ) +
+    # Add jittered points
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5) +
+    # Add p-value stars
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 7.3
+    ) +
+    # Add facets by cancer type
+    ggplot2::facet_wrap(~ cancer_type, scales = "free", nrow = 2, ncol = 5) +
+    # Add labels for axes
+    ggplot2::labs(x = label_x, y = label_y) +
+    # Theme customization
+    ggplot2::theme(
+      axis.title = element_text(
+        size = 26,
+        color = "black"
+      ),
+      axis.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      strip.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      panel.spacing = unit(1.5, "lines"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 10, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 10)),
+      legend.position = "none"
+    )
+}
+
+## Extract the red tones from the Benedictus palette
+red_tones <- MetBrewer::met.brewer("Benedictus")[c(6, 4, 3, 2, 1)]
+
+## Define the function to create the ANOVA tests for mortality
+calculate_anova_mortality <- function(data, anova_data, indicator, label_x, label_y, ...) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = "asr_world",
+    fill = indicator,
+    palette = red_tones,
+    width = 0.5,
     alpha = 0.6,
     xlab = label_x,
     ylab = label_y,
@@ -585,7 +681,7 @@ calculate_anova <- function(data, anova_data, indicator, label_x, label_y) {
 }
 
 ## One-Way ANOVA test of incidence by EdI category
-figure_4a <- calculate_anova(
+figure_4a <- calculate_anova_incidence(
   data = data_incidence_edi_globocan_8,
   anova_data = pw_gh_test_incidence_edi,
   indicator = "edi_categories",
@@ -599,7 +695,7 @@ figure_4a <- calculate_anova(
     axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by HDI category
-figure_4b <- calculate_anova(
+figure_4b <- calculate_anova_incidence(
   data = data_incidence_hdi_globocan_8, 
   anova_data = pw_gh_test_incidence_hdi, 
   indicator = "hdi_category", 
@@ -609,7 +705,7 @@ figure_4b <- calculate_anova(
   ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by SDI category
-figure_4c <- calculate_anova(
+figure_4c <- calculate_anova_incidence(
   data = data_incidence_sdi_globocan_8, 
   anova_data = pw_gh_test_incidence_sdi, 
   indicator = "sdi_categories", 
@@ -619,7 +715,7 @@ figure_4c <- calculate_anova(
 # Figure 5: One-Way ANOVA tests for mortality by socioeconomic development indicators
 
 ## One-Way ANOVA test of mortality by EdI category
-figure_5a <- calculate_anova(
+figure_5a <- calculate_anova_mortality(
   data = data_mortality_edi_globocan_8,
   anova_data = pw_gh_test_mortality_edi,
   indicator = "edi_categories",
@@ -633,7 +729,7 @@ figure_5a <- calculate_anova(
     axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by HDI category
-figure_5b <- calculate_anova(
+figure_5b <- calculate_anova_mortality(
   data = data_mortality_hdi_globocan_8, 
   anova_data = pw_gh_test_mortality_hdi, 
   indicator = "hdi_category", 
@@ -643,7 +739,7 @@ figure_5b <- calculate_anova(
   ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by SDI category
-figure_5c <- calculate_anova(
+figure_5c <- calculate_anova_mortality(
   data = data_mortality_sdi_globocan_8, 
   anova_data = pw_gh_test_mortality_sdi, 
   indicator = "sdi_categories", 
@@ -672,6 +768,8 @@ ggplot2::ggsave(
   width = 26,
   height = 16,
   units = "in")
+
+
 
 # Figure 5: One-Way ANOVA test of mortality by EdI category
 # calculate_anova <- function(data, cancer_type) {
