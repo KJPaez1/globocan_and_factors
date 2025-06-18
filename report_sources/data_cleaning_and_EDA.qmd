@@ -113,7 +113,7 @@ cancer_code = clean_names(cancer_code)
 
 globocan_0 <- merge(globocan, cancer_code, by = "cancer_code", all.x = TRUE)
 
-globocan_0 = 
+globocan_0 <- 
   globocan_0 |>
   rename(cancer_type = "label.y",
         Country_name = "label.x") |>
