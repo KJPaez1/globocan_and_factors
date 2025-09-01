@@ -751,7 +751,6 @@ figure_5c <- calculate_anova_mortality(
 ## Combine all subplots into a single plot
 figure_4 <- figure_4a + figure_4b + figure_4c + (figure_5a + figure_5b + plot_layout(ncol = 2, widths = c(0.85, 3))) + figure_5c + patchwork::plot_layout(ncol = 1, heights = c(1, 1, 1, 1, 1))
 
-
 ## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = figure_4,
