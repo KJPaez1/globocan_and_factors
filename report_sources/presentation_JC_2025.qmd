@@ -1,0 +1,249 @@
+---
+title: "Presentacion_JC_2025"
+author: "Carlos Ballon-Salcedo"
+format: pptx
+editor: visual
+---
+
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+
+## Bullets
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+# Load packages
+
+```{r}
+pacman::p_load(rio, here, tidyverse, ggsci, ggrepel, ggpubr, grid, ggh4x)
+```
+
+# Import data
+
+```{r}
+data_inc_latam <- import(here("data", "clean", "dataset-asr-inc-age-20-69-latam.csv"))
+
+data_inc_no_latam <- import(here("data", "clean", "dataset-asr-inc-age-20-69-no-latam.csv"))
+
+data_mor_latam <- import(here("data", "clean", "dataset-asr-mort-age-20-69-latam.csv"))
+
+data_mor_no_latam <- import(here("data", "clean", "dataset-asr-mort-age-20-69-no-latam.csv"))
+```
+
+# Incidence LATAM
+
+```{r}
+data_inc_latam <- data_inc_latam |>
+  mutate(
+    Sex = factor(Sex) |> 
+      fct_recode("Varones" = "1", "Mujeres" = "2"))
+
+# Crear dataframe de breaks y labels para el eje secundario
+sec_y <- data_inc_latam |>
+  filter(Year == max(Year)) |>
+  select(`ASR (World)`, Sex) |>
+  setNames(c("breaks", "labels"))
+
+# Gráfico con eje secundario etiquetado y coloreado
+F1 <- ggplot(
+  data = data_inc_latam, 
+  aes(x = factor(Year), y = `ASR (World)`, color = Sex, group = Sex)
+  ) +
+  geom_point(size = 2, shape = 19) +
+  geom_smooth(size = 1.2, se = FALSE, method = "loess", span = 0.30) +
+  scale_y_continuous(sec.axis = dup_axis(breaks = sec_y$breaks, labels = sec_y$labels)) +
+  ggsci::scale_color_lancet() +
+  ggpubr::theme_classic2() +
+  ggpubr::labs_pubr() +
+  labs(
+    y = "Tasa estandarizada por edad (por 100,000)", 
+    title = "Incidencia en América Latina") +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_line(),
+    axis.text.y.right = element_text(color = pal_lancet(palette = "lanonc")(2)),
+    axis.title.y.right = element_blank(),
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.title.x = element_blank()
+  )
+
+## Save the combined plot as a PNG file
+ggplot2::ggsave(
+  plot = F1,
+  filename = here::here("outputs", "LATAM_incidence.png"),
+  width = 7,
+  height = 5,
+  dpi = 300,
+  units = "in")
+```
+
+# Mortality LATAM
+
+```{r}
+data_mor_latam <- data_mor_latam |>
+  mutate(
+    Sex = factor(Sex) |> 
+      fct_recode("Varones" = "1", "Mujeres" = "2"))
+
+# Crear dataframe de breaks y labels para el eje secundario
+sec_y <- data_mor_latam |>
+  filter(Year == max(Year)) |>
+  select(`ASR (World)`, Sex) |>
+  setNames(c("breaks", "labels"))
+
+# Gráfico con eje secundario etiquetado y coloreado
+F2 <- ggplot(
+  data = data_mor_latam, 
+  aes(x = factor(Year), y = `ASR (World)`, color = Sex, group = Sex)
+  ) +
+  geom_point(size = 2, shape = 19) +
+  geom_smooth(size = 1.2, se = FALSE, method = "loess", span = 0.30) +
+  scale_y_continuous(sec.axis = dup_axis(breaks = sec_y$breaks, labels = sec_y$labels)) +
+  ggsci::scale_color_lancet() +
+  ggpubr::theme_classic2() +
+  ggpubr::labs_pubr() +
+  labs(
+    y = "Tasa estandarizada por edad (por 100,000)", 
+    title = "Mortalidad en América Latina") +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_line(),
+    axis.text.y.right = element_text(color = pal_lancet(palette = "lanonc")(2)),
+    axis.title.y.right = element_blank(),
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.title.x = element_blank()
+  )
+
+## Save the combined plot as a PNG file
+ggplot2::ggsave(
+  plot = F2,
+  filename = here::here("outputs", "LATAM_mortality.png"),
+  width = 7,
+  height = 5,
+  dpi = 300,
+  units = "in")
+```
+
+# Incidence High-income countries
+
+```{r}
+data_inc_no_latam <- data_inc_no_latam  |>
+  mutate(
+    Sex = factor(Sex) |> 
+      fct_recode("Varones" = "1", "Mujeres" = "2"))
+
+# Crear dataframe de breaks y labels para el eje secundario
+sec_y <- data_inc_no_latam  |>
+  filter(Year == max(Year)) |>
+  select(`ASR (World)`, Sex) |>
+  setNames(c("breaks", "labels"))
+
+# Gráfico con eje secundario etiquetado y coloreado
+F3 <- ggplot(
+  data = data_inc_no_latam , 
+  aes(x = factor(Year), y = `ASR (World)`, color = Sex, group = Sex)
+  ) +
+  geom_point(size = 2, shape = 19) +
+  geom_smooth(size = 1.2, se = FALSE, method = "loess", span = 0.30) +
+  scale_y_continuous(sec.axis = dup_axis(breaks = sec_y$breaks, labels = sec_y$labels)) +
+  ggsci::scale_color_lancet() +
+  ggpubr::theme_classic2() +
+  ggpubr::labs_pubr() +
+  labs(
+    y = "Tasa estandarizada por edad (por 100,000)", 
+    title = "Incidencia en países de ingresos altos") +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_line(),
+    axis.text.y.right = element_text(color = pal_lancet(palette = "lanonc")(2)),
+    axis.title.y.right = element_blank(),
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(), 
+    axis.title.x = element_blank()
+  )
+
+## Save the combined plot as a PNG file
+ggplot2::ggsave(
+  plot = F3,
+  filename = here::here("outputs", "non_LATAM_incidence.png"),
+  width = 7,
+  height = 5,
+  dpi = 300,
+  units = "in")
+```
+
+# Mortality High-income countries
+
+```{r}
+data_mor_no_latam <- data_mor_no_latam  |>
+  mutate(
+    Sex = factor(Sex) |> 
+      fct_recode("Varones" = "1", "Mujeres" = "2"))
+
+# Crear dataframe de breaks y labels para el eje secundario
+sec_y <- data_mor_no_latam  |>
+  filter(Year == max(Year)) |>
+  select(`ASR (World)`, Sex) |>
+  setNames(c("breaks", "labels"))
+
+# Gráfico con eje secundario etiquetado y coloreado
+F4 <- ggplot(
+  data = data_mor_no_latam , 
+  aes(x = factor(Year), y = `ASR (World)`, color = Sex, group = Sex)
+  ) +
+  geom_point(size = 2, shape = 19) +
+  geom_smooth(size = 1.2, se = FALSE, method = "loess", span = 0.30) +
+  scale_y_continuous(sec.axis = dup_axis(breaks = sec_y$breaks, labels = sec_y$labels)) +
+  ggsci::scale_color_lancet() +
+  ggpubr::theme_classic2() +
+  ggpubr::labs_pubr() +
+  labs(
+    y = "Tasa estandarizada por edad (por 100,000)", 
+    title = "Mortalidad en países de ingresos altos") +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_line(),
+    panel.grid.minor = element_line(),
+    axis.text.y.right = element_text(color = pal_lancet(palette = "lanonc")(2)),
+    axis.title.y.right = element_blank(),
+    axis.line.y.right = element_blank(),
+    axis.ticks.y.right = element_blank(),
+    axis.title.x = element_blank()
+  )
+
+## Save the combined plot as a PNG file
+ggplot2::ggsave(
+  plot = F4,
+  filename = here::here("outputs", "non_LATAM_mortality.png"),
+  width = 7,
+  height = 5,
+  dpi = 300,
+  units = "in")
+```
+
+```{r}
+F5 <- ggarrange(F1, F2, F3, F4, ncol = 4, nrow = 1)
+
+ggplot2::ggsave(
+  plot = F5,
+  filename = here::here("outputs", "merge.png"),
+  width = 28,
+  height = 5,
+  dpi = 300,
+  units = "in")
+```
+
