@@ -50,7 +50,7 @@ data_inc_latam <- data_inc_latam |>
 # Crear dataframe de breaks y labels para el eje secundario
 sec_y <- data_inc_latam |>
   filter(Year == max(Year)) |>
-  select(`ASR (World)`, Sex) |>
+  dplyr::select(`ASR (World)`, Sex) |>
   setNames(c("breaks", "labels"))
 
 # Gráfico con eje secundario etiquetado y coloreado
@@ -99,7 +99,7 @@ data_mor_latam <- data_mor_latam |>
 # Crear dataframe de breaks y labels para el eje secundario
 sec_y <- data_mor_latam |>
   filter(Year == max(Year)) |>
-  select(`ASR (World)`, Sex) |>
+  dplyr::select(`ASR (World)`, Sex) |>
   setNames(c("breaks", "labels"))
 
 # Gráfico con eje secundario etiquetado y coloreado
@@ -148,7 +148,7 @@ data_inc_no_latam <- data_inc_no_latam  |>
 # Crear dataframe de breaks y labels para el eje secundario
 sec_y <- data_inc_no_latam  |>
   filter(Year == max(Year)) |>
-  select(`ASR (World)`, Sex) |>
+  dplyr::select(`ASR (World)`, Sex) |>
   setNames(c("breaks", "labels"))
 
 # Gráfico con eje secundario etiquetado y coloreado
@@ -197,7 +197,7 @@ data_mor_no_latam <- data_mor_no_latam  |>
 # Crear dataframe de breaks y labels para el eje secundario
 sec_y <- data_mor_no_latam  |>
   filter(Year == max(Year)) |>
-  select(`ASR (World)`, Sex) |>
+  dplyr::select(`ASR (World)`, Sex) |>
   setNames(c("breaks", "labels"))
 
 # Gráfico con eje secundario etiquetado y coloreado
