@@ -8,6 +8,7 @@
 
 # User-specific files
 .Ruserdata
+.RData
 
 # RStudio files
 .Rproj.user
