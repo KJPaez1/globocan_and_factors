@@ -52,8 +52,8 @@ figure_1_a <- globocan_8 |>
       color = "black",
       family = "Syne"
     ),
-    axis.line = element_line(colour = "black", linetype = "solid"),
-    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    axis.line = element_line(colour = "black"),
+    axis.ticks = element_line(colour = "black"),
     panel.grid = element_blank()
   )
 
@@ -88,8 +88,8 @@ figure_1_b <- globocan_8 |>
   ggplot2::theme(
     strip.text.x = element_text(hjust = 0),
     text = element_text(size = 18, color = "black", family = "Syne"),
-    axis.line = element_line(colour = "black", linetype = "solid"),
-    axis.ticks = element_line(colour = "black", linetype = "solid"),
+    axis.line = element_line(colour = "black"),
+    axis.ticks = element_line(colour = "black"),
     axis.title = element_text(color = "black"),
     panel.grid = element_blank()
   )
@@ -147,8 +147,8 @@ my_ggplot <- function(data, ...) {
       legend.position = "bottom",
       legend.title = element_blank(),
       text = element_text(size = 18, color = "black", family = "Syne"),
-      axis.line = element_line(colour = "black", linetype = "solid"),
-      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      axis.line = element_line(colour = "black"),
+      axis.ticks = element_line(colour = "black"),
       panel.grid = element_blank(),
       plot.title = element_text(size = 24)
     )
@@ -285,8 +285,8 @@ my_ggplot_mir <- function(data, ...) {
         color = "black",
         family = "Syne"
       ),
-      axis.line = element_line(colour = "black", linetype = "solid"),
-      axis.ticks = element_line(colour = "black", linetype = "solid"),
+      axis.line = element_line(colour = "black"),
+      axis.ticks = element_line(colour = "black"),
       axis.title = element_text(color = "black"),
       panel.grid = element_blank()
     )
@@ -429,7 +429,7 @@ my_ggplot_mir <- function(data, ...) {
 #     plot.margin = unit(c(1, 1, 1, 1), "cm"), 
 #     legend.position = "right",
 #     text = element_text(size = 14, color = "black", family = "Syne"),
-#     axis.ticks = element_line(colour = "black", linetype = "solid"),
+#     axis.ticks = element_line(colour = "black"),
 #     panel.grid = element_blank()
 #   ) +
 #   ggplot2::guides(fill = guide_legend(ncol = 1)) +

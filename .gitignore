@@ -8,17 +8,9 @@
 
 # User-specific files
 .Ruserdata
-.RData
 
 # RStudio files
 .Rproj.user
 
 # RStudio proyect
 *.Rproj
-
-# Folders
-*writing
-*outputs
-*data
-*globocan_and_factors
-

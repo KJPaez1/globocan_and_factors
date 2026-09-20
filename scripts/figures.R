@@ -4,6 +4,11 @@ library(ggsci)
 library(mgcv)
 library(patchwork)
 library(here)
+library(ggdist)
+library(MetBrewer)
+library(colorspace)
+library(scales)
+library(monochromeR)
 
 # Fonts
 # library(extrafont)
@@ -27,19 +32,19 @@ heatmap <- function(data, title) {
     ggplot2::geom_tile(color = "white") +
     ggplot2::geom_text(aes(label = sprintf("%.2f", R2)), color = "black", size = 4.5) +
     ggplot2::scale_fill_distiller(palette = "RdBu", direction = -1, limits = c(0, 0.8), name = bquote(R^2)) +
-    ggplot2::labs(title = title, x = "Socioeconomic Development Indicators") +
+    ggplot2::labs(title = title, x = "Socioeconomic Development Indicators ") +
     ggplot2::theme_minimal() +
     ggplot2::theme(
-      axis.text.x = element_text(size = 15, color = "black", family = "Syne"),
-      axis.text.y = element_text(size = 15, color = "black", family = "Syne"),
+      axis.text.x = element_text(size = 15, color = "black"),
+      axis.text.y = element_text(size = 15, color = "black"),
       axis.ticks.y = element_blank(),
-      axis.title.x = element_text(size = 16, color = "black", family = "Syne", margin = margin(t = 10)),
+      axis.title.x = element_text(size = 16, color = "black", margin = margin(t = 10)),
       axis.title.y = element_blank(),
       panel.grid = element_blank(),
-      legend.text = element_text(size = 15, color = "black", family = "Syne"), 
-      legend.title = element_text(size = 16, color = "black", family = "Syne"), 
+      legend.text = element_text(size = 15, color = "black"), 
+      legend.title = element_text(size = 16, color = "black"), 
       legend.key.size = unit(1, "cm"),
-      plot.title = element_text(hjust = 0.5, size = 16, color = "black", family = "Syne")
+      plot.title = element_text(hjust = 0.5, size = 16, color = "black")
     )
   }
 
@@ -53,13 +58,13 @@ figure_1 <- (heatmap_incidence + heatmap_mortality + heatmap_mir) +
   patchwork::plot_layout(guides = "collect", axis_titles = "collect_x") &
   ggplot2::theme(legend.position = 'right')
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = figure_1,
-  filename = here("outputs", "FIG_1.png"),
+  filename = here("outputs", "FIG_1.jpeg"),
   width = 16,
   height = 10,
-  dpi = 300,
+  dpi = 500,
   units = "in")
 
 ## Save the combined plot as a EPS file
@@ -110,7 +115,7 @@ my_ggplot <- function(data, indicator, cancer, ...) {
       strip.text.x = element_text(hjust = 0),
       legend.position = "bottom",
       legend.title = element_blank(),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 18, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       panel.grid = element_blank(),
@@ -146,7 +151,7 @@ my_ggplot_mir <- function(data, indicator, cancer, ...) {
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 18, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
       panel.grid = element_blank(),
@@ -157,7 +162,7 @@ my_ggplot_mir <- function(data, indicator, cancer, ...) {
 ## Figures
 figure_a2 <- my_ggplot(
   data = globocan_8, indicator = "ed_i", cancer = "All cancers*") +
-  ggplot2::labs(x = "Education and Income index (EdI)")
+  ggplot2::labs(x = "Education and Income Index (EdI)")
 
 figure_b2 <- my_ggplot(
   data = globocan_8, indicator = "hdi", cancer = "All cancers*") +
@@ -169,7 +174,7 @@ figure_c2 <- my_ggplot(
 
 figure_d2 <- my_ggplot_mir(
   data = globocan_8, indicator = "ed_i", cancer = "All cancers*") +
-  ggplot2::labs(x = "Education and Income index (EdI)")
+  ggplot2::labs(x = "Education and Income Index (EdI)")
 
 figure_e2 <- my_ggplot_mir(
   data = globocan_8, indicator = "hdi", cancer = "All cancers*") +
@@ -187,10 +192,10 @@ figure_2 <- (figure_a2 + figure_d2 + figure_b2 + figure_e2 + figure_c2 + figure_
     legend.position = 'bottom',
     legend.text = element_text(size = 20))
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = figure_2,
-  filename = here("outputs", "FIG_2.png"),
+  filename = here("outputs", "FIG_2.jpeg"),
   width = 13,
   height = 13,
   dpi = 500,
@@ -212,7 +217,7 @@ group_a <- c(
   "Prostate",
   "Colorectum",
   "Melanoma of skin",
-  "Colon",
+  "Corpus uteri",
   "Bladder"
 )
 
@@ -266,7 +271,7 @@ my_ggplot_1 <- function(data, indicator, cancer, ...) {
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
       legend.title = element_blank(),
-      text = element_text(size = 18, color = "black", family = "Syne"),
+      text = element_text(size = 18, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.title = element_text(size = 20),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
@@ -302,7 +307,7 @@ my_ggplot_mir_1 <- function(data, indicator, cancer, ...) {
     ggplot2::theme_minimal() +
     ggplot2::theme(
       strip.text.x = element_text(hjust = 0),
-      text = element_text(size = 20, color = "black", family = "Syne"),
+      text = element_text(size = 20, color = "black"),
       axis.line = element_line(colour = "black", linetype = "solid"),
       axis.title = element_text(size = 20),
       axis.ticks = element_line(colour = "black", linetype = "solid"),
@@ -311,7 +316,7 @@ my_ggplot_mir_1 <- function(data, indicator, cancer, ...) {
     )
 }
 
-## Part 1: Education and Income index (EdI)
+## Part 1: Education and Income Index (EdI)
 
 ## Create an empty list to store the plots
 plots_list <- list()
@@ -335,7 +340,7 @@ figure_3a <-
   patchwork::plot_annotation(
     title = "Group A",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
+      plot.title = element_text(size = 28, color = "black"),
       plot.margin = unit(c(1, 1, 1, 1), "cm")))
 
 ## Create an empty list to store the plots
@@ -360,7 +365,7 @@ figure_3b <-
   patchwork::plot_annotation(
     title = "Group B",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
+      plot.title = element_text(size = 28, color = "black"),
       plot.margin = unit(c(1, 1, 1, 1), "cm")))
 
 ## Create an empty list to store the plots
@@ -386,8 +391,8 @@ figure_3c <-
     title = "Group C",
     caption = "Education and Income index (EdI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 24, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 24, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -395,7 +400,7 @@ figure_3c <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.45, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -423,7 +428,7 @@ figure_3d <-
   patchwork::plot_annotation(
     title = "Group A",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
+      plot.title = element_text(size = 28, color = "black"),
       plot.margin = unit(c(1, 1, 1, 1), "cm")))
 
 ## Create an empty list to store the plots
@@ -448,7 +453,7 @@ figure_3e <-
   patchwork::plot_annotation(
     title = "Group B",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
+      plot.title = element_text(size = 28, color = "black"),
       plot.margin = unit(c(1, 1, 1, 1), "cm")))
 
 ## Create an empty list to store the plots C
@@ -474,8 +479,8 @@ figure_3f <-
     title = "Group C",
     caption = "Sociodemographic Index (SDI)",
     theme = theme(
-      plot.title = element_text(size = 28, color = "black", family = "Syne"),
-      plot.caption = element_text(size = 24, color = "black", family = "Syne", hjust = 0.5),
+      plot.title = element_text(size = 28, color = "black"),
+      plot.caption = element_text(size = 24, color = "black", hjust = 0.5),
       plot.margin = unit(c(1, 1, 1, 1), "cm"))) +
   # Collect all legends into a single legend and customize its appearance
   patchwork::plot_layout(
@@ -483,7 +488,7 @@ figure_3f <-
   ggplot2::theme(
     legend.direction = "horizontal",
     legend.position = "bottom",
-    legend.text = element_text(size = 20, color = "black", family = "Syne"),
+    legend.text = element_text(size = 20, color = "black"),
     legend.justification = c(0.45, 1),
     legend.margin = margin(t = 10, r = 10, b = 15, l = 10))
 
@@ -499,13 +504,13 @@ figure_3 <-
     heights = c(2, 1.1, 1.3)
   )
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = figure_3,
-  filename = here("outputs", "FIG_3.png"),
+  filename = here("outputs", "FIG_3.jpeg"),
   width = 24,
   height = 26,
-  dpi = 300,
+  dpi = 500,
   units = "in")
 
 ## Save the combined plot as a EPS file
@@ -518,20 +523,58 @@ ggplot2::ggsave(
 
 # Figure 4: One-Way ANOVA tests for incidence by socioeconomic development indicators
 
-## Define a function to create the ANOVA tests
-calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) {
+## Identify the blue tones from the Benedictus palette
+
+## Show the Benedictus palette
+scales::show_col(MetBrewer::met.brewer("Benedictus"))
+
+## Extract the blue tones from the Benedictus palette
+blue_tones <- MetBrewer::met.brewer("Benedictus")[c(8, 10, 11, 12, 13)]
+
+## Darken the blue tones by 20% in HLS space to generate a new palette
+dark_blue_tones <- colorspace::darken(blue_tones, amount = 0.4, space = "HLS")
+
+## Show the dark blue tones from the new palette
+scales::show_col(dark_blue_tones)
+
+## Show colors from the IGV palette
+scales::show_col(ggsci::pal_igv("default")(51))
+
+## Generate a dark blue palette using monochromeR
+dark_blue_palette <- monochromeR::generate_palette(
+  "#1a318b", modification = "go_darker", n_colours = 5, view_palette = TRUE)
+
+## Lighten the monochromeR dark blue palette by 30%
+dark_blue_palette_lighten <- colorspace::lighten(dark_blue_palette, amount = 0.5, space = "HLS")
+
+## Define the function to create the ANOVA tests for incidences
+calculate_anova_incidence <- function(data, anova_data, indicator, label_x, label_y, ...) {
   ggpubr::ggboxplot(
     data = data,
     x = indicator,
-    y = asr,
-    facet.by = "cancer_type",
-    nrow = 2,
-    ncol = 5,
-    scales = "free",
+    y = "asr_world",
+    fill = indicator,
+    palette = blue_tones,
+    width = 0.5,
+    alpha = 0.6,
     xlab = label_x,
     ylab = label_y,
-    width = 0.5
+    facet.by = "cancer_type",
+    scales = "free",
+    nrow = 2,
+    ncol = 5
   ) +
+    # Add density plots
+    ggdist::stat_halfeye(
+      adjust = 1,
+      width = 0.6,
+      justification = -0.3,
+      .width = 0,
+      alpha = 0.5
+    ) +
+    # Add jittered points
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5) +
+    # Add p-value stars
     ggpubr::stat_pvalue_manual(
       anova_data,
       label = "p.adj.signif",
@@ -540,61 +583,180 @@ calculate_anova <- function(data, anova_data, indicator, asr, label_x, label_y) 
       step.increase = 0.06,
       size = 7.3
     ) +
+    # Add facets by cancer type
+    ggplot2::facet_wrap(~ cancer_type, scales = "free", nrow = 2, ncol = 5) +
+    # Add labels for axes
+    ggplot2::labs(x = label_x, y = label_y) +
+    # Theme customization
     ggplot2::theme(
-      axis.title = element_text(size = 26, color = "black", family = "Syne"),
-      axis.text = element_text(size = 26, color = "black", family = "Syne"),
-      strip.text = element_text(size = 26, color = "black", family = "Syne"),
+      axis.title = element_text(
+        size = 26,
+        color = "black"
+      ),
+      axis.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      strip.text = element_text(
+        size = 26,
+        color = "black"
+      ),
       panel.spacing = unit(1.5, "lines"),
       axis.text.x = element_text(
         margin = margin(5, 0, 10, 0),
         angle = 35,
         hjust = 1
       ),
-      axis.text.y = element_text(margin = margin(0, 5, 0, 10))
+      axis.text.y = element_text(margin = margin(0, 5, 0, 10)),
+      legend.position = "none"
+    )
+}
+
+## Extract the red tones from the Benedictus palette
+red_tones <- MetBrewer::met.brewer("Benedictus")[c(6, 4, 3, 2, 1)]
+
+## Define the function to create the ANOVA tests for mortality
+calculate_anova_mortality <- function(data, anova_data, indicator, label_x, label_y, ...) {
+  ggpubr::ggboxplot(
+    data = data,
+    x = indicator,
+    y = "asr_world",
+    fill = indicator,
+    palette = red_tones,
+    width = 0.5,
+    alpha = 0.6,
+    xlab = label_x,
+    ylab = label_y,
+    facet.by = "cancer_type",
+    scales = "free",
+    nrow = 2,
+    ncol = 5
+  ) +
+    # Add density plots
+    ggdist::stat_halfeye(
+      adjust = 1,
+      width = 0.6,
+      justification = -0.3,
+      .width = 0,
+      alpha = 0.5
     ) +
-    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5)
+    # Add jittered points
+    ggbeeswarm::geom_quasirandom(alpha = 0.5, size = 3.5) +
+    # Add p-value stars
+    ggpubr::stat_pvalue_manual(
+      anova_data,
+      label = "p.adj.signif",
+      step.group.by = "cancer_type",
+      y.position = "y.position",
+      step.increase = 0.06,
+      size = 7.3
+    ) +
+    # Add facets by cancer type
+    ggplot2::facet_wrap(~ cancer_type, scales = "free", nrow = 2, ncol = 5) +
+    # Add labels for axes
+    ggplot2::labs(x = label_x, y = label_y) +
+    # Theme customization
+    ggplot2::theme(
+      axis.title = element_text(
+        size = 26,
+        color = "black"
+      ),
+      axis.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      strip.text = element_text(
+        size = 26,
+        color = "black"
+      ),
+      panel.spacing = unit(1.5, "lines"),
+      axis.text.x = element_text(
+        margin = margin(5, 0, 10, 0),
+        angle = 35,
+        hjust = 1
+      ),
+      axis.text.y = element_text(margin = margin(0, 5, 0, 10)),
+      legend.position = "none"
+    )
 }
 
 ## One-Way ANOVA test of incidence by EdI category
-figure_4a <- calculate_anova(
+figure_4a <- calculate_anova_incidence(
   data = data_incidence_edi_globocan_8,
   anova_data = pw_gh_test_incidence_edi,
   indicator = "edi_categories",
-  asr = "asr_world",
   label_x = "Education and Income Index (EdI)",
-  label_y = "Age-Standardized Incidence Rate (per 100,000)"
-)
+  label_y = "Age-Standardized Rate (per 100,000)"
+  ) + 
+  ggplot2::labs(tag = "A)") +
+  ggplot2::theme(
+    plot.tag = ggplot2::element_text(size = 35, face = "bold"),
+    plot.tag.position = c(0.02, 0.95),
+    axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by HDI category
-figure_4b <- calculate_anova(
+figure_4b <- calculate_anova_incidence(
   data = data_incidence_hdi_globocan_8, 
   anova_data = pw_gh_test_incidence_hdi, 
   indicator = "hdi_category", 
-  asr = "asr_world", 
   label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Incidence Rate (per 100,000)")
+  label_y = "Age-Standardized Rate (per 100,000)"
+  ) +
+  ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## One-Way ANOVA test of incidence by SDI category
-figure_4c <- calculate_anova(
+figure_4c <- calculate_anova_incidence(
   data = data_incidence_sdi_globocan_8, 
   anova_data = pw_gh_test_incidence_sdi, 
   indicator = "sdi_categories", 
-  asr = "asr_world", 
   label_x = "Sociodemographic Index (SDI)", 
   label_y = "Age-Standardized Incidence Rate (per 100,000)")
 
+# Figure 5: One-Way ANOVA tests for mortality by socioeconomic development indicators
+
+## One-Way ANOVA test of mortality by EdI category
+figure_5a <- calculate_anova_mortality(
+  data = data_mortality_edi_globocan_8,
+  anova_data = pw_gh_test_mortality_edi,
+  indicator = "edi_categories",
+  label_x = "Education and Income Index (EdI)",
+  label_y = "Age-Standardized Rate (per 100,000)"
+  ) + 
+  ggplot2::labs(tag = "B)") +
+  ggplot2::theme(
+    plot.tag = ggplot2::element_text(size = 35, face = "bold"),
+    plot.tag.position = c(0.09, 0.95),
+    axis.title.y = ggplot2::element_text(colour = "white"))
+
+## One-Way ANOVA test of incidence by HDI category
+figure_5b <- calculate_anova_mortality(
+  data = data_mortality_hdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_hdi, 
+  indicator = "hdi_category", 
+  label_x = "Human Development Index (HDI)", 
+  label_y = "Age-Standardized Rate (per 100,000)"
+  ) +
+  ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "white"))
+
+## One-Way ANOVA test of incidence by SDI category
+figure_5c <- calculate_anova_mortality(
+  data = data_mortality_sdi_globocan_8, 
+  anova_data = pw_gh_test_mortality_sdi, 
+  indicator = "sdi_categories", 
+  label_x = "Sociodemographic Index (SDI)", 
+  label_y = "Age-Standardized Rate (per 100,000)"
+  ) +
+  ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "white"))
 
 ## Combine all subplots into a single plot
-figure_4 <- (
-  figure_4a + figure_4b + figure_4c) +
-  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 1))
+figure_4 <- figure_4a + figure_4b + figure_4c + (figure_5a + figure_5b + plot_layout(ncol = 2, widths = c(0.85, 3))) + figure_5c + patchwork::plot_layout(ncol = 1, heights = c(1, 1, 1, 1, 1))
 
-## Save the combined plot as a PNG file
+## Save the combined plot as a JPEG file
 ggplot2::ggsave(
   plot = figure_4,
-  filename = here::here("outputs", "FIG_4.png"),
-  width = 26,
-  height = 26,
+  filename = here::here("outputs", "FIG_4.jpeg"),
+  width = 30,
+  height = 30,
   dpi = 300,
   units = "in")
 
@@ -603,115 +765,10 @@ ggplot2::ggsave(
   plot = figure_4,
   filename = here::here("outputs", "FIG_4.eps"),
   width = 26,
-  height = 26,
-  units = "in")
-
-# Figure 5: One-Way ANOVA tests for mortality by socioeconomic development indicators
-
-## One-Way ANOVA test of mortality by EdI category
-figure_5a <- calculate_anova(
-  data = data_mortality_edi_globocan_8,
-  anova_data = pw_gh_test_mortality_edi,
-  indicator = "edi_categories",
-  asr = "asr_world",
-  label_x = "Education and Income Index (EdI)",
-  label_y = "Age-Standardized Mortality Rate (per 100,000)"
-)
-
-## One-Way ANOVA test of incidence by HDI category
-figure_5b <- calculate_anova(
-  data = data_mortality_hdi_globocan_8, 
-  anova_data = pw_gh_test_mortality_hdi, 
-  indicator = "hdi_category", 
-  asr = "asr_world", 
-  label_x = "Human Development Index (HDI)", 
-  label_y = "Age-Standardized Mortality Rate (per 100,000)")
-
-## One-Way ANOVA test of incidence by SDI category
-figure_5c <- calculate_anova(
-  data = data_mortality_sdi_globocan_8, 
-  anova_data = pw_gh_test_mortality_sdi, 
-  indicator = "sdi_categories", 
-  asr = "asr_world", 
-  label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Age-Standardized Mortality Rate (per 100,000)")
-
-
-## Combine all subplots into a single plot
-figure_5 <-
-  ((figure_5a) + (figure_5b + theme(axis.title.y = element_blank())) + 
-     patchwork::plot_layout(ncol = 2, widths = c(0.85, 3))) / figure_5c + 
-  patchwork::plot_layout(axis_titles = 'collect_y', heights = c(1, 1))
-
-## Save the combined plot as a PNG file
-ggplot2::ggsave(
-  plot = figure_5,
-  filename = here::here("outputs", "FIG_5.png"),
-  width = 26,
-  height = 16,
-  dpi = 300,
-  units = "in")
-
-## Save the combined plot as a EPS file
-ggplot2::ggsave(
-  plot = figure_5,
-  filename = here::here("outputs", "FIG_5.eps"),
-  width = 26,
   height = 16,
   units = "in")
 
-# Figure 6: One-Way ANOVA tests for MIR by socioeconomic development indicators
 
-## One-Way ANOVA test of mortality by EdI category
-figure_6a <- calculate_anova(
-  data = data_mir_edi_globocan_8,
-  anova_data = pw_gh_test_mir_edi,
-  indicator = "edi_categories",
-  asr = "asr_world",
-  label_x = "Education and Income Index (EdI)",
-  label_y = "Mortality-to-Incidence Ratio (MIR)"
-)
-
-## One-Way ANOVA test of incidence by HDI category
-figure_6b <- calculate_anova(
-  data = data_mir_hdi_globocan_8, 
-  anova_data = pw_gh_test_mir_hdi, 
-  indicator = "hdi_category", 
-  asr = "asr_world", 
-  label_x = "Human Development Index (HDI)", 
-  label_y = "Mortality-to-Incidence Ratio (MIR)")
-
-## One-Way ANOVA test of incidence by SDI category
-figure_6c <- calculate_anova(
-  data = data_mir_sdi_globocan_8, 
-  anova_data = pw_gh_test_mir_sdi, 
-  indicator = "sdi_categories", 
-  asr = "asr_world", 
-  label_x = "Sociodemographic Index (SDI)", 
-  label_y = "Mortality-to-Incidence Ratio (MIR)")
-
-
-## Combine all subplots into a single plot
-figure_6 <- 
-  figure_6a / figure_6b / figure_6c + 
-  patchwork::plot_layout(ncol = 1, axis_titles = 'collect_y', heights = c(1, 1, 2.5))
-
-## Save the combined plot as a PNG file
-ggplot2::ggsave(
-  plot = figure_6,
-  filename = here::here("outputs", "FIG_6.png"),
-  width = 26,
-  height = 26,
-  dpi = 300,
-  units = "in")
-
-## Save the combined plot as a EPS file
-ggplot2::ggsave(
-  plot = figure_6,
-  filename = here::here("outputs", "FIG_6.eps"),
-  width = 26,
-  height = 26,
-  units = "in")
 
 # Figure 5: One-Way ANOVA test of mortality by EdI category
 # calculate_anova <- function(data, cancer_type) {
