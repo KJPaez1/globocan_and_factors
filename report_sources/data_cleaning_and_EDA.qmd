@@ -37,7 +37,6 @@ pacman::p_load(
   janitor,
   splines,
   ggformula,
-<<<<<<< HEAD
   mgcv,
   ggcompare,
   ggpubr,
@@ -152,7 +151,6 @@ calculate_EdI = function(EYS,
                          max_MYS = 15, 
                          min_GNI = 100, 
                          max_GNI = 75000) {
-=======
 calculate_EdI = function(EYS, MYS, GNI_per_capita, 
                           max_EYS = 20, max_MYS = 15, 
                           min_GNI = 100, max_GNI = 75000) {
