@@ -1,8 +1,22 @@
-<<<<<<< HEAD
-*~
-outputs
-=======
->>>>>>> carlos_branch
+# History files
 .Rhistory
-*.Rproj
+.Rapp.history
+
+# Session Data files
+.RData
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+
+# RStudio files
 .Rproj.user
+
+# RStudio proyect
+*.Rproj
+
+# Folders
+*writing
+*outputs
+*data
+
